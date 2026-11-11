@@ -1,0 +1,1781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DC-LM Dashboard</title>
+<style>
+:root{
+  --green:#2E8B57; --deep:#1F6F45; --lime:#AACC00; --card:#F6FAF7; --amber:#C77700;
+  --bg:#FFFFFF; --surface:#FFFFFF; --ink:#1B2A20; --muted:#5C6B61; --line:#D9E6DD; --hl:#FFF6DC; --red:#A23B2A;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1914; --surface:#162219; --ink:#E6F2EA; --muted:#9DB3A4; --line:#2A3D31; --card:#1B2B21; --deep:#7FD1A0; --green:#3FA56C; --hl:#3A3316; --amber:#E0A040; --red:#E58A78;
+} }
+:root[data-theme="dark"]{
+  --bg:#0F1914; --surface:#162219; --ink:#E6F2EA; --muted:#9DB3A4; --line:#2A3D31; --card:#1B2B21; --deep:#7FD1A0; --green:#3FA56C; --hl:#3A3316; --amber:#E0A040; --red:#E58A78;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{padding:0 0 60px}
+header.top{background:var(--bg);border-bottom:3px solid var(--lime);padding:14px 20px 10px;position:sticky;top:0;z-index:20}
+.hdr-main{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+#hdr{display:block}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--deep);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:20px}
+.title{font-size:20px;font-weight:700;color:var(--deep);letter-spacing:.2px}
+.sub{color:var(--muted);font-size:12px}
+.hdr-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.field-inline{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.field-inline input{border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:150px}
+.statusbar{margin-top:10px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:11px;letter-spacing:.6px}
+.pill.ok{background:var(--green);color:#fff}
+.pill.warn{background:var(--card);color:var(--amber);border:1px solid var(--amber)}
+.meta{color:var(--muted);font-size:12px}
+.meta b{color:var(--ink)}
+.banner{margin-top:8px;padding:8px 12px;border-radius:8px;font-size:13px;border-left:4px solid}
+.banner.info{background:var(--card);border-color:var(--green)}
+.banner.ok{background:#EEF8D9;border-color:var(--lime);color:var(--ink)}
+.banner.err{background:#FBEAE6;border-color:var(--red);color:#7A2A1C}
+.banner.warn{background:var(--card);border-color:var(--amber)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--green);background:var(--surface);color:var(--deep);padding:7px 12px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--card)}
+.btn.primary{background:var(--green);color:#fff}
+.btn.primary:hover{background:var(--deep)}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn.big{padding:12px 20px;font-size:15px;margin-top:10px}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--deep);padding:8px 14px;border-radius:999px;font-weight:600;cursor:pointer;font-size:13px}
+.tab.on{background:var(--deep);color:var(--bg);border-color:var(--deep)}
+main{padding:12px 20px}
+.tabhead h1{font-size:18px;color:var(--deep);margin:6px 0 2px}
+#filters{margin:10px 0}
+.filterbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.frow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:8px}
+.frow label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.frow label.grow{flex:1;min-width:260px}
+.frow input,.frow select,.groupbar select{color-scheme:light dark;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px;background:var(--surface);color:var(--ink);min-width:90px}
+.frow input[type=search]{width:100%}
+.frow input[type=number]{width:95px}
+.chips{gap:6px}
+.chipwrap{position:relative}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 10px;font-size:12px;cursor:pointer}
+.chip.on{background:var(--card);border-color:var(--green);color:var(--deep);font-weight:600}
+.fpanel{position:absolute;top:34px;left:0;z-index:30;background:var(--surface);color:var(--ink);border:1px solid var(--green);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);width:300px;padding:8px}
+.fsearch{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px}
+.fbtns{display:flex;gap:6px;margin:6px 0}
+.fbtns button{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer;color:var(--deep)}
+.flist{max-height:260px;overflow:auto}
+.fopt{display:flex;gap:6px;align-items:center;font-size:12px;padding:3px 2px;cursor:pointer;color:var(--ink)}
+.fopt span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fopt em{font-style:normal;color:var(--muted)}
+.fmore{font-size:11px;color:var(--muted);padding-top:4px}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.ch{margin-bottom:10px}
+.ch h2,section.card h2{font-size:15px;margin:0 0 2px;color:var(--deep);padding-bottom:4px;border-bottom:3px double var(--lime)}
+.ch .meta{margin-top:4px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:10px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:10px;padding:10px 12px}
+.kpi.warn{border-left-color:var(--amber)}
+.kl{font-size:12px;color:var(--muted)}
+.kv{font-size:20px;font-weight:700;color:var(--deep);margin-top:2px}
+.kv small{font-size:13px;color:var(--ink);font-weight:600}
+.ks{font-size:11px;color:var(--muted);margin-top:2px}
+.bars{display:flex;flex-direction:column;gap:5px}
+.barrow{display:grid;grid-template-columns:110px 1fr 120px;gap:8px;align-items:center;font-size:12px}
+.barrow .bl.wide{grid-column:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt{background:var(--card);border:1px solid var(--line);border-radius:4px;height:12px;overflow:hidden}
+.bt i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--lime))}
+.bv{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.tablewrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:8px}
+table.grid{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--surface);color:var(--ink)}
+table.grid th,table.grid td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;vertical-align:top}
+table.grid th{position:sticky;top:0;background:var(--card);color:var(--deep);font-weight:700;cursor:pointer;user-select:none;border-bottom:2px solid var(--green)}
+table.grid td.num,table.grid th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.grid tr.click{cursor:pointer}
+table.grid tr.click:hover td{background:var(--card)}
+table.grid td.hl{background:var(--hl)}
+td.empty{text-align:center;color:var(--muted);padding:14px}
+.cat{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}
+.cat.confirm{background:#EEF8D9;color:#4C6A00;border-color:var(--lime)}
+:root[data-theme="dark"] .cat.confirm,:root:not([data-theme="light"]) .cat.confirm{color:#D9EE7A;background:#2A3510}
+.cat.possible{background:var(--card);color:var(--amber);border-color:var(--amber)}
+.cat.jit{background:var(--card);color:var(--deep);border-color:var(--green)}
+.cat.none{background:var(--surface);color:var(--muted);border-color:var(--line)}
+.catrow{display:flex;gap:8px;flex-wrap:wrap}
+.flag{color:var(--amber);font-weight:700}
+.groupbar{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.groupbar label{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.exports{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+textarea.remark{width:240px;min-height:30px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font:12px/1.3 inherit;font-family:inherit;resize:vertical}
+textarea.remark.stale{border-color:var(--amber);background:var(--hl)}
+textarea.remark{background:var(--surface);color:var(--ink)}
+.rmeta{font-size:10px;color:var(--muted);margin-top:2px}
+.diaggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;font-size:12px;margin-bottom:8px}
+.diaggrid div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px}
+.warn-text{color:var(--amber)}
+.empty-state{text-align:center;padding:30px 16px}
+.empty-state p{max-width:620px;margin:8px auto;color:var(--muted)}
+#modal{display:none;position:fixed;inset:0;background:rgba(20,40,30,.35);z-index:50;padding:20px;overflow:auto}
+#modal.show{display:block}
+.modal{background:var(--surface);border-radius:12px;padding:16px;max-width:1200px;margin:0 auto;border-top:4px solid var(--lime)}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mhead h3{margin:0;color:var(--deep)}
+.mfoot{margin-top:10px}
+@media (max-width:720px){
+  header.top,main,nav.tabs{padding-left:16px;padding-right:16px}
+  .field-inline input{width:110px}
+  .barrow{grid-template-columns:90px 1fr 90px}
+  .fpanel{width:calc(100vw - 64px)}
+}
+
+tr.selfhub td{background:#FFF1CC !important}
+tr.selfhub td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
+tr.flagrow td{background:#FCEFD9}
+.zero{color:var(--line)}
+.btn.small{padding:4px 9px;font-size:12px}
+.tfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.hint{color:var(--muted);padding:10px;border:1px dashed var(--line);border-radius:8px}
+.detailhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.detailhead h3{margin:0;color:var(--deep);font-size:15px}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:8px 0}
+.half h4{margin:6px 0;color:var(--deep);font-size:13px}
+.subbox,.podbox{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:6px 0 10px;font-size:12px}
+.subopt{display:inline-flex;gap:4px;align-items:center;font-size:12px;color:var(--ink)}
+.podbox{max-height:120px;overflow:auto}
+
+/* v3 additions: popup, resize handles, grand totals, lane tree */
+:root{--laneBg:#E4F2C2;--laneInk:#1B2A20;--tertBg:#EEF6F0}
+:root[data-theme="dark"]{--laneBg:#2A3510;--laneInk:#D9EE7A;--tertBg:#1B2B21}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--laneBg:#2A3510;--laneInk:#D9EE7A;--tertBg:#1B2B21} }
+table.grid th .rz{position:absolute;right:0;top:0;bottom:0;width:7px;cursor:col-resize;border-right:2px solid transparent}
+table.grid th .rz:hover{border-right-color:var(--lime)}
+table.grid th{position:sticky;overflow:visible}
+table.grid tr.totrow td{background:var(--card);font-weight:700;border-bottom:2px solid var(--green);color:var(--deep);cursor:default}
+table.grid tr.lane-row td{background:var(--laneBg);color:var(--laneInk);font-weight:700}
+table.grid tr.tert-row td{background:var(--tertBg);font-weight:600}
+table.grid tr.dest-row td{font-weight:400}
+.ind1{padding-left:14px;display:inline-block}
+.ind2{padding-left:28px;display:inline-block}
+.shortchip{display:inline-block;background:var(--amber);color:#fff;border-radius:999px;padding:0 7px;font-weight:700;font-size:11px}
+.modal{max-width:1400px;width:100%}
+.modal section.card{margin:10px 0;box-shadow:none}
+.mhead{flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.mhead h2{margin:0;color:var(--deep);font-size:17px}
+.mbtn{display:flex;gap:8px;flex-wrap:wrap}
+.modal .tablewrap{max-height:55vh}
+.frow select{min-width:110px}
+
+/* v4: first-column cap, RCA boxes, width controls */
+table.grid td.capfirst, table.grid th.capfirst{max-width:300px}
+.cellw{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+table.grid td:first-child{overflow:hidden;text-overflow:ellipsis}
+table.grid th{position:sticky;z-index:2}
+table.grid th .rz{width:12px;z-index:5}
+body.resizing{user-select:none;cursor:col-resize}
+.backendbox{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:10px}
+.backendbox label{display:flex;flex-direction:column;gap:4px;flex:1;min-width:280px;font-size:12px;color:var(--muted)}
+.backendbox input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--bg);color:var(--ink)}
+.backendbox .meta{flex-basis:100%}
+table.grid tr.lanetop td{background:#EEF8D9}
+table.grid tr.lanetop td:first-child{box-shadow:inset 3px 0 0 var(--lime)}
+:root[data-theme="dark"] table.grid tr.lanetop td,:root:not([data-theme="light"]) table.grid tr.lanetop td{background:#2A3510}
+.rank{display:inline-block;background:var(--deep);color:#fff;border-radius:999px;padding:0 7px;font-size:10.5px;font-weight:700}
+body.resizing table.grid th{cursor:col-resize}
+textarea.remark.rca{width:170px;min-height:26px;font-size:11.5px}
+td.rcacell{white-space:normal}
+.btn.small.ghost{border-color:var(--line);color:var(--muted)}
+table.grid tr.totrow td:first-child{color:var(--deep)}
+.subbox input[type=radio]{accent-color:var(--green)}
+</style>
+</head>
+<body>
+<header class="top"><div id="hdr"></div></header>
+<nav class="tabs" id="nav"></nav>
+<main>
+  <div id="filters"></div>
+  <div id="body"></div>
+</main>
+<div id="modal"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* Shadowfax Visibility Dashboard - classification and analytics engine (pure logic, no DOM). */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === 'object' && module.exports) { module.exports = api; }
+  else { root.VIS = api; }
+})(typeof self !== 'undefined' ? self : globalThis, function () {
+  'use strict';
+
+  // ---------- Configuration (all business thresholds live here) ----------
+  var CONFIG = {
+    sheetPriority: ['Base', 'Short_Dispatched'],
+    tabs: {
+      overall: { label: 'DCH Overall Pendency', manifestType: 'DCH2',  ageMin: 2, ageMax: 20 },
+      mm:   { label: 'MM Liability',        manifestType: 'DCH2',  ageMin: 2, ageMax: 20 },
+      lh:   { label: 'LH Liability',        manifestType: 'DCH2',  ageMin: 2, ageMax: 30 },
+      lm:   { label: 'LM Liability',        manifestType: 'DCH2',  ageMin: 2, ageMax: 20 },
+      dcdc: { label: 'DC-DC Short',         manifestType: 'DC-DC', ageMin: 2, ageMax: 25 }
+    },
+    laneValueThreshold: 30000,   // lane exposure strictly greater than this is flagged
+    hovValueThreshold: 5000,     // HOV list threshold, strictly greater than
+    olderAgeingDays: 10,         // "older pending" tag for DC-DC criticality (assumption)
+    minLaneAwbs: 10,             // minimum lane pendency before a pattern is called (assumption)
+    confirmMinValidated: 5,      // Confirm Lane Issue needs at least this many validated shorts in the lane
+    confirmHighlightTop: 25,     // of the confirmed lanes, highlight this many by pendency
+    jitShareThreshold: 0.6,      // Connecting Bagging share for Possible JIT/ADC (assumption)
+    jitMinBagAwbs: 5,            // minimum AWBs in the dominant bagging (assumption)
+    // JIT/ADC concentration also requires >= 2 distinct Connecting Bagging values on the lane (a single-bagging lane is not 'concentrated')
+    tertiaryDominanceShare: 0.6, // share of tertiary-tagged pendency for a dominant tertiary lane (assumption)
+    broadMinDestinations: 3,     // Possible Lane Issue: destinations spread (assumption)
+    broadMaxTopDestShare: 0.5,   // ...and no single destination above this share (assumption)
+    retentionHours: 24,
+    sellerMinAwbs: 5,            // DC-DC seller flag: minimum pendency (assumption)
+    sellerFraudValue: 50000,     // DC-DC seller flag: value that marks a liquid-damage seller as high criticality (assumption)
+    sellerAgedDays: 10,          // DC-DC spike: ageing from which pendency counts as aged (assumption)
+    sellerAgedShare: 0.6,        // DC-DC spike: share of seller pendency that is aged (assumption)
+    hov2ValueThreshold: 2000,    // DC-DC HOV description list threshold (per DC-DC table 3)
+    liquidDamageRegex: /\b(ghar|beco)\b/i,
+    criticalAgeDays: 10          // LM >5k criticality: Critical if value > 5k and ageing >= this (assumption)
+  };
+
+  // Source header -> canonical field. optional=true means missing header is reported but not fatal.
+  var FIELD_MAP = [
+    ['awb', 'Awb_number'], ['manifestType', 'Manifest_Type'], ['ageing', 'Ageing_from_Bag_Rec'],
+    ['currentLocation', 'Current_location'], ['laneCode', 'Lane Code'], ['tertiaryLane', 'Tertiary Lane'],
+    ['connectingBagging', 'Connecting Bagging'], ['manifestOrigin', 'Manifest_origin'],
+    ['manifestDestination', 'Manifest_Destination'], ['manifestCode', 'Manifest_code'],
+    ['actualManifestId', 'ActualManifestID', true], ['mmRemarks', 'MM Remarks'], ['lmRemarks', 'LM Remarks'],
+    ['landroval', 'Landroval Check'], ['hov', 'HOV'], ['wrongDestination', 'Wrongly Connceted Destination', true],
+    ['productName', 'product_names', true], ['productCategory', 'product_categories', true],
+    ['pod', 'POD Mapping', true], ['podZone', 'POD_Zone', true], ['seller', 'seller_name', true], ['hov2', 'HOV2', true],
+    ['shipInManifest', 'Shipment in Manifest', true], ['dcRemark', 'Remarks', true],
+    ['awbInManifest', 'awbs_in_manifest', true], ['actionUser', 'action_user', true],
+    ['lastActionUser', 'last_action_user', true], ['pendencyCount', 'Pendency Count', true]
+  ];
+  var VALUE_HEADERS = ['Product_Value2', 'product_value'];
+
+  // ---------- Normalisation ----------
+  var NA = new Set(['', 'na', 'n/a', '#n/a', 'nan', 'null', 'none', 'nil', '-', '#value!', '#ref!']);
+  function txt(v) { return v === null || v === undefined ? '' : String(v).trim(); }
+  function isMissing(v) { return NA.has(txt(v).toLowerCase()); }
+  function isMissingCode(v) { return isMissing(v) || txt(v) === '0'; }
+  function norm(v) { return txt(v).replace(/\s+/g, ' ').replace(/\s*@\s*/g, '@').toLowerCase(); }
+  function toNum(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(String(v).replace(/,/g, '').trim());
+    return isFinite(n) ? n : null;
+  }
+  function normMT(v) {
+    var k = txt(v).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (k === 'DCH2') return 'DCH2';
+    if (k === 'DCDC') return 'DC-DC';
+    return txt(v);
+  }
+  var BUCKETS = ['1', '2–5', '6–10', '11–15', '16–20', '21–25', '26–30', '31+'];
+  function ageBucket(a) {
+    if (a === null || a === undefined) return '(no ageing)';
+    if (a <= 1) return '1'; if (a <= 5) return '2–5'; if (a <= 10) return '6–10';
+    if (a <= 15) return '11–15'; if (a <= 20) return '16–20'; if (a <= 25) return '21–25';
+    if (a <= 30) return '26–30'; return '31+';
+  }
+
+  // ---------- Remark dictionaries (keys are normalised) ----------
+  var MM_DIRECT = {};
+  MM_DIRECT[norm('Seal Mismatch @Origin')] = { reason: 'Seal mismatch @ origin', rule: 'MM-D1' };
+  MM_DIRECT[norm('Shipment Connected to Wrong Destination')] = { reason: 'Shipment connected to wrong destination', rule: 'MM-D2' };
+  MM_DIRECT[norm('Fake bagging')] = { reason: 'Fake bagging', rule: 'MM-D3' };
+  MM_DIRECT[norm('Miss Sort - GC Fault (Not Connected in Manifest)')] = { reason: 'Miss sort GC fault', rule: 'MM-D4' };
+  MM_DIRECT[norm('GC created 2 Bags for Same manifest')] = { reason: 'GC created 2 bags for same manifest', rule: 'MM-D5' };
+  var MM_CCTV = {};
+  MM_CCTV[norm('Camera Not Clear')] = { reason: 'Camera not clear', rule: 'MM-C1' };
+  MM_CCTV[norm('DVR Issue')] = { reason: 'DVR issue', rule: 'MM-C2' };
+  MM_CCTV[norm('Camera Not Aligned')] = { reason: 'Camera not aligned', rule: 'MM-C3' };
+  MM_CCTV[norm('Duplicate PTL/Manual Station')] = { reason: 'Duplicate PTL', rule: 'MM-C4' };
+  var MM_CORRECT = norm('Shipment Connected to Correct Destination');
+  var LM_SHORT = new Set(['short found', 'short validated', 'approved'].map(norm));
+
+  // ---------- Record normalisation ----------
+  function resolveHeaders(headers, aoaRows) {
+    var idx = {}, missing = [], optionalMissing = [];
+    FIELD_MAP.forEach(function (f) {
+      var i = headers.indexOf(f[1]);
+      if (i < 0) { (f[2] ? optionalMissing : missing).push(f[1]); } else { idx[f[0]] = i; }
+    });
+    var candidates = [];
+    headers.forEach(function (h, i) { if (VALUE_HEADERS.indexOf(h) >= 0) candidates.push(i); });
+    var valueIdx = null, valueHeader = null, valueCounts = {};
+    if (!candidates.length) { missing.push('Product_Value2 / product_value'); }
+    else {
+      // Several columns may carry the value. Use the one that is actually populated.
+      candidates.forEach(function (c) {
+        var n = 0;
+        for (var r = 0; r < aoaRows.length; r++) { if (toNum(aoaRows[r][c]) !== null) n++; }
+        valueCounts[headers[c] + '#' + c] = n;
+      });
+      candidates.sort(function (a, b) { return (valueCounts[headers[b] + '#' + b] || 0) - (valueCounts[headers[a] + '#' + a] || 0); });
+      valueIdx = candidates[0]; valueHeader = headers[valueIdx] + ' (column ' + (valueIdx + 1) + ')';
+      if (candidates.length > 1) { optionalMissing.push('Duplicate value column: ' + candidates.map(function (c) { return headers[c] + ' col ' + (c + 1) + ' populated=' + valueCounts[headers[c] + '#' + c]; }).join('; ')); }
+      idx.value = valueIdx;
+    }
+    return { ok: missing.length === 0, missing: missing, optionalMissing: optionalMissing, idx: idx, valueHeader: valueHeader };
+  }
+
+  // "Shipment in Manifest" and "awbs_in_manifest" carry the same count; use whichever is populated.
+  function manifestCount(a, b) {
+    var x = txt(a);
+    if (!isMissingCode(x)) return x;
+    var y = txt(b);
+    return isMissingCode(y) ? '' : y;
+  }
+
+  function buildRecord(row, idx, rowNo) {
+    var g = function (k) { return idx[k] === undefined ? undefined : row[idx[k]]; };
+    var valueRaw = g('value');
+    return {
+      rowNo: rowNo,
+      awb: txt(g('awb')),
+      mt: normMT(g('manifestType')),
+      age: toNum(g('ageing')),
+      loc: txt(g('currentLocation')),
+      lane: isMissingCode(g('laneCode')) ? '' : txt(g('laneCode')),
+      tert: isMissing(g('tertiaryLane')) ? '' : txt(g('tertiaryLane')),
+      bag: isMissingCode(g('connectingBagging')) ? '' : txt(g('connectingBagging')),
+      origin: txt(g('manifestOrigin')),
+      dest: txt(g('manifestDestination')),
+      mcode: txt(g('manifestCode')),
+      amid: isMissingCode(g('actualManifestId')) ? '' : txt(g('actualManifestId')),
+      mm: txt(g('mmRemarks')),
+      lm: txt(g('lmRemarks')),
+      land: txt(g('landroval')),
+      hov: norm(g('hov')) === 'hov',
+      wrongDest: isMissingCode(g('wrongDestination')) ? '' : txt(g('wrongDestination')),
+      pname: isMissingCode(g('productName')) ? '' : txt(g('productName')),
+      pcat: isMissingCode(g('productCategory')) ? '' : txt(g('productCategory')),
+      pod: txt(g('pod')) || 'NA',
+      podZone: txt(g('podZone')) || 'NA',
+      seller: txt(g('seller')) || 'NA',
+      hov2: norm(g('hov2')) === 'hov',
+      shipInManifest: manifestCount(g('shipInManifest'), g('awbInManifest')),
+      actionUser: isMissingCode(g('actionUser')) ? '' : txt(g('actionUser')),
+      dcRemark: isMissing(g('dcRemark')) ? 'NA' : txt(g('dcRemark')),
+      bucket: '',
+      value: toNum(valueRaw) === null ? 0 : toNum(valueRaw),
+      valueOk: toNum(valueRaw) !== null,
+      raw: row
+    };
+  }
+
+  // ---------- Classification ----------
+  var BUCKET_SEAL = 'Seal mismatch', BUCKET_MISROUTE = 'DC/XD misroute/ fake bagging', BUCKET_CCTV = 'CCTV issue at DC- Short at Hub';
+  function setMM(rec, cls, reason, rule, note, bucket) { rec.mmCls = cls; rec.mmReason = reason; rec.mmRule = rule; rec.mmNote = note || ''; rec.mmBucket = bucket || ''; return rec; }
+
+  function classifyMM(rec) {
+    var m = norm(rec.mm), land = norm(rec.land);
+    var sealLand = land === 'seal mismatch' || land === 'possible seal mismatch';
+    var d = MM_DIRECT[m];
+    if (d) return setMM(rec, 'MM', d.reason, d.rule, '', (d.rule === 'MM-D1' || d.rule === 'MM-D5') ? BUCKET_SEAL : BUCKET_MISROUTE);
+    if (m === MM_CORRECT) {
+      return sealLand
+        ? setMM(rec, 'NOT_MM', '', 'PREC-01', 'MM Remarks confirm correct destination; Landroval seal mismatch overridden (MM Remarks take precedence)')
+        : setMM(rec, 'NOT_MM', '', 'MM-OK', '');
+    }
+    var c = MM_CCTV[m] || (m.indexOf('duplicate ptl') === 0 ? { reason: 'Duplicate PTL', rule: 'MM-C4' } : null);
+    var missingMM = isMissing(rec.mm);
+    if (c || missingMM) {
+      var label = c ? 'CCTV-related (' + c.reason + ')' : 'Missing MM remark';
+      if (sealLand) {
+        return setMM(rec, 'MM', label + ' + Landroval ' + land, c ? c.rule + '-L' : 'MM-M-L', '', BUCKET_SEAL);
+      }
+      // CCTV remark (not duplicate PTL) with LM short found/approved: MM liability, Landroval seal mismatch takes precedence above.
+      if (c && c.rule !== 'MM-C4' && rec.lmShort) {
+        return setMM(rec, 'MM', label + ' + LM ' + rec.lm, c.rule + '-LM', '', BUCKET_CCTV);
+      }
+      if (land === 'connected correctly') {
+        return setMM(rec, 'NOT_MM', '', c ? 'MM-L0' : 'MM-M-L0', 'Landroval confirms connected correctly');
+      }
+      return setMM(rec, 'REVIEW', label + ': Landroval ' + (rec.land ? 'inconclusive ("' + rec.land + '")' : 'missing'), 'REV-LAND', '');
+    }
+    return setMM(rec, 'REVIEW', 'Unmapped MM remark: "' + rec.mm + '"', 'REV-MM', '');
+  }
+
+  function lmClass(rec) {
+    if (rec.mmCls === 'MM') return 'EXCLUDED_MM';
+    if (rec.lmShort) return 'EXCLUDED_LM_SHORT';
+    if (rec.mmCls === 'REVIEW' && rec.lmBlank) return 'REVIEW';
+    return 'LM_LIABILITY';
+  }
+
+  function classifyRecord(rec) {
+    rec.lmShort = LM_SHORT.has(norm(rec.lm));
+    rec.lmBlank = isMissing(rec.lm);
+    classifyMM(rec);
+    rec.lmCls = lmClass(rec);
+    return rec;
+  }
+
+  // ---------- Dataset build ----------
+  function buildDataset(headers, aoaRows, sheetName) {
+    var res = resolveHeaders(headers, aoaRows);
+    if (!res.ok) return { ok: false, missing: res.missing, errors: ['Missing required column(s): ' + res.missing.join(', ')] };
+    var records = [], blankAwb = 0, awbCount = new Map();
+    aoaRows.forEach(function (row, i) {
+      if (!row || row.every(function (c) { return c === null || c === undefined || c === ''; })) return;
+      var rec = buildRecord(row, res.idx, i + 2);
+      if (!rec.awb) { blankAwb++; return; }
+      classifyRecord(rec);
+      records.push(rec);
+      awbCount.set(rec.awb, (awbCount.get(rec.awb) || 0) + 1);
+    });
+    var dupAwbs = []; awbCount.forEach(function (n, k) { if (n > 1) dupAwbs.push([k, n]); });
+    var diag = {
+      sheetName: sheetName, sourceRows: aoaRows.length, records: records.length, blankAwbRowsSkipped: blankAwb,
+      uniqueAwb: awbCount.size, duplicateAwbs: dupAwbs.length, duplicateRowsExtra: dupAwbs.reduce(function (s, d) { return s + d[1] - 1; }, 0),
+      duplicateSample: dupAwbs.slice(0, 20), valueHeader: res.valueHeader, optionalMissing: res.optionalMissing,
+      missingAgeing: records.filter(function (r) { return r.age === null; }).length,
+      invalidValue: records.filter(function (r) { return !r.valueOk; }).length,
+      unmappedLane: records.filter(function (r) { return r.lane === ''; }).length,
+      manifestTypes: countBy(records, function (r) { return r.mt; })
+    };
+    return { ok: true, records: records, headers: headers, diagnostics: diag, warnings: res.optionalMissing };
+  }
+
+  // ---------- Population / tab logic ----------
+  function population(records, tab, f) {
+    var cfg = CONFIG.tabs[tab];
+    var mt = (f && f.manifestType) ? f.manifestType : cfg.manifestType;
+    var lo = (f && f.ageMin !== undefined && f.ageMin !== null) ? f.ageMin : cfg.ageMin;
+    var hi = (f && f.ageMax !== undefined && f.ageMax !== null) ? f.ageMax : cfg.ageMax;
+    return records.filter(function (r) {
+      return (mt === 'ALL' || r.mt === mt) && r.age !== null && r.age >= lo && r.age <= hi;
+    });
+  }
+
+  // Liability / analysis rows for each tab
+  function tabRows(records, tab, f) {
+    var pop = population(records, tab, f);
+    switch (tab) {
+      case 'mm': return pop.filter(function (r) { return r.mmCls === 'MM'; });
+      // LH: MM liability removed, except the CCTV issue at DC / short at LM bucket, which stays in lanes.
+      case 'lh': return pop.filter(function (r) { return (r.mmCls !== 'MM' || r.mmBucket === 'CCTV issue at DC- Short at Hub') && r.lane !== ''; });
+      case 'lm': return pop.filter(function (r) { return r.lmCls === 'LM_LIABILITY'; });
+      case 'dcdc': return pop;
+      case 'overall': return pop;
+    }
+    return [];
+  }
+
+  // Records that need human review on each tab (never forced into a liability)
+  function reviewRows(records, tab, f) {
+    var pop = population(records, tab, f);
+    switch (tab) {
+      case 'mm': return pop.filter(function (r) { return r.mmCls === 'REVIEW'; });
+      case 'lh': return pop.filter(function (r) { return r.mmCls !== 'MM' && (r.mmCls === 'REVIEW' || r.lane === ''); });
+      case 'lm': return pop.filter(function (r) { return r.lmCls === 'REVIEW' || (r.lmCls === 'LM_LIABILITY' && r.mmCls === 'REVIEW'); });
+      case 'dcdc': return pop.filter(function (r) { return !r.origin || !r.dest || !r.valueOk; });
+      case 'overall': return pop.filter(function (r) { return !r.loc; });
+    }
+    return [];
+  }
+
+  function reviewReason(r, tab) {
+    if (tab === 'mm') return r.mmReason;
+    if (tab === 'lh') return r.mmCls === 'REVIEW' ? r.mmReason : (r.lane === '' ? 'Lane Code missing or 0' : '');
+    if (tab === 'lm') return r.mmCls === 'REVIEW' ? r.mmReason : '';
+    if (tab === 'dcdc') return [!r.origin ? 'Origin blank' : '', !r.dest ? 'Destination blank' : '', !r.valueOk ? 'Product_Value2 not numeric' : ''].filter(Boolean).join('; ');
+    return '';
+  }
+
+  // ---------- Pivot / aggregation ----------
+  // Readable labels for the LM classification, so LM Remarks can be shown bucketised everywhere.
+  var LM_LABEL = {
+    EXCLUDED_MM: 'MM liability (not LM)',
+    EXCLUDED_LM_SHORT: 'LM short validated',
+    REVIEW: 'Needs review',
+    LM_LIABILITY: 'LM liability'
+  };
+  function lmBucket(r) { return LM_LABEL[r.lmCls] || r.lmCls || 'Needs review'; }
+  function mmBucketOf(r) { return r.mmBucket || (r.mmCls === 'REVIEW' ? 'Needs review' : 'Not MM liability'); }
+
+  var KEYS = {
+    loc:      { label: 'Current Location',       get: function (r) { return r.loc || '(blank)'; } },
+    mmReason: { label: 'MM liability reason',    get: function (r) { return r.mmReason || '(none)'; } },
+    lmClass:  { label: 'LM collated bucket',     get: function (r) { return lmBucket(r); } },
+    ageBucket:{ label: 'Ageing bucket',          get: function (r) { return ageBucket(r.age); } },
+    age:      { label: 'Ageing (exact)',         get: function (r) { return r.age === null ? '(blank)' : String(r.age); } },
+    mcode:    { label: 'Manifest Code',          get: function (r) { return r.mcode || '(blank)'; } },
+    amid:     { label: 'Actual Manifest ID',     get: function (r) { return r.amid || '(blank)'; } },
+    origin:   { label: 'Manifest Origin',        get: function (r) { return r.origin || '(blank)'; } },
+    dest:     { label: 'Manifest Destination',   get: function (r) { return r.dest || '(blank)'; } },
+    lane:     { label: 'Lane Code',              get: function (r) { return r.lane || '(blank)'; } },
+    tert:     { label: 'Tertiary Lane',          get: function (r) { return r.tert || '(none - zonal)'; } },
+    bag:      { label: 'Connecting Bagging',     get: function (r) { return r.bag || '(not recorded)'; } },
+    mmRemarks:{ label: 'MM Remarks',             get: function (r) { return r.mm || '(blank)'; } },
+    lmRemarks:{ label: 'LM Remarks',             get: function (r) { return r.lm || '(blank)'; } },
+    landroval:{ label: 'Landroval Check',        get: function (r) { return r.land || '(blank)'; } },
+    hov:      { label: 'HOV status',             get: function (r) { return r.hov ? 'HOV' : 'NON HOV'; } },
+    pname:    { label: 'Product Name',           get: function (r) { return r.pname || '(blank)'; } },
+    pcat:     { label: 'Product Category',       get: function (r) { return r.pcat || '(blank)'; } },
+    wrongDest:{ label: 'Wrongly connected destination', get: function (r) { return r.wrongDest || 'NA'; } },
+    bucket:   { label: 'MM Collated bucket',     get: function (r) { return mmBucketOf(r); } },
+    pod:      { label: 'POD Mapping',            get: function (r) { return r.pod || 'NA'; } },
+    podZone:  { label: 'POD_Zone',               get: function (r) { return r.podZone || 'NA'; } },
+    seller:   { label: 'Seller name',            get: function (r) { return r.seller || 'NA'; } },
+    hov2:     { label: 'HOV2 status',            get: function (r) { return r.hov2 ? 'HOV' : 'NON HOV'; } },
+    dcRemark: { label: 'DC remark',              get: function (r) { return r.dcRemark || 'NA'; } },
+    actionUser:{ label: 'Action user',           get: function (r) { return r.actionUser || '(blank)'; } }
+  };
+
+  function countBy(rows, fn) {
+    var m = {}; rows.forEach(function (r) { var k = fn(r); m[k] = (m[k] || 0) + 1; }); return m;
+  }
+
+  function pivot(rows, keys) {
+    var map = new Map();
+    rows.forEach(function (r) {
+      var kv = keys.map(function (k) { return KEYS[k].get(r); });
+      var id = kv.join('\u001f');
+      var g = map.get(id);
+      if (!g) { g = { keys: kv, rows: [], awb: new Set(), mani: new Set(), value: 0, hovCount: 0, hovValue: 0, buckets: {} }; map.set(id, g); }
+      g.rows.push(r); g.awb.add(r.awb); g.mani.add(r.mcode); g.value += r.value;
+      if (r.hov) { g.hovCount++; g.hovValue += r.value; }
+      var b = ageBucket(r.age);
+      if (!g.buckets[b]) g.buckets[b] = { n: 0, value: 0 };
+      g.buckets[b].n++; g.buckets[b].value += r.value;
+    });
+    return Array.from(map.values()).map(function (g) {
+      return { keys: g.keys, rows: g.rows, pendency: g.rows.length, uniqueAwb: g.awb.size, manifests: g.mani.size, value: g.value, hovCount: g.hovCount, hovValue: g.hovValue, buckets: g.buckets };
+    });
+  }
+
+  function summary(rows) {
+    var awb = new Set(rows.map(function (r) { return r.awb; }));
+    var mani = new Set(rows.map(function (r) { return r.mcode; }));
+    var dests = new Set(rows.map(function (r) { return r.dest; }));
+    var origins = new Set(rows.map(function (r) { return r.origin; }));
+    var hov = rows.filter(function (r) { return r.hov; });
+    var buckets = {}; BUCKETS.forEach(function (b) { buckets[b] = { n: 0, value: 0 }; });
+    rows.forEach(function (r) { var b = ageBucket(r.age); if (buckets[b]) { buckets[b].n++; buckets[b].value += r.value; } });
+    return {
+      pendency: rows.length, uniqueAwb: awb.size, manifests: mani.size, destinations: dests.size, origins: origins.size,
+      value: rows.reduce(function (s, r) { return s + r.value; }, 0),
+      hovCount: hov.length, hovValue: hov.reduce(function (s, r) { return s + r.value; }, 0),
+      buckets: buckets
+    };
+  }
+
+  // ---------- Lane analysis (LH tab) ----------
+  function analyzeLanes(rows) {
+    var groups = new Map();
+    rows.forEach(function (r) { if (!r.lane) return; if (!groups.has(r.lane)) groups.set(r.lane, []); groups.get(r.lane).push(r); });
+    var lanes = [];
+    groups.forEach(function (rs, lane) {
+      var pend = rs.length;
+      var validated = rs.filter(function (r) { return r.lmShort; }).length;
+      var destCounts = countBy(rs, function (r) { return r.dest || '(blank)'; });
+      var destSorted = Object.keys(destCounts).sort(function (a, b) { return destCounts[b] - destCounts[a]; });
+      var topDest = destSorted[0], topDestShare = destCounts[topDest] / pend;
+      var bagCounts = countBy(rs.filter(function (r) { return r.bag; }), function (r) { return r.bag; });
+      var bagSorted = Object.keys(bagCounts).sort(function (a, b) { return bagCounts[b] - bagCounts[a]; });
+      var domBag = bagSorted[0] || '(not recorded)';
+      var domBagCount = bagCounts[domBag] || 0;
+      var domBagShare = domBagCount / pend;
+      var tertRows = rs.filter(function (r) { return r.tert; });
+      var tertCounts = countBy(tertRows, function (r) { return r.tert; });
+      var tertSorted = Object.keys(tertCounts).sort(function (a, b) { return tertCounts[b] - tertCounts[a]; });
+      var scope = tertRows.length ? 'Tertiary' : 'Zonal';
+      var domTert = tertSorted[0] || '', domTertShare = domTert ? tertCounts[domTert] / tertRows.length : 0;
+      var tertDominant = scope === 'Tertiary' && tertSorted.length >= 2 && domTertShare >= CONFIG.tertiaryDominanceShare;
+      var lmBlank = rs.filter(function (r) { return r.lmBlank; }).length;
+      var value = rs.reduce(function (s, r) { return s + r.value; }, 0);
+      var hov = rs.filter(function (r) { return r.hov; });
+      var jitFlag = bagSorted.length >= 2 && pend >= CONFIG.minLaneAwbs && domBagShare >= CONFIG.jitShareThreshold && domBagCount >= CONFIG.jitMinBagAwbs;
+      var broadFlag = pend >= CONFIG.minLaneAwbs && destSorted.length >= CONFIG.broadMinDestinations && topDestShare <= CONFIG.broadMaxTopDestShare;
+      // Fewer than confirmMinValidated shorts in the whole lane is too thin to call a lane confirmed;
+      // those lanes carry evidence but drop to Possible.
+      var partialValidated = validated > 0 && validated < CONFIG.confirmMinValidated;
+      var category;
+      if (validated >= CONFIG.confirmMinValidated) category = 'Confirm Lane Issue';
+      else if (partialValidated) category = 'Possible Lane Issue';
+      else if (jitFlag) category = 'Possible JIT/ADC Issue';
+      else if (broadFlag) category = 'Possible Lane Issue';
+      else category = 'No pattern flagged';
+      var missingRemarksFlag = pend >= CONFIG.minLaneAwbs && validated === 0 && lmBlank / pend >= 0.5;
+      var curLocs = countBy(rs, function (r) { return r.loc || '(blank)'; });
+      lanes.push({
+        lane: lane, scope: scope, pendency: pend, uniqueAwb: new Set(rs.map(function (r) { return r.awb; })).size,
+        value: value, validated: validated, destinations: destSorted.length, topDest: topDest, topDestShare: topDestShare,
+        domBag: domBag, domBagCount: domBagCount, domBagShare: domBagShare,
+        domTert: domTert, domTertShare: domTertShare, tertDistinct: tertSorted.length,
+        tertDominant: tertDominant, jitFlag: jitFlag, broadFlag: broadFlag, missingRemarksFlag: missingRemarksFlag,
+        partialValidated: partialValidated, confirmRank: 0, topConfirm: false,
+        valueFlag: value > CONFIG.laneValueThreshold, lmBlank: lmBlank,
+        hovCount: hov.length, hovValue: hov.reduce(function (s, r) { return s + r.value; }, 0),
+        locations: Object.keys(curLocs).length, topLocations: Object.keys(curLocs).sort(function (a, b) { return curLocs[b] - curLocs[a]; }).slice(0, 3),
+        buckets: (function () { var b = {}; BUCKETS.forEach(function (k) { b[k] = 0; }); rs.forEach(function (r) { var k = ageBucket(r.age); if (b[k] !== undefined) b[k]++; }); return b; })(),
+        category: category, rows: rs
+      });
+    });
+    lanes.sort(function (a, b) { return b.value - a.value; });
+    lanes.filter(function (l) { return l.category === 'Confirm Lane Issue'; })
+      .sort(function (a, b) { return b.pendency - a.pendency; })
+      .forEach(function (l, i) { l.confirmRank = i + 1; l.topConfirm = i < CONFIG.confirmHighlightTop; });
+    return lanes;
+  }
+
+  // ---------- Filters ----------
+  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser'];
+  function filterValue(r, field, ctx) {
+    if (field === 'ageBucket') return ageBucket(r.age);
+    if (field === 'category') return ctx && ctx.laneCat ? (ctx.laneCat[r.lane] || '(none)') : '(none)';
+    if (field === 'mmReason') return r.mmReason || '(none)';
+    if (field === 'hov') return r.hov ? 'HOV' : 'NON HOV';
+    if (field === 'hov2') return r.hov2 ? 'HOV' : 'NON HOV';
+    if (field === 'bucket') return r.mmBucket || '(not MM liability)';
+    if (field === 'lmClass') return r.lmCls;
+    return KEYS[field] ? KEYS[field].get(r) : '';
+  }
+  var SEARCH_FIELDS = ['awb', 'mcode', 'amid', 'lane', 'tert', 'dest', 'origin', 'loc'];
+  function applyFilters(rows, f, ctx) {
+    if (!f) return rows;
+    var q = (f.search || '').trim().toLowerCase();
+    var ff = f.fields || {};
+    var active = Object.keys(ff).filter(function (k) { return ff[k] && ff[k].size; });
+    var vMin = f.valueMin, vMax = f.valueMax;
+    return rows.filter(function (r) {
+      if (q && !SEARCH_FIELDS.some(function (k) { return String(r[k] || '').toLowerCase().indexOf(q) >= 0; })) return false;
+      for (var i = 0; i < active.length; i++) { if (!ff[active[i]].has(filterValue(r, active[i], ctx))) return false; }
+      if (vMin !== undefined && vMin !== null && r.value < vMin) return false;
+      if (vMax !== undefined && vMax !== null && r.value > vMax) return false;
+      return true;
+    });
+  }
+
+  // ---------- DC-DC criticality ----------
+  function criticality(r) {
+    var hv = r.value > CONFIG.hovValueThreshold, old = r.age !== null && r.age >= CONFIG.olderAgeingDays;
+    if (hv && old) return 'High value + older';
+    if (hv) return 'High value';
+    if (old) return 'Older pending';
+    return 'Standard';
+  }
+
+  // ---------- CSV ----------
+  function csvEscape(v) {
+    var s = v === null || v === undefined ? '' : String(v);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function toCsv(rows, columns) {
+    var head = columns.map(function (c) { return csvEscape(c.h); }).join(',');
+    var body = rows.map(function (r) { return columns.map(function (c) { return csvEscape(c.get(r)); }).join(','); });
+    return '﻿' + [head].concat(body).join('\r\n');
+  }
+  // Every column of the uploaded base, in sheet order, read straight off the stored source row.
+  function baseColumns(headers) {
+    if (!headers || !headers.length) return [];
+    var seen = {};
+    return headers.map(function (h, i) {
+      var name = txt(h) || ('Column ' + (i + 1));
+      seen[name] = (seen[name] || 0) + 1;
+      if (seen[name] > 1) name = name + ' (' + seen[name] + ')';
+      return { h: name, get: function (r) { return r.raw && r.raw[i] !== undefined && r.raw[i] !== null ? r.raw[i] : ''; } };
+    });
+  }
+  function derivedColumns() {
+    return [
+      { h: 'Action_User', get: function (r) { return r.actionUser || ''; } },
+      { h: 'Ageing_Bucket', get: function (r) { return ageBucket(r.age); } },
+      { h: 'MM_Classification', get: function (r) { return r.mmCls; } },
+      { h: 'MM_Liability_Reason', get: function (r) { return r.mmReason || ''; } },
+      { h: 'Rule_ID', get: function (r) { return r.mmRule || ''; } },
+      { h: 'Classification_Note', get: function (r) { return r.mmNote || ''; } },
+      { h: 'LM_Classification', get: function (r) { return r.lmCls; } },
+      { h: 'HOV_Flag', get: function (r) { return r.hov ? 'HOV' : 'NON HOV'; } },
+      { h: 'Value_Above_HOV_Threshold', get: function (r) { return r.value > CONFIG.hovValueThreshold ? 'Yes' : 'No'; } },
+      { h: 'Criticality', get: function (r) { return criticality(r); } },
+      { h: 'MM_Collated_Bucket', get: function (r) { return r.mmBucket || ''; } },
+      { h: 'DC_Remark', get: function (r) { return r.dcRemark || ''; } },
+      { h: 'LM_Collated_Bucket', get: function (r) { return lmBucket(r); } },
+      { h: 'Source_Row', get: function (r) { return r.rowNo; } }
+    ];
+  }
+
+  return {
+    CONFIG: CONFIG, FIELD_MAP: FIELD_MAP, BUCKETS: BUCKETS, KEYS: KEYS, FILTER_FIELDS: FILTER_FIELDS,
+    txt: txt, norm: norm, isMissing: isMissing, ageBucket: ageBucket, toNum: toNum,
+    resolveHeaders: resolveHeaders, buildRecord: buildRecord, classifyRecord: classifyRecord, classifyMM: classifyMM,
+    buildDataset: buildDataset, population: population, tabRows: tabRows, reviewRows: reviewRows, reviewReason: reviewReason,
+    pivot: pivot, summary: summary, analyzeLanes: analyzeLanes, applyFilters: applyFilters, filterValue: filterValue,
+    criticality: criticality, countBy: countBy, lmBucket: lmBucket, mmBucketOf: mmBucketOf, toCsv: toCsv, baseColumns: baseColumns, derivedColumns: derivedColumns
+  };
+});
+
+</script>
+<script>
+/* DC-LM Dashboard — Google Sheet backend sync. Depends on window.VIS and window.DASH. */
+(function () {
+  'use strict';
+  // Paste the Apps Script /exec URL here to hard-wire it for everyone, or leave blank
+  // and set it once from the Backend box in the dashboard header.
+  var API_URL = 'https://script.google.com/macros/s/AKfycbxSuzKqSjy83Ci3QTBGB3SyDl-qLkAD0onkTaax3RQYEDejr_7f6wmgrk8iodK3_Nk/exec';
+
+  var V = window.VIS;
+  var CHUNK_ROWS = 1500;     // rows per POST; keeps each Apps Script call well inside its 6-minute budget
+  var PAGE_ROWS = 5000;      // rows per GET when reading the sheet back
+
+  // The columns kept in the sheet: every header the engine maps, plus the resolved value column.
+  var PERSIST = ['Awb_number', 'Manifest_Type', 'Ageing_from_Bag_Rec', 'Current_location', 'Lane Code',
+    'Tertiary Lane', 'Connecting Bagging', 'Manifest_origin', 'Manifest_Destination', 'Manifest_code',
+    'ActualManifestID', 'MM Remarks', 'LM Remarks', 'Landroval Check', 'HOV', 'Wrongly Connceted Destination',
+    'product_names', 'product_categories', 'POD Mapping', 'POD_Zone', 'seller_name', 'HOV2',
+    'Shipment in Manifest', 'Remarks', 'awbs_in_manifest', 'action_user', 'last_action_user', 'Pendency Count'];
+  var VALUE_COL = 'Product_Value2';
+
+  function url() {
+    try { return localStorage.getItem('dclm_api_url') || API_URL; } catch (e) { return API_URL; }
+  }
+  function setUrl(u) {
+    try { localStorage.setItem('dclm_api_url', u.trim()); } catch (e) {}
+  }
+  function configured() { return !!url(); }
+
+  function get(params) {
+    var u = url();
+    if (!u) return Promise.reject(new Error('No backend URL set.'));
+    var q = Object.keys(params).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(u + (u.indexOf('?') >= 0 ? '&' : '?') + q, { method: 'GET', redirect: 'follow' })
+      .then(readJson);
+  }
+  function post(body) {
+    var u = url();
+    if (!u) return Promise.reject(new Error('No backend URL set.'));
+    // text/plain avoids a CORS preflight, which Apps Script web apps do not answer.
+    return fetch(u, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    }).then(readJson);
+  }
+  function readJson(res) {
+    return res.text().then(function (t) {
+      var d;
+      try { d = JSON.parse(t); }
+      catch (e) {
+        throw new Error('The backend did not return JSON. Check that the Apps Script is deployed with access set to "Anyone".');
+      }
+      if (!d.ok) throw new Error(d.error || 'Backend error');
+      return d;
+    });
+  }
+
+  /* ---------- push ---------- */
+  // Build the rows that go to the sheet: the mapped source columns, plus the resolved product value.
+  function sheetRows(ds) {
+    var heads = ds.headers || [], idx = [], kept = [];
+    PERSIST.forEach(function (h) {
+      var i = heads.indexOf(h);
+      if (i >= 0) { idx.push(i); kept.push(h); }
+    });
+    kept.push(VALUE_COL);
+    var rows = ds.records.map(function (r) {
+      var out = idx.map(function (i) {
+        var v = r.raw && r.raw[i];
+        return v === null || v === undefined ? '' : v;
+      });
+      out.push(r.value);
+      return out;
+    });
+    return { headers: kept, rows: rows };
+  }
+
+  function pushDataset(ds, onProgress) {
+    if (!configured()) return Promise.resolve({ skipped: true });
+    var pack = sheetRows(ds), uploadId = ds.id || ('U-' + Date.now());
+    var total = pack.rows.length, sent = 0;
+    onProgress = onProgress || function () {};
+    onProgress('Saving to Google Sheet — preparing ' + total.toLocaleString('en-IN') + ' rows …', 0);
+    return post({ action: 'begin', uploadId: uploadId, headers: pack.headers, fileName: ds.fileName, total: total })
+      .then(function () {
+        var i = 0;
+        function next() {
+          if (i >= total) return Promise.resolve();
+          var slice = pack.rows.slice(i, i + CHUNK_ROWS);
+          i += CHUNK_ROWS;
+          return post({ action: 'chunk', uploadId: uploadId, rows: slice }).then(function () {
+            sent += slice.length;
+            onProgress('Saving to Google Sheet — ' + sent.toLocaleString('en-IN') + ' of ' + total.toLocaleString('en-IN') + ' rows …', sent / total);
+            return next();
+          });
+        }
+        return next();
+      })
+      .then(function () {
+        return post({ action: 'commit', uploadId: uploadId, fileName: ds.fileName, sourceSheet: ds.sheetName });
+      })
+      .then(function (r) {
+        onProgress('', 1);
+        return { rows: r.rows, cols: r.cols, sheet: r.sheet };
+      });
+  }
+
+  /* ---------- pull ---------- */
+  function pullDataset(onProgress) {
+    if (!configured()) return Promise.resolve(null);
+    onProgress = onProgress || function () {};
+    var headers = null, rows = [], total = 0;
+    function page(offset) {
+      return get({ action: 'rows', offset: offset, limit: PAGE_ROWS }).then(function (d) {
+        if (offset === 0) { headers = (d.headers || []).map(function (h) { return String(h === null || h === undefined ? '' : h).trim(); }); total = d.total || 0; }
+        rows = rows.concat(d.rows || []);
+        onProgress('Loading from Google Sheet — ' + rows.length.toLocaleString('en-IN') + ' of ' + total.toLocaleString('en-IN') + ' rows …', total ? rows.length / total : 0);
+        if (d.done || !d.rows || !d.rows.length) return;
+        return page(offset + (d.rows.length || PAGE_ROWS));
+      });
+    }
+    return get({ action: 'meta' }).then(function (meta) {
+      if (!meta.rows) return null;
+      return page(0).then(function () {
+        if (!headers || !headers.length || !rows.length) return null;
+        var res = V.buildDataset(headers, rows, meta.sheet || 'Google Sheet');
+        if (!res.ok) throw new Error('The sheet is missing required columns: ' + res.missing.join(', '));
+        var now = Date.now(), at = meta.uploadedAt || now;
+        return {
+          id: meta.uploadId || ('DS-' + at), schema: window.DASH.schema, uploadedAt: at,
+          expiresAt: at + V.CONFIG.retentionHours * 3600 * 1000,
+          fileName: meta.fileName || 'Google Sheet', sheetName: meta.sheet || 'Base',
+          reportingDate: '', source: 'sheet',
+          diagnostics: res.diagnostics, warnings: res.warnings, headers: headers, records: res.records
+        };
+      });
+    });
+  }
+
+  /* ---------- RCA notes ---------- */
+  function loadRca() {
+    if (!configured()) return Promise.resolve({});
+    return get({ action: 'rca' }).then(function (d) { return d.notes || {}; });
+  }
+  var queue = {}, timer = null;
+  function saveRca(key, text) {
+    if (!configured()) return;
+    queue[key] = text;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(flush, 800);
+  }
+  function flush() {
+    timer = null;
+    var notes = Object.keys(queue).map(function (k) { return { key: k, text: queue[k] }; });
+    if (!notes.length) return;
+    queue = {};
+    post({ action: 'rca', notes: notes }).catch(function (e) {
+      window.DASH.backendError('RCA note not saved to the sheet: ' + e.message);
+    });
+  }
+
+  window.SYNC = {
+    url: url, setUrl: setUrl, configured: configured,
+    ping: function () { return get({ action: 'ping' }); },
+    meta: function () { return get({ action: 'meta' }); },
+    pushDataset: pushDataset, pullDataset: pullDataset,
+    loadRca: loadRca, saveRca: saveRca
+  };
+})();
+
+/* DC-LM Dashboard v3 - UI, storage, pivots, popups, resizable columns and exports. Depends on window.VIS and XLSX. */
+(function () {
+  'use strict';
+  var V = window.VIS, C = V.CONFIG;
+  var TABS = ['overall', 'mm', 'lh', 'lm', 'dcdc'];
+  var TAB_TITLE = { overall: 'DCH Overall Pendency', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability', dcdc: 'DC-DC Short' };
+  var TAB_FIELDS = {
+    overall: ['loc', 'dest', 'lane', 'pod', 'podZone', 'seller', 'bucket', 'lmClass', 'mmReason', 'dcRemark', 'landroval', 'hov', 'hov2', 'pname', 'pcat', 'mcode'],
+    mm: ['loc', 'bucket', 'mmReason', 'dest', 'mcode', 'amid', 'wrongDest', 'landroval', 'lmClass', 'dcRemark', 'seller', 'hov', 'hov2', 'actionUser'],
+    lh: ['lane', 'tert', 'bag', 'category', 'dest', 'loc', 'lmClass', 'bucket', 'dcRemark', 'pod', 'podZone'],
+    lm: ['loc', 'dest', 'pod', 'podZone', 'seller', 'bucket', 'lmClass', 'dcRemark', 'landroval', 'hov', 'hov2', 'pname', 'pcat', 'mcode'],
+    dcdc: ['origin', 'dest', 'loc', 'seller', 'hov', 'hov2', 'pname', 'pcat', 'mcode', 'dcRemark']
+  };
+  var FIELD_LABEL = { category: 'Lane category', hov: 'HOV', hov2: 'HOV2', bucket: 'MM Collated bucket', dcRemark: 'DC remark' };
+  var MM_SUB = ['Fake bagging', 'Shipment connected to wrong destination', 'Miss sort GC fault'];
+  var CCTV = 'CCTV issue at DC- Short at Hub';
+  var DS_SCHEMA = 3;             // bump when the stored record shape changes
+  var MISS_MIN = 5;              // repeat product misses at one hub before it is flagged
+  var WD_MIN = 3;                // wrongly connected destination: minimum short AWBs shown
+  var AU_MIN = 3, AU_AGE_MIN = 2, AU_AGE_MAX = 30;  // action user trend: frequency over ageing 2-30
+
+  var state = {
+    tab: 'overall', ds: null, records: [], expiredAt: null, lastUploadAt: null,
+    remarks: new Map(), sort: {}, colW: {}, openFilter: null, filterSearch: '',
+    mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
+    tabs: {}
+  };
+  TABS.forEach(function (t) {
+    state.tabs[t] = { manifestType: C.tabs[t].manifestType, ageMin: C.tabs[t].ageMin, ageMax: C.tabs[t].ageMax, search: '', fields: {}, valueMin: null, valueMax: null };
+  });
+
+  // ---------- helpers ----------
+  function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function inr(n) { return '₹' + Math.round(n || 0).toLocaleString('en-IN'); }
+  function num(n) { return Math.round(n || 0).toLocaleString('en-IN'); }
+  function na(v) { return V.isMissing(v) || String(v).trim() === '0' ? 'NA' : String(v).trim(); }
+  function dt(ms) { return ms ? new Date(ms).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST' : '—'; }
+  function stamp() { var d = new Date(); return d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2) + '_' + ('0' + d.getHours()).slice(-2) + ('0' + d.getMinutes()).slice(-2); }
+  function keyLabel(k) { return FIELD_LABEL[k] || (V.KEYS[k] ? V.KEYS[k].label : k); }
+  function $(sel) { return document.querySelector(sel); }
+  function range(a, b) { var o = []; for (var i = a; i <= b; i++) o.push(i); return o; }
+  function isBlankSeller(s) { return !s || s === 'NA' || /^(#n\/a|na|n\/a|nan|null|0)$/i.test(String(s).trim()); }
+
+  // Viewers block page-initiated downloads; saves go through the `downloads` capability.
+  function download(name, text) {
+    var cl = window.claude;
+    if (cl && typeof cl.use === 'function') {
+      return Promise.resolve(cl.use('downloads')).then(function (ns) {
+        if (!ns) { state.error = 'Downloads are not available in this view. Open the dashboard in claude.ai to save CSV files.'; renderAll(); return; }
+        return ns.save({ filename: name, data: text }).then(function () { state.error = ''; state.notice = 'Saved ' + name + '.'; renderAll(); },
+          function (e) { if (e && e.code === 'declined') return; state.error = 'Download not saved (' + ((e && e.code) || 'unknown') + ').'; renderAll(); });
+      }).catch(function () {});
+    }
+    try {
+      var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    } catch (e) { state.error = 'Download failed: ' + e.message; renderAll(); }
+    return Promise.resolve();
+  }
+
+  // ---------- storage ----------
+  var dbPromise = null;
+  function db() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function (resolve, reject) {
+      if (!window.indexedDB) return reject(new Error('IndexedDB unavailable'));
+      var req = indexedDB.open('dc-lm-dashboard', 1);
+      req.onupgradeneeded = function () { var d = req.result; if (!d.objectStoreNames.contains('kv')) d.createObjectStore('kv'); if (!d.objectStoreNames.contains('remarks')) d.createObjectStore('remarks'); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    }).catch(function (e) { state.storageWarning = 'Browser storage is unavailable (' + e.message + '). Data will be lost when this page closes.'; dbPromise = null; throw e; });
+    return dbPromise;
+  }
+  function idb(store, mode, fn) {
+    return db().then(function (d) { return new Promise(function (resolve, reject) { var tx = d.transaction(store, mode), out = fn(tx.objectStore(store)); tx.oncomplete = function () { resolve(out ? out.result : undefined); }; tx.onerror = function () { reject(tx.error); }; }); });
+  }
+  function kvGet(k) { return idb('kv', 'readonly', function (s) { return s.get(k); }); }
+  function kvPut(k, v) { return idb('kv', 'readwrite', function (s) { return s.put(v, k); }); }
+  function kvDel(k) { return idb('kv', 'readwrite', function (s) { return s.delete(k); }); }
+  function remarkAll() {
+    return db().then(function (d) { return new Promise(function (resolve, reject) { var out = [], req = d.transaction('remarks', 'readonly').objectStore('remarks').openCursor(); req.onsuccess = function () { var c = req.result; if (c) { out.push(c.value); c.continue(); } else resolve(out); }; req.onerror = function () { reject(req.error); }; }); });
+  }
+  function remarkPut(e) { return idb('remarks', 'readwrite', function (s) { return s.put(e, e.key); }); }
+
+  // ---------- dataset lifecycle ----------
+  function activeDs() { return state.ds && Date.now() < state.ds.expiresAt ? state.ds : null; }
+  function expireIfNeeded() {
+    if (state.ds && Date.now() >= state.ds.expiresAt) {
+      state.expiredAt = state.ds.uploadedAt; state.ds = null; state.records = [];
+      state.notice = 'The dataset has expired (24 hours after upload). Upload a fresh base to continue.';
+      kvDel('active').catch(function () {}); renderAll();
+    }
+  }
+  function loadActive() {
+    return Promise.all([kvGet('active'), kvGet('lastUploadAt')]).then(function (r) {
+      var ds = r[0], last = r[1];
+      state.lastUploadAt = last || (ds && ds.uploadedAt) || null;
+      if (ds && ds.schema !== DS_SCHEMA) {
+        state.expiredAt = ds.uploadedAt; kvDel('active').catch(function () {});
+        state.notice = 'The dashboard was updated since your last upload. Re-upload the base to get the full base-column drill-downs.';
+      } else if (ds && Date.now() < ds.expiresAt) { state.ds = ds; state.records = ds.records.map(function (x) { return V.classifyRecord(x); }); }
+      else if (ds) { state.expiredAt = ds.uploadedAt; kvDel('active').catch(function () {}); }
+    }).catch(function (e) { state.storageWarning = state.storageWarning || 'Could not read saved dataset: ' + e.message; });
+  }
+  function sheetOrder(wb) { var pri = ['Base', 'Short_Dispatched'].filter(function (n) { return wb.SheetNames.indexOf(n) >= 0; }); return pri.concat(wb.SheetNames.filter(function (n) { return pri.indexOf(n) < 0; })); }
+  function parseDateFromName(name) { var m = /(\d{2})-(\d{2})-(\d{4})/.exec(name || ''); return m ? m[1] + '-' + m[2] + '-' + m[3] : ''; }
+  function onUpload(file) {
+    state.error = ''; state.notice = ''; state.busy = 'Reading ' + file.name + ' …'; renderAll();
+    return file.arrayBuffer().then(function (buf) {
+      var wb = XLSX.read(buf, { type: 'array', cellDates: false }), chosen = null, res = null, tried = [];
+      sheetOrder(wb).some(function (name) {
+        var aoa = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: null, raw: true, blankrows: false });
+        if (!aoa.length) return false;
+        var r = V.buildDataset(aoa[0].map(V.txt), aoa.slice(1), name);
+        tried.push(name + (r.ok ? ' (ok)' : ' (missing: ' + r.missing.join(', ') + ')'));
+        if (r.ok) { res = r; chosen = name; return true; }
+        return false;
+      });
+      if (!res) throw new Error('No sheet has the required schema. Checked: ' + tried.join('; ') + '.');
+      var now = Date.now();
+      var dataset = { id: 'DS-' + now, schema: DS_SCHEMA, uploadedAt: now, expiresAt: now + C.retentionHours * 3600 * 1000, fileName: file.name, sheetName: chosen, reportingDate: parseDateFromName(file.name), diagnostics: res.diagnostics, warnings: res.warnings, headers: res.headers, records: res.records };
+      state.busy = 'Saving dataset …'; renderAll();
+      return kvPut('active', dataset).then(function () { return kvPut('lastUploadAt', now); }).catch(function () {
+        state.storageWarning = 'Dataset could not be saved to browser storage; it stays available only on this page.';
+      }).then(function () {
+        state.ds = dataset; state.records = dataset.records; state.expiredAt = null; state.lastUploadAt = now;
+        return reconcileRemarks(dataset);
+      }).then(function () {
+        state.busy = ''; state.notice = 'Uploaded ' + num(dataset.records.length) + ' records from "' + chosen + '". All tabs recalculated.'; renderAll();
+        // The sheet is the shared copy; the local dataset keeps every base column for this session.
+        if (window.SYNC && window.SYNC.configured()) {
+          return window.SYNC.pushDataset(dataset, function (msg) { state.backend = msg; renderHeader(); })
+            .then(function (r) {
+              state.backend = ''; state.backendErr = '';
+              state.notice = 'Uploaded ' + num(dataset.records.length) + ' records and saved ' + num(r.rows) + ' rows to the Google Sheet.';
+              renderAll();
+            })
+            .catch(function (e) { state.backend = ''; state.backendErr = 'Saved locally, but the Google Sheet was not updated: ' + e.message; renderAll(); });
+        }
+      });
+    }).catch(function (e) { state.busy = ''; state.error = 'Upload rejected: ' + e.message + ' The previously active dataset (if still valid) is unchanged.'; renderAll(); });
+  }
+  function reconcileRemarks(ds) {
+    var awb = new Set(ds.records.map(function (r) { return r.awb; })), dest = new Set(ds.records.map(function (r) { return r.dest; }));
+    return remarkAll().then(function (all) {
+      return Promise.all(all.map(function (e) {
+        if (e.entity === 'rca') { state.remarks.set(e.key, e); return Promise.resolve(); }
+        e.matched = e.entity === 'shipment' ? awb.has(e.ref) : dest.has(e.ref);
+        state.remarks.set(e.key, e); return remarkPut(e).catch(function () {});
+      }));
+    }).catch(function () {});
+  }
+  function saveRemark(key, text) {
+    var kind = key.charAt(0);
+    var e = state.remarks.get(key) || { key: key, entity: kind === 'A' ? 'shipment' : kind === 'R' ? 'rca' : 'destination', ref: key.slice(2), text: '', history: [], matched: true };
+    if (e.text === text) return;
+    e.history = (e.history || []).concat([{ text: e.text, at: e.updatedAt || null }]).slice(-10);
+    e.text = text; e.updatedAt = Date.now(); state.remarks.set(key, e);
+    remarkPut(e).catch(function () {});
+    if (kind === 'R' && window.SYNC && window.SYNC.configured()) window.SYNC.saveRca(key, text);
+    // An RCA box already shows its own text; re-rendering here would steal focus from the next box.
+    if (kind !== 'R') renderBody();
+  }
+
+  // ---------- view ----------
+  function baseFilters(t) { var s = state.tabs[t]; return { manifestType: s.manifestType, ageMin: s.ageMin, ageMax: s.ageMax }; }
+  function computeView(t) {
+    var s = state.tabs[t], recs = state.records;
+    var base = V.tabRows(recs, t, baseFilters(t));
+    var noCat = { search: s.search, fields: Object.assign({}, s.fields), valueMin: s.valueMin, valueMax: s.valueMax };
+    delete noCat.fields.category;
+    var lanes = null, laneCat = null;
+    if (t === 'lh') { lanes = V.analyzeLanes(V.applyFilters(base, noCat)); laneCat = {}; lanes.forEach(function (l) { laneCat[l.lane] = l.category; }); }
+    var filtered = V.applyFilters(base, s, { laneCat: laneCat });
+    return { base: base, filtered: filtered, eligible: V.tabRows(recs, t, null), lanes: lanes, laneCat: laneCat, review: V.reviewRows(recs, t, baseFilters(t)) };
+  }
+  function filterOptions(t, field, view) {
+    var counts = V.countBy(view.base, function (r) { return V.filterValue(r, field, { laneCat: view.laneCat }); });
+    return Object.keys(counts).map(function (k) { return { v: k, n: counts[k] }; }).sort(function (a, b) { return b.n - a.n || a.v.localeCompare(b.v); });
+  }
+
+  // ---------- header ----------
+  function statusBlock() {
+    var ds = activeDs();
+    if (ds) { var hrs = Math.max(0, (ds.expiresAt - Date.now()) / 3600000); return '<span class="pill ok">VALID</span> <span class="meta">Dataset <b>' + esc(ds.fileName) + '</b> · ' + num(ds.records.length) + ' rows · expires ' + dt(ds.expiresAt) + ' (' + hrs.toFixed(1) + ' h left)</span>'; }
+    if (state.expiredAt) return '<span class="pill warn">EXPIRED</span> <span class="meta">Last upload ' + dt(state.expiredAt) + ' — older than 24 hours. Upload a fresh base.</span>';
+    return '<span class="pill warn">NO DATA</span> <span class="meta">No base uploaded yet.</span>';
+  }
+  function renderHeader() {
+    var ds = activeDs();
+    $('#hdr').innerHTML = '<div class="hdr-main"><div class="brand"><div class="logo">S</div><div><div class="title">DC-LM Dashboard</div><div class="sub">Shadowfax · Middle Mile Audit &amp; Compliance · Daily pendency</div></div></div>' +
+      '<div class="hdr-right"><label class="btn primary" for="upload">Upload Daily Base</label><input id="upload" type="file" accept=".xlsx,.xls,.csv" hidden />' +
+      (window.SYNC ? '<button class="btn" data-act="pull">Load from Sheet</button><button class="btn ghost" data-act="backend">Backend</button>' : '') +
+      (ds ? '<button class="btn" data-act="recalc">Refresh</button>' : '') + '</div></div>' +
+      '<div class="statusbar">' + statusBlock() + (ds && ds.reportingDate ? ' <span class="meta">· Reporting date <b>' + esc(ds.reportingDate) + '</b></span>' : '') + '</div>' +
+      (state.busy ? '<div class="banner info">' + esc(state.busy) + '</div>' : '') + (state.error ? '<div class="banner err">' + esc(state.error) + '</div>' : '') +
+      (state.notice ? '<div class="banner ok">' + esc(state.notice) + '</div>' : '') + (state.storageWarning ? '<div class="banner warn">' + esc(state.storageWarning) + '</div>' : '') +
+      (state.backend ? '<div class="banner info">' + esc(state.backend) + '</div>' : '') +
+      (state.backendErr ? '<div class="banner err">' + esc(state.backendErr) + '</div>' : '') +
+      backendBox();
+  }
+  function backendBox() {
+    if (!window.SYNC) return '';
+    if (!state.showBackend) {
+      return window.SYNC.configured() ? '' :
+        '<div class="banner warn">No Google Sheet backend connected — uploads stay on this device. Click <b>Backend</b> to paste the Apps Script URL.</div>';
+    }
+    return '<div class="backendbox"><label>Apps Script web app URL (ends in /exec)' +
+      '<input id="apiurl" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(window.SYNC.url()) + '" /></label>' +
+      '<button class="btn primary" data-act="apisave">Save &amp; test</button>' +
+      '<button class="btn ghost" data-act="backend">Close</button>' +
+      '<div class="meta">Stored in this browser. Deploy the Apps Script with access set to “Anyone”, then paste its /exec URL here.</div></div>';
+  }
+
+  function renderNav() { $('#nav').innerHTML = TABS.map(function (t) { return '<button class="tab ' + (state.tab === t ? 'on' : '') + '" data-act="tab" data-tab="' + t + '">' + TAB_TITLE[t] + '</button>'; }).join(''); }
+
+  // ---------- filters ----------
+  function renderFilters() {
+    var t = state.tab, s = state.tabs[t], cfg = C.tabs[t];
+    if (!activeDs()) { $('#filters').innerHTML = ''; return; }
+    var view = computeView(t);
+    var chips = TAB_FIELDS[t].map(function (f) {
+      var sel = s.fields[f] ? s.fields[f].size : 0, panel = '';
+      if (state.openFilter === f) {
+        var q = state.filterSearch.toLowerCase();
+        var opts = filterOptions(t, f, view).filter(function (o) { return !q || o.v.toLowerCase().indexOf(q) >= 0; });
+        panel = '<div class="fpanel"><input class="fsearch" data-act="fsearch" placeholder="Search values…" value="' + esc(state.filterSearch) + '" />' +
+          '<div class="fbtns"><button data-act="fall" data-field="' + f + '">Select all shown</button><button data-act="fnone" data-field="' + f + '">Clear</button></div>' +
+          '<div class="flist">' + opts.slice(0, 300).map(function (o) {
+            var on = s.fields[f] && s.fields[f].has(o.v);
+            return '<label class="fopt"><input type="checkbox" data-act="ftoggle" data-field="' + f + '" data-val="' + esc(o.v) + '" ' + (on ? 'checked' : '') + ' /><span>' + esc(o.v) + '</span><em>' + num(o.n) + '</em></label>';
+          }).join('') + '</div>' + (opts.length > 300 ? '<div class="fmore">Showing 300 of ' + num(opts.length) + ' — type to narrow.</div>' : '') + '</div>';
+      }
+      return '<div class="chipwrap"><button class="chip ' + (sel ? 'on' : '') + '" data-act="fopen" data-field="' + f + '">' + esc(keyLabel(f)) + (sel ? ' · ' + sel : '') + ' ▾</button>' + panel + '</div>';
+    }).join('');
+    $('#filters').innerHTML = '<div class="filterbar"><div class="frow">' +
+      '<label>Manifest_Type <select data-act="mt">' + ['DCH2', 'DC-DC', 'ALL'].map(function (m) { return '<option ' + (s.manifestType === m ? 'selected' : '') + ' value="' + m + '">' + m + '</option>'; }).join('') + '</select></label>' +
+      '<label>Ageing from <input type="number" min="0" data-act="age" data-k="ageMin" value="' + s.ageMin + '" /></label>' +
+      '<label>to <input type="number" min="0" data-act="age" data-k="ageMax" value="' + s.ageMax + '" /></label>' +
+      '<label>Value ₹ min <input type="number" min="0" data-act="val" data-k="valueMin" value="' + (s.valueMin === null ? '' : s.valueMin) + '" /></label>' +
+      '<label>max <input type="number" min="0" data-act="val" data-k="valueMax" value="' + (s.valueMax === null ? '' : s.valueMax) + '" /></label>' +
+      '<label class="grow">Search AWB / manifest / lane / destination / location <input type="search" data-act="search" value="' + esc(s.search) + '" placeholder="Type to search…" /></label>' +
+      '<button class="btn" data-act="resetdef">Tab default (' + cfg.manifestType + ', ' + cfg.ageMin + '–' + cfg.ageMax + ')</button>' +
+      '<button class="btn ghost" data-act="clearall">Clear all</button></div>' +
+      '<div class="frow chips">' + chips + '</div>' +
+      '<div class="meta">Multi-select per field; fields combine with AND. Click any row to open its popup with the underlying data. Press Esc to close.</div></div>';
+  }
+
+  // ---------- tables ----------
+  var TCACHE = {}, TOPTS = {};
+  function totalsRow(cols, data) {
+    return '<tr class="totrow">' + cols.map(function (c, i) {
+      if (i === 0) return '<td><b>Grand total</b></td>';
+      if (!c.num || c.noTotal || !c.v) return '<td></td>';
+      var sum = data.reduce(function (s, r) { var x = c.v(r); return s + (typeof x === 'number' ? x : 0); }, 0);
+      return '<td class="num"><b>' + (c.money ? inr(sum) : num(sum)) + '</b></td>';
+    }).join('') + '</tr>';
+  }
+  function tbl(id, cols, data, opts) {
+    opts = opts || {};
+    // Every table ends with an RCA box unless it opts out.
+    if (opts.rcaDim && !cols.some(function (c) { return c.rca; })) {
+      var vf = opts.rcaVal || function (r) { return r.key !== undefined ? r.key : r.awb; };
+      cols = cols.concat([rcaCol(opts.rcaDim, vf)]);
+    }
+    // Default ordering is always pendency, largest first.
+    var pi = -1;
+    cols.forEach(function (c, i) { if (pi < 0 && c.pend) pi = i; });
+    if (pi < 0) cols.forEach(function (c, i) { if (pi < 0 && c.num && /pendency|misses/i.test(c.h)) pi = i; });
+    var s = state.sort[id] || opts.sortForce || (pi >= 0 ? { i: pi, dir: -1 } : (opts.sort || { i: 0, dir: -1 }));
+    var c = cols[s.i], sorted = data.slice();
+    if (c && c.v) sorted.sort(function (a, b) { var x = c.v(a), y = c.v(b); if (typeof x === 'number' && typeof y === 'number') return (x - y) * s.dir; return String(x).localeCompare(String(y)) * s.dir; });
+    TCACHE[id] = sorted; TOPTS[id] = { pop: opts.pop || data, dim: opts.dim, mode: opts.mode || 'records', select: !!opts.select };
+    var lim = opts.limit || 300, widths = state.colW[id] || {};
+    var head = cols.map(function (col, i) {
+      // An explicit width must also lift the default first-column cap, or the column cannot grow.
+      var w = widths[i] ? ' style="width:' + widths[i] + 'px;min-width:' + widths[i] + 'px;max-width:' + widths[i] + 'px"' : '';
+      var cap = (i === 0 && !widths[i]) ? 'capfirst ' : '';
+      return '<th class="' + (col.num ? 'num ' : '') + cap + '"' + w + ' data-act="sort" data-table="' + id + '" data-i="' + i + '">' + esc(col.h) + (s.i === i ? (s.dir > 0 ? ' ▲' : ' ▼') : '') + '<span class="rz" data-rz="' + id + '" data-i="' + i + '" title="Drag to resize this column"></span></th>';
+    }).join('');
+    var body = sorted.slice(0, lim).map(function (row, ri) {
+      var cls = (opts.rowClass ? opts.rowClass(row) : '') + (opts.select ? ' click' : '');
+      var attrs = ' class="' + cls.trim() + '"' + (opts.select ? ' data-act="sel" data-table="' + id + '" data-idx="' + ri + '"' : '');
+      return '<tr' + attrs + '>' + cols.map(function (col, ci) {
+        var plain = col.v ? String(col.v(row)) : '';
+        var inner = col.f ? col.f(row) : esc(plain);
+        var ttl = (col.rca || col.num) ? '' : ' title="' + esc(plain) + '"';
+        var cw = widths[ci] ? ' style="width:' + widths[ci] + 'px;min-width:' + widths[ci] + 'px;max-width:' + widths[ci] + 'px"' : '';
+        var ccap = (ci === 0 && !widths[ci]) ? 'capfirst ' : '';
+        return '<td class="' + (col.num ? 'num ' : '') + (col.rca ? 'rcacell ' : '') + ccap + (col.cls ? col.cls(row) : '') + '"' + ttl + cw + '>' + inner + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    var tot = (opts.noTotal || !sorted.length) ? '' : totalsRow(cols, data);
+    if (!sorted.length) body = '<tr><td colspan="' + cols.length + '" class="empty">No rows match the current filters.</td></tr>';
+    var foot = '<div class="tfoot meta">' + (sorted.length > lim ? 'Showing first ' + num(lim) + ' of ' + num(sorted.length) + '. ' : '') +
+      (opts.noCsv ? '' : '<button class="btn small" data-act="tcsv" data-table="' + id + '">Download this table (CSV)</button>') +
+      ' <button class="btn small ghost" data-act="wfit" data-table="' + id + '">Fit columns</button>' +
+      ' <button class="btn small ghost" data-act="wreset" data-table="' + id + '">Reset widths</button></div>';
+    return '<div class="tablewrap"><table class="grid"><thead><tr>' + head + '</tr></thead><tbody>' + tot + body + '</tbody></table></div>' + foot;
+  }
+  // crossTable: rows = dimension; columns = values of colGet (ageing or MM bucket); value column last unless valueMid
+  function crossTable(id, rows, rowDim, cols, colGet, opts) {
+    opts = opts || {};
+    var G = new Map();
+    rows.forEach(function (r) {
+      var k = V.KEYS[rowDim].get(r), g = G.get(k);
+      if (!g) { g = { key: k, n: 0, value: 0, hov: 0, freq: 0, cc: {}, awb: new Set() }; G.set(k, g); }
+      g.n++; g.value += r.value; if (r.hov) g.hov++;
+      if (opts.countIf && opts.countIf(r)) g.freq++;
+      var c = colGet(r); g.cc[c] = (g.cc[c] || 0) + 1; g.awb.add(r.awb);
+    });
+    var data = Array.from(G.values()).map(function (g) { return { key: g.key, n: g.n, value: g.value, hov: g.hov, freq: g.freq, cc: g.cc, _dim: rowDim, _mode: opts.mode }; });
+    if (opts.minTotal) data = data.filter(function (o) { return o.n > opts.minTotal; });
+    var lab = { h: keyLabel(rowDim), v: function (o) { return o.key; }, f: function (o) { return '<span class="cellw">' + esc(o.key) + '</span>'; } };
+    var pend = { h: opts.pendLabel || 'Pendency (AWB)', num: true, pend: true, v: function (o) { return o.n; } };
+    var hov = { h: 'HOV', num: true, v: function (o) { return o.hov; } };
+    var val = { h: 'Product value ₹', num: true, money: true, v: function (o) { return o.value; }, f: function (o) { return inr(o.value); } };
+    var ageC = cols.map(function (c) { return { h: c.label, num: true, v: function (o) { return o.cc[c.key] || 0; }, f: function (o) { var x = o.cc[c.key] || 0; return x ? num(x) : '<span class="zero">·</span>'; } }; });
+    var head = opts.freqLabel ? [lab, pend, { h: opts.freqLabel, num: true, v: function (o) { return o.freq; } }, hov] : [lab, pend, hov];
+    var cdefs = opts.valueMid ? [lab, pend, val, hov].concat(ageC) : head.concat(ageC, [val]);
+    return tbl(id, cdefs, data, { select: opts.select !== false, rowClass: opts.rowClass, sort: opts.sort, limit: opts.limit || 300, pop: rows, dim: rowDim, mode: opts.mode, rcaDim: rowDim, sortForce: opts.sortForce });
+  }
+  function ageCols(t) { var s = state.tabs[t]; return range(s.ageMin, s.ageMax).map(function (a) { return { key: String(a), label: 'Age ' + a }; }); }
+  function ageGet(r) { return r.age === null ? '(blank)' : String(r.age); }
+  function bucketCols() { return [{ key: 'Seal mismatch', label: 'Seal mismatch' }, { key: 'DC/XD misroute/ fake bagging', label: 'DC/XD misroute / fake bagging' }, { key: CCTV, label: 'CCTV issue at DC / short at Hub' }]; }
+
+  // ---------- popup ----------
+  function matchKey(r, dim, key) {
+    if (dim === 'awb') return r.awb === key;
+    if (dim === 'value') return String(r.value) === key;
+    return V.KEYS[dim].get(r) === key;
+  }
+  function openPopup(tid, row) {
+    var o = TOPTS[tid] || {};
+    var dim = row._dim || o.dim || 'loc';
+    var key = row.key !== undefined ? row.key : (row.awb !== undefined ? row.awb : row.lane);
+    state.popup = { tid: tid, dim: dim, key: key, rows: row._rows || null, mode: row._mode || o.mode || 'records', tab: state.tab, title: (row._title || (keyLabel(dim) + ': ' + key)) };
+    renderPopup();
+  }
+  function closePopup() { state.popup = null; var m = $('#modal'); m.classList.remove('show'); m.innerHTML = ''; }
+  function popupRows() {
+    var p = state.popup, o = TOPTS[p.tid];
+    if (p.rows) return p.rows;
+    if (!o) return [];
+    return o.pop.filter(function (r) { return matchKey(r, p.dim, p.key); });
+  }
+  function manifestRows(rows) {
+    return V.pivot(rows, ['mcode']).sort(function (a, b) { return b.pendency - a.pendency; }).map(function (g) {
+      var first = function (f) { var x = g.rows.map(f).filter(function (v) { return v && v !== 'NA'; })[0]; return x || 'NA'; };
+      return { mcode: g.keys[0], ship: first(function (r) { return na(r.shipInManifest); }), pend: g.pendency, amid: first(function (r) { return na(r.amid); }), wrong: first(function (r) { return na(r.wrongDest); }), value: g.value, hov: g.hovCount, dest: first(function (r) { return r.dest; }) };
+    });
+  }
+  function laneTreeHtml(rows) {
+    var byTert = V.countBy(rows, function (r) { return r.tert || ''; });
+    var tertKeys = Object.keys(byTert).filter(function (k) { return k; }).sort(function (a, b) { return byTert[b] - byTert[a]; });
+    var line = function (cls, label, sub, rs) {
+      var short = rs.filter(function (r) { return r.lmShort; }).length;
+      return '<tr class="' + cls + '"><td>' + label + '</td><td class="num">' + num(rs.length) + '</td><td class="num">' + inr(rs.reduce(function (s, r) { return s + r.value; }, 0)) + '</td><td class="num">' + num(short) + '</td><td class="num">' + num(rs.filter(function (r) { return r.hov; }).length) + '</td><td>' + (sub || '') + '</td></tr>';
+    };
+    var destRows = function (rs) {
+      return V.pivot(rs, ['dest']).sort(function (a, b) { return b.pendency - a.pendency; }).map(function (g) {
+        var short = g.rows.filter(function (r) { return r.lmShort; }).length;
+        return '<tr class="dest-row"><td class="ind2">' + esc(g.keys[0]) + '</td><td class="num">' + num(g.pendency) + '</td><td class="num">' + inr(g.value) + '</td><td class="num">' + (short ? '<span class="shortchip">' + num(short) + '</span>' : '0') + '</td><td class="num">' + num(g.hovCount) + '</td><td>' + ageSpan(g.rows) + '</td></tr>';
+      }).join('');
+    };
+    var html = '<table class="grid tree"><thead><tr><th>Lane / tertiary lane / manifest destination</th><th class="num">Pendency (AWB)</th><th class="num">Product value ₹</th><th class="num">Short validations (LM)</th><th class="num">HOV</th><th>Ageing</th></tr></thead><tbody>';
+    html += line('lane-row', '<b>' + esc(rows[0] ? rows[0].lane : '') + '</b> <span class="meta">lane</span>', '', rows);
+    tertKeys.forEach(function (tk) {
+      var trs = rows.filter(function (r) { return r.tert === tk; });
+      html += line('tert-row', '<span class="ind1">▸ ' + esc(tk) + '</span> <span class="meta">tertiary lane</span>', '', trs);
+      html += destRows(trs);
+    });
+    var zonal = rows.filter(function (r) { return !r.tert; });
+    if (zonal.length) { html += line('tert-row', '<span class="ind1">▸ Zonal (no tertiary lane tagged)</span>', '', zonal); html += destRows(zonal); }
+    return html + '</tbody></table>';
+  }
+  function ageSpan(rs) {
+    var c = V.countBy(rs, function (r) { return r.age === null ? '-' : String(r.age); });
+    return Object.keys(c).sort(function (a, b) { return (+a || 0) - (+b || 0); }).slice(0, 12).map(function (k) { return 'A' + k + ':' + c[k]; }).join(' · ');
+  }
+  // MM Liability underlying set: manifest-level view the audit team works from.
+  function maniCols() {
+    return [
+      { h: 'Manifest Code', v: function (x) { return x.mcode; } },
+      { h: 'Wrongly connected manifest destination', v: function (x) { return x.wrong; } },
+      { h: 'Actual Manifest ID', v: function (x) { return x.amid; } },
+      { h: 'Shipment / AWB in manifest', num: true, noTotal: true, v: function (x) { return x.ship === 'NA' ? 0 : +x.ship || 0; }, f: function (x) { return x.ship === 'NA' ? 'NA' : num(+x.ship); } },
+      { h: 'Pendency count', num: true, v: function (x) { return x.pend; } },
+      { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.value; }, f: function (x) { return inr(x.value); } }
+    ];
+  }
+  // Every other tab: the entire base, column for column.
+  function baseCols() {
+    var ds = activeDs();
+    return ds && ds.headers ? V.baseColumns(ds.headers) .map(function (c) { return { h: c.h, v: c.get }; }) : awbCols();
+  }
+  function awbCols() {
+    return [
+      { h: 'AWB', v: function (r) { return r.awb; } }, { h: 'Lane Code', v: function (r) { return r.lane || 'NA'; } }, { h: 'Tertiary Lane', v: function (r) { return r.tert || 'NA'; } },
+      { h: 'Connecting Bagging', v: function (r) { return r.bag || 'NA'; } }, { h: 'Current location', v: function (r) { return r.loc; } },
+      { h: 'Manifest Origin', v: function (r) { return r.origin; } }, { h: 'Manifest Destination', v: function (r) { return r.dest; } },
+      { h: 'Manifest Code', v: function (r) { return r.mcode; } }, { h: 'Actual Manifest ID', v: function (r) { return na(r.amid); } },
+      { h: 'Wrongly connected dest.', v: function (r) { return na(r.wrongDest); } }, { h: 'Shipments in manifest', v: function (r) { return na(r.shipInManifest); } },
+      { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
+      { h: 'Product name', v: function (r) { return r.pname || 'NA'; } }, { h: 'Product category', v: function (r) { return r.pcat || 'NA'; } },
+      { h: 'Seller', v: function (r) { return r.seller; } }, { h: 'HOV', v: function (r) { return r.hov ? 'HOV' : 'NON'; } }, { h: 'HOV2', v: function (r) { return r.hov2 ? 'HOV' : 'NON'; } },
+      { h: 'MM collated bucket', v: function (r) { return V.mmBucketOf(r); } }, { h: 'LM collated bucket', v: function (r) { return V.lmBucket(r); } },
+      { h: 'Landroval', v: function (r) { return na(r.land); } }, { h: 'DC remark', v: function (r) { return r.dcRemark || 'NA'; } },
+      { h: 'POD Mapping', v: function (r) { return r.pod; } }, { h: 'POD_Zone', v: function (r) { return r.podZone; } },
+      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
+    ];
+  }
+  function renderPopup() {
+    var p = state.popup; if (!p) return closePopup();
+    var rows = popupRows(), m = $('#modal');
+    var sum = { n: rows.length, v: rows.reduce(function (s, r) { return s + r.value; }, 0), h: rows.filter(function (r) { return r.hov; }).length };
+    var body = '';
+    if (p.mode === 'manifest') {
+      body = tbl('pop-mani', [
+        { h: 'Manifest Code', v: function (x) { return x.mcode; } }, { h: 'Shipments in manifest', v: function (x) { return x.ship; } },
+        { h: 'Pendency count (this manifest)', num: true, v: function (x) { return x.pend; } }, { h: 'Actual Manifest ID', v: function (x) { return x.amid; } },
+        { h: 'Wrongly connected manifest destination', v: function (x) { return x.wrong; } }
+      ], manifestRows(rows), { limit: 500, noTotal: false, noCsv: true });
+    } else if (p.mode === 'lane') {
+      body = '<section class="card"><h3>Lane tree: tertiary lanes → manifest destinations</h3><div class="meta">Lane highlighted; tertiary lanes beneath; manifest destinations beneath each. Short validations = LM Short Found / Approved / Short validated.</div>' + laneTreeHtml(rows) + '</section>' +
+        '<section class="card"><h3>Manifests in this lane</h3>' + tbl('pop-mani', [
+          { h: 'Manifest Code', v: function (x) { return x.mcode; } }, { h: 'Shipments in manifest', v: function (x) { return x.ship; } },
+          { h: 'Pendency count', num: true, v: function (x) { return x.pend; } }, { h: 'Actual Manifest ID', v: function (x) { return x.amid; } },
+          { h: 'Wrongly connected manifest destination', v: function (x) { return x.wrong; } }], manifestRows(rows), { limit: 300, noCsv: true }) + '</section>';
+    } else if (p.mode === 'seller') {
+      var ages = V.countBy(rows, function (r) { return r.age === null ? '(blank)' : String(r.age); });
+      var ageRows = Object.keys(ages).sort(function (a, b) { return (+a || 1e9) - (+b || 1e9); }).map(function (a) {
+        var rs = rows.filter(function (r) { return String(r.age === null ? '(blank)' : r.age) === a; });
+        return { age: a, n: rs.length, v: rs.reduce(function (s, r) { return s + r.value; }, 0), h: rs.filter(function (r) { return r.hov; }).length };
+      });
+      body = '<section class="card"><h3>Ageing split for this seller</h3>' + tbl('pop-age', [
+        { h: 'Ageing (days)', v: function (x) { return x.age; } }, { h: 'Pendency (AWB)', num: true, v: function (x) { return x.n; } },
+        { h: 'HOV', num: true, v: function (x) { return x.h; } }, { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.v; }, f: function (x) { return inr(x.v); } }], ageRows, { limit: 100, sort: { i: 0, dir: 1 }, noCsv: true }) + '</section>' +
+        '<section class="card"><h3>Manifests for this seller</h3>' + tbl('pop-mani', [
+          { h: 'Manifest Code', v: function (x) { return x.mcode; } }, { h: 'Shipments in manifest', v: function (x) { return x.ship; } },
+          { h: 'Pendency count', num: true, v: function (x) { return x.pend; } }, { h: 'Actual Manifest ID', v: function (x) { return x.amid; } },
+          { h: 'Wrongly connected manifest destination', v: function (x) { return x.wrong; } }], manifestRows(rows), { limit: 300, noCsv: true }) + '</section>';
+    } else if (p.tab === 'mm') {
+      body = '<section class="card"><h3>Manifests</h3>' + tbl('pop-mani', [
+        { h: 'Manifest Code', v: function (x) { return x.mcode; } }, { h: 'Shipments in manifest', v: function (x) { return x.ship; } },
+        { h: 'Pendency count (this manifest)', num: true, v: function (x) { return x.pend; } }, { h: 'Actual Manifest ID', v: function (x) { return x.amid; } },
+        { h: 'Wrongly connected manifest destination', v: function (x) { return x.wrong; } }, { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.value; }, f: function (x) { return inr(x.value); } }
+      ], manifestRows(rows), { limit: 300, noCsv: true }) + '</section>';
+    }
+    if (p.tab === 'mm') {
+      body = '<section class="card"><h3>Underlying manifest data</h3><div class="meta">MM Liability underlying view: manifest code, wrongly connected manifest destination, actual manifest ID, shipment/AWB in manifest, pendency count and product value.</div>' +
+        tbl('pop-mani', maniCols(), manifestRows(rows), { limit: 500, noCsv: true, rcaDim: 'mcode', rcaVal: function (x) { return x.mcode; } }) + '</section>' + (p.mode === 'lane' ? body : '');
+    } else if (p.mode !== 'manifest') {
+      body += '<section class="card"><h3>Underlying data — all base columns</h3><div class="meta">Every column of the uploaded base for this selection. Download the full set with the button above.</div>' +
+        tbl('pop-awb', baseCols(), rows, { limit: 500, noCsv: true, rcaDim: 'awb', rcaVal: function (r) { return r.awb; } }) + '</section>';
+    }
+    m.innerHTML = '<div class="modal"><div class="mhead"><div><h2>' + esc(p.title) + '</h2><div class="meta">' + num(sum.n) + ' AWB · ' + inr(sum.v) + ' · HOV ' + num(sum.h) + ' · ' + TAB_TITLE[p.tab] + '</div></div>' +
+      '<div class="mbtn"><button class="btn primary" data-act="popcsv">Download underlying data (CSV)</button><button class="btn ghost" data-act="popclose">Close (Esc)</button></div></div>' + body + '</div>';
+    m.classList.add('show');
+  }
+  function popupCsv() {
+    var p = state.popup; if (!p) return;
+    var rows = popupRows();
+    download('Selection_' + p.tab + '_' + String(p.key).replace(/[^A-Za-z0-9]+/g, '_') + '_' + stamp() + '.csv', V.toCsv(rows, csvSrc()));
+  }
+
+  // ---------- KPIs ----------
+  function kpi(label, value, sub, cls) { return '<div class="kpi ' + (cls || '') + '"><div class="kl">' + esc(label) + '</div><div class="kv">' + value + '</div>' + (sub ? '<div class="ks">' + sub + '</div>' : '') + '</div>'; }
+  function section(title, note, inner) { return '<section class="card"><div class="ch"><h2>' + esc(title) + '</h2>' + (note ? '<div class="meta">' + note + '</div>' : '') + '</div>' + inner + '</section>'; }
+  function catClass(c) { return c === 'Confirm Lane Issue' ? 'confirm' : c === 'Possible Lane Issue' ? 'possible' : c === 'Possible JIT/ADC Issue' ? 'jit' : 'none'; }
+  function kpiRow(view) {
+    var rows = view.filtered, s = V.summary(rows);
+    return '<div class="kpis">' + kpi('AWB pendency', num(s.uniqueAwb), 'Unique AWB = pendency') + kpi('Manifests', num(s.manifests), 'Unique Manifest Code') +
+      kpi('HOV', num(s.hovCount), inr(s.hovValue) + ' HOV value') + kpi('Product value', inr(s.value), 'Sum of Product_Value2') +
+      kpi('Review records', num(view.review.length), 'Not counted in totals', view.review.length ? 'warn' : '') + '</div>';
+  }
+  function tabHead(t) { var c = C.tabs[t]; return '<div class="tabhead"><h1>' + TAB_TITLE[t] + '</h1><div class="meta">Default: Manifest_Type ' + c.manifestType + ', ageing ' + c.ageMin + '–' + c.ageMax + ' (inclusive). Click a row for its popup.</div></div>'; }
+  function top(rows, dim, n) { var c = V.countBy(rows, function (r) { return V.KEYS[dim].get(r); }); var keep = new Set(Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).slice(0, n)); return rows.filter(function (r) { return keep.has(V.KEYS[dim].get(r)); }); }
+  function exportBtns(items) { return '<div class="exports">' + items.map(function (i) { return '<button class="btn" data-act="export" data-kind="' + i.kind + '">' + esc(i.label) + ' <span class="meta">(' + num(i.n) + ')</span></button>'; }).join('') + '</div>'; }
+  // RCA notes are keyed by dimension + value, so the same destination/manifest/AWB keeps one note across tables.
+  function rcaKey(dim, val) { return 'R|' + dim + '|' + String(val === undefined || val === null ? '' : val); }
+  function rcaText(key) { var e = state.remarks.get(key); return e ? e.text : ''; }
+  function rcaBox(key) {
+    return '<textarea class="remark rca" rows="1" data-act="remark" data-key="' + esc(key) + '" placeholder="RCA…">' + esc(rcaText(key)) + '</textarea>';
+  }
+  function rcaCol(dim, valFn) {
+    return { h: 'RCA', noTotal: true, rca: true, v: function (r) { return rcaText(rcaKey(dim, valFn(r))); }, f: function (r) { return rcaBox(rcaKey(dim, valFn(r))); } };
+  }
+
+  function remarkInput(key, placeholder) { var e = state.remarks.get(key); return '<textarea class="remark" rows="1" data-act="remark" data-key="' + esc(key) + '" placeholder="' + esc(placeholder || 'Remark…') + '">' + esc(e ? e.text : '') + '</textarea>'; }
+
+  // ---------- tab: overall ----------
+  function renderOverall(view) {
+    var rows = view.filtered, out = [tabHead('overall'), kpiRow(view)];
+    out.push(section('Current Location × ageing pendency', 'AWB count by current location and exact ageing. Grand totals on top.', crossTable('ov-loc', rows, 'loc', ageCols('overall'), ageGet, { mode: 'records' })));
+    out.push(section('Manifest Destination × ageing pendency (top 50)', '', crossTable('ov-dest', top(rows, 'dest', 50), 'dest', ageCols('overall'), ageGet, {})));
+    // One dimension only. Product category repeats far more than product name in the base,
+    // so it is the dimension that shows a real trend; the toggle keeps names available.
+    var pdim = state.prodDim === 'pname' ? 'pname' : 'pcat';
+    var pdimLabel = pdim === 'pcat' ? 'Product category' : 'Product name';
+    var pRows = rows.filter(function (r) { return pdim === 'pcat' ? r.pcat : r.pname; });
+    var pg = V.pivot(pRows, [pdim]).sort(function (a, b) { return b.pendency - a.pendency; }).slice(0, 150).map(function (g) {
+      return { key: g.keys[0], n: g.pendency, hov: g.hovCount, value: g.value, _dim: pdim, _rows: g.rows, _title: pdimLabel + ': ' + g.keys[0] };
+    });
+    var toggle = '<div class="subbox"><span class="meta">Trend by:</span>' +
+      ['pcat', 'pname'].map(function (d) { return '<label class="subopt"><input type="radio" name="pdim" data-act="pdim" data-val="' + d + '" ' + (pdim === d ? 'checked' : '') + ' /> ' + (d === 'pcat' ? 'Product category' : 'Product name') + '</label>'; }).join('') +
+      '<span class="meta">Blank / 0 values are excluded.</span></div>';
+    out.push(section('Product trend — ' + pdimLabel, 'Pendency and product value impacted, one dimension at a time. Click a row for the full base data behind it.',
+      toggle + tbl('ov-prod', [
+        { h: pdimLabel, v: function (p) { return p.key; } },
+        { h: 'Pendency (AWB)', num: true, v: function (p) { return p.n; } }, { h: 'HOV', num: true, v: function (p) { return p.hov; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (p) { return p.value; }, f: function (p) { return inr(p.value); } }
+      ], pg, { select: true, pop: pRows, dim: pdim, limit: 150, rcaDim: pdim, sort: { i: 1, dir: -1 } })));
+
+    // Repeat misses: the same product group going missing at the same hub, more than CONFIG-threshold times.
+    var missDim = state.missDim === 'dest' ? 'dest' : 'loc';
+    var missLabel = missDim === 'dest' ? 'Manifest Destination' : 'Current Location';
+    var mg = new Map();
+    pRows.forEach(function (r) {
+      var hub = V.KEYS[missDim].get(r), prod = pdim === 'pcat' ? r.pcat : r.pname, k = hub + '\u001f' + prod;
+      if (!mg.has(k)) mg.set(k, { hub: hub, prod: prod, rows: [] });
+      mg.get(k).rows.push(r);
+    });
+    var missRows = Array.from(mg.values()).filter(function (g) { return g.rows.length > MISS_MIN; }).map(function (g) {
+      return { key: g.hub + ' · ' + g.prod, hub: g.hub, prod: g.prod, n: g.rows.length,
+        hov: g.rows.filter(function (r) { return r.hov; }).length, value: g.rows.reduce(function (s, r) { return s + r.value; }, 0),
+        _dim: missDim, _rows: g.rows, _title: g.hub + ' · ' + g.prod };
+    }).sort(function (a, b) { return b.n - a.n; });
+    var missToggle = '<div class="subbox"><span class="meta">Hub dimension:</span>' +
+      ['loc', 'dest'].map(function (d) { return '<label class="subopt"><input type="radio" name="missdim" data-act="missdim" data-val="' + d + '" ' + (missDim === d ? 'checked' : '') + ' /> ' + (d === 'loc' ? 'Current Location' : 'Manifest Destination') + '</label>'; }).join('') + '</div>';
+    out.push(section('Repeat product misses by hub (more than ' + MISS_MIN + ')', 'Where the same ' + pdimLabel.toLowerCase() + ' goes missing repeatedly at one hub — ' + num(missRows.length) + ' combinations above the threshold. Click a row for the full base data behind it.',
+      missToggle + tbl('ov-miss', [
+        { h: missLabel, v: function (p) { return p.hub; } }, { h: pdimLabel, v: function (p) { return p.prod; } },
+        { h: 'Misses (AWB)', num: true, v: function (p) { return p.n; } }, { h: 'HOV', num: true, v: function (p) { return p.hov; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (p) { return p.value; }, f: function (p) { return inr(p.value); } }
+      ], missRows, { select: true, pop: pRows, dim: missDim, limit: 300, sort: { i: 2, dir: -1 }, rowClass: function () { return 'flagrow'; }, rcaDim: 'miss', rcaVal: function (p) { return p.key; } })));
+    return out.join('');
+  }
+
+  // ---------- tab: MM ----------
+  function renderMM(view) {
+    var rows = view.filtered, out = [tabHead('mm'), kpiRow(view)];
+    var mmRows = rows.filter(function (r) { return r.mmBucket; });
+    out.push(section('DC/XD misses Summary DC wise', 'MM liability by current location and ageing. Grand totals on top.', crossTable('mm-sum', mmRows, 'loc', ageCols('mm'), ageGet, {})));
+    var sealRows = rows.filter(function (r) { return r.mmBucket === 'Seal mismatch'; });
+    out.push(section('Table 2 — Seal mismatch, Current Location view', 'Click a location for manifest codes, shipments in manifest, pendency count, Actual Manifest ID and wrongly connected manifest destination.', crossTable('mm-seal', sealRows, 'loc', ageCols('mm'), ageGet, { mode: 'manifest' })));
+    var misRows = rows.filter(function (r) { return r.mmBucket === 'DC/XD misroute/ fake bagging'; });
+    var subSet = state.mmSub.mm || new Set();
+    var t3 = subSet.size ? misRows.filter(function (r) { return subSet.has(r.mmReason); }) : misRows;
+    out.push(section('Table 3 — DC/XD misroute / fake bagging, Current Location view', 'Tick MM remarks to include (none ticked = all three).', subCheckboxes('mmSub', MM_SUB) + crossTable('mm-mis', t3, 'loc', ageCols('mm'), ageGet, {})));
+    var wr = rows.filter(function (r) { return r.wrongDest; });
+    out.push(section('Table 4 — Wrongly connected manifest destination', 'Only destinations with more than ' + WD_MIN + ' short AWBs. Self hubs (not ending in _SCC) highlighted in amber.',
+      crossTable('mm-wd', wr, 'wrongDest', ageCols('mm'), ageGet, { minTotal: WD_MIN, rowClass: function (o) { return o.key && o.key.slice(-4).toUpperCase() !== '_SCC' ? 'selfhub' : ''; }, mode: 'records' })));
+
+    // Action user trend: frequency counted over ageing 2-30 regardless of the tab's ageing slider,
+    // so the >3 rule the audit team uses stays stable.
+    var auBase = V.applyFilters(V.tabRows(state.records, 'mm', { manifestType: state.tabs.mm.manifestType, ageMin: AU_AGE_MIN, ageMax: AU_AGE_MAX }), state.tabs.mm, {});
+    var auRows = auBase.filter(function (r) { return r.mmBucket && r.actionUser; });
+    var auCols = range(AU_AGE_MIN, AU_AGE_MAX).map(function (a) { return { key: String(a), label: 'Age ' + a }; });
+    out.push(section('Table 5 — Action user trend', 'Action users (source column <b>action_user</b>) carrying more than ' + AU_MIN + ' MM liability AWBs. Frequency is the COUNTA of ageing ' + AU_AGE_MIN + '–' + AU_AGE_MAX + ', independent of the ageing filter above; this table is sorted by frequency, highest first.',
+      crossTable('mm-au', auRows, 'actionUser', auCols, ageGet, { minTotal: AU_MIN, mode: 'records',
+        freqLabel: 'Frequency (ageing ' + AU_AGE_MIN + '–' + AU_AGE_MAX + ')',
+        countIf: function (r) { return r.age !== null && r.age >= AU_AGE_MIN && r.age <= AU_AGE_MAX; },
+        sortForce: { i: 2, dir: -1 } })));
+    return out.join('');
+  }
+  function subCheckboxes(group, values) {
+    var set = state[group][state.tab] || new Set();
+    return '<div class="subbox">' + values.map(function (v) { return '<label class="subopt"><input type="checkbox" data-act="subtoggle" data-group="' + group + '" data-val="' + esc(v) + '" ' + (set.has(v) ? 'checked' : '') + ' /> ' + esc(v) + '</label>'; }).join('') + '</div>';
+  }
+
+  // ---------- tab: LH ----------
+  function renderLH(view) {
+    var rows = view.filtered, lanes = view.lanes || [];
+    var laneList = lanes.filter(function (l) { return !state.tabs.lh.fields.category || state.tabs.lh.fields.category.has(l.category); });
+    var counts = V.countBy(lanes, function (l) { return l.category; });
+    var cats = ['Confirm Lane Issue', 'Possible Lane Issue', 'Possible JIT/ADC Issue', 'No pattern flagged'];
+    var catSet = state.tabs.lh.fields.category || new Set();
+    var out = [tabHead('lh'), '<div class="kpis">' + kpi('Lanes', num(lanes.length), 'Lane Code present') + kpi('Confirm', num(counts['Confirm Lane Issue'] || 0), '≥ ' + C.confirmMinValidated + ' validated shorts · top ' + C.confirmHighlightTop + ' highlighted') +
+      kpi('Possible Lane', num(counts['Possible Lane Issue'] || 0), 'Partly validated (1–' + (C.confirmMinValidated - 1) + ') or broad spread') + kpi('Possible JIT/ADC', num(counts['Possible JIT/ADC Issue'] || 0), 'One Connecting Bagging') +
+      kpi('AWB pendency (after MM removal)', num(new Set(rows.map(function (r) { return r.awb; })).size), inr(rows.reduce(function (s, r) { return s + r.value; }, 0)) + ' · CCTV/short bucket kept') + '</div>'];
+    out.push(section('Lane category', 'Tick one or more categories to filter the lane table below.',
+      '<div class="subbox">' + cats.map(function (c) { return '<label class="subopt"><input type="checkbox" data-act="ftoggle" data-field="category" data-val="' + esc(c) + '" ' + (catSet.has(c) ? 'checked' : '') + ' /> ' + esc(c) + ' <span class="meta">(' + num(counts[c] || 0) + ')</span></label>'; }).join('') + '</div>'));
+    var lt = laneList.map(function (l) { return Object.assign({}, l, { key: l.lane, _dim: 'lane', _mode: 'lane' }); });
+    var topCols = [
+      { h: 'Lane Code', v: function (l) { return l.lane; } }, { h: 'Scope', v: function (l) { return l.scope; } },
+      { h: 'Category', v: function (l) { return l.category; }, f: function (l) { return '<span class="cat ' + catClass(l.category) + '">' + esc(l.category) + '</span>' + (l.topConfirm ? ' <span class="rank">#' + l.confirmRank + '</span>' : '') + (l.partialValidated ? ' <span class="meta">partly validated</span>' : ''); } },
+      { h: 'AWB pendency', num: true, v: function (l) { return l.pendency; } }, { h: 'Destinations', num: true, v: function (l) { return l.destinations; } },
+      { h: 'Validated short touchpoints', num: true, v: function (l) { return l.validated; } },
+      { h: 'Dominant destination', v: function (l) { return l.topDest + ' (' + Math.round(l.topDestShare * 100) + '%)'; } },
+      { h: 'Dominant Connecting Bagging', v: function (l) { return l.domBag + ' (' + Math.round(l.domBagShare * 100) + '%)'; } },
+      { h: 'Secondary flags', v: function (l) { return [l.jitFlag ? 'JIT concentration' : '', l.broadFlag ? 'Broad spread' : '', l.tertDominant ? 'Tertiary dominant' : '', l.missingRemarksFlag ? 'Missing LM remarks' : ''].filter(Boolean).join(', ') || '—'; } },
+      { h: 'Product value ₹', num: true, money: true, v: function (l) { return l.value; }, f: function (l) { return (l.valueFlag ? '<span class="flag">▲ </span>' : '') + inr(l.value); }, cls: function (l) { return l.valueFlag ? 'hl' : ''; } }
+    ];
+    out.push(section('Lane table', 'A lane is confirmed only with at least ' + C.confirmMinValidated + ' validated shorts; the top ' + C.confirmHighlightTop + ' of those by pendency are highlighted and ranked. Lanes with 1–' + (C.confirmMinValidated - 1) + ' validated shorts sit in Possible. Click a lane for its tree.', tbl('lh-lanes', topCols, lt, { select: true, pop: rows, dim: 'lane', mode: 'lane', limit: 300, sort: { i: 3, dir: -1 }, rowClass: function (l) { return l.topConfirm ? 'lanetop' : ''; }, rcaDim: 'lane', rcaVal: function (l) { return l.lane; } })));
+    out.push(section('Lane × destination × ageing pendency', '', crossTable('lh-dest', rows, 'dest', ageCols('lh'), ageGet, {})));
+    var missing = lanes.filter(function (l) { return l.missingRemarksFlag; }).map(function (l) { return Object.assign({}, l, { key: l.lane, _dim: 'lane', _mode: 'lane' }); });
+    out.push(section('Missing / unclear LM remarks', 'Lanes with at least ' + C.minLaneAwbs + ' AWBs, no validated touchpoints, and at least half without LM remarks.',
+      tbl('lh-miss', [{ h: 'Lane Code', v: function (l) { return l.lane; } }, { h: 'AWB pendency', num: true, v: function (l) { return l.pendency; } }, { h: 'Blank LM remarks', num: true, v: function (l) { return l.lmBlank; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (l) { return l.value; }, f: function (l) { return inr(l.value); } }], missing, { select: true, pop: rows, dim: 'lane', mode: 'lane', limit: 200, sort: { i: 1, dir: -1 }, rcaDim: 'lane', rcaVal: function (l) { return l.lane; } })));
+    out.push(section('Downloads', '', exportBtns([
+      { kind: 'lh_confirm', label: 'Confirm Lane Issues', n: laneList.filter(function (l) { return l.category === 'Confirm Lane Issue'; }).length },
+      { kind: 'lh_possible', label: 'Possible Lane Issues', n: laneList.filter(function (l) { return l.category === 'Possible Lane Issue'; }).length },
+      { kind: 'lh_jit', label: 'Possible JIT/ADC Issues', n: laneList.filter(function (l) { return l.category === 'Possible JIT/ADC Issue'; }).length },
+      { kind: 'lh_all', label: 'All analysed lanes', n: laneList.length }, { kind: 'lh_records', label: 'Underlying shipments (filtered)', n: rows.length }])));
+    return out.join('');
+  }
+
+  // ---------- tab: LM ----------
+  function renderLM(view) {
+    var rows = view.filtered, out = [tabHead('lm'), kpiRow(view)];
+    out.push(section('Table 1 — POD_Zone × ageing pendency', '', crossTable('lm-zone', rows, 'podZone', ageCols('lm'), ageGet, {})));
+    out.push(section('Table 2 — Top 50 Manifest Destinations × ageing', '', crossTable('lm-dest', top(rows, 'dest', 50), 'dest', ageCols('lm'), ageGet, {})));
+    var podVals = Array.from(new Set(view.base.map(function (r) { return r.pod; }))).sort();
+    var podSet = state.podSel.lm || new Set();
+    var podRows = podSet.size ? rows.filter(function (r) { return podSet.has(r.pod); }) : rows;
+    out.push(section('Table 3 — POD Mapping × Manifest Destination', 'Tick POD Mappings (none = all). Top 20 manifest destinations shown.',
+      '<div class="podbox">' + podVals.map(function (v) { return '<label class="subopt"><input type="checkbox" data-act="subtoggle" data-group="podSel" data-val="' + esc(v) + '" ' + (podSet.has(v) ? 'checked' : '') + ' /> ' + esc(v) + '</label>'; }).join('') + '</div>' +
+      crossTable('lm-pod-dest', top(podRows, 'dest', 20), 'dest', ageCols('lm'), ageGet, {})));
+    var hovRows = rows.filter(function (r) { return r.hov2; });
+    out.push(section('Table 4 — HOV2 cut, top destinations', 'Click a destination, or any row, for the underlying data (lane, location, product, value, manifest shipments, pendency, LM/MM remarks).',
+      crossTable('lm-hov2', top(hovRows, 'dest', 50), 'dest', ageCols('lm'), ageGet, { valueMid: true, pendLabel: 'HOV pendency (AWB)' })));
+    var big = rows.filter(function (r) { return r.value > C.hovValueThreshold; });
+    var crit = function (r) { return r.age !== null && r.age >= C.criticalAgeDays ? 'Critical (>5k and aged)' : 'High value (>5k)'; };
+    var bigCols = [
+      { h: 'Criticality', v: function (r) { return crit(r); }, f: function (r) { var c = crit(r); return '<span class="cat ' + (c.indexOf('Critical') === 0 ? 'possible' : 'jit') + '">' + esc(c) + '</span>'; } },
+      { h: 'AWB', v: function (r) { return r.awb; } }, { h: 'Lane Code', v: function (r) { return r.lane || 'NA'; } }, { h: 'Current location', v: function (r) { return r.loc; } },
+      { h: 'Manifest Destination', v: function (r) { return r.dest; } }, { h: 'Manifest Code', v: function (r) { return r.mcode; } },
+      { h: 'Shipments in manifest', v: function (r) { return na(r.shipInManifest); } }, { h: 'Product name', v: function (r) { return r.pname || 'NA'; } },
+      { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
+      { h: 'MM collated bucket', v: function (r) { return V.mmBucketOf(r); } }, { h: 'LM collated bucket', v: function (r) { return V.lmBucket(r); } },
+      { h: 'Calling remark', v: function () { return ''; }, f: function (r) { return remarkInput('A|' + r.awb, 'Calling remark for this AWB…'); } },
+      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
+    ];
+    out.push(section('Table 4.1 — Above ₹5,000 AWBs', 'Strictly above ₹5,000. Critical = above ₹5k and ageing ≥ ' + C.criticalAgeDays + ' days. Click a row for its popup.',
+      tbl('lm-5k', bigCols, big, { select: true, pop: rows, dim: 'awb', limit: 300, sort: { i: 12, dir: -1 }, rcaDim: 'awb', rcaVal: function (r) { return r.awb; } })));
+    return out.join('');
+  }
+
+  // ---------- tab: DC-DC ----------
+  function sellerRows(rows) {
+    var g = new Map();
+    rows.forEach(function (r) {
+      if (isBlankSeller(r.seller)) return;
+      var k = r.seller; if (!g.has(k)) g.set(k, { seller: k, n: 0, value: 0, aged: 0, liquid: false });
+      var x = g.get(k); x.n++; x.value += r.value; if (r.age !== null && r.age >= C.sellerAgedDays) x.aged++;
+      if (C.liquidDamageRegex.test(r.seller) || C.liquidDamageRegex.test(r.pname)) x.liquid = true;
+    });
+    return Array.from(g.values()).map(function (x) {
+      var share = x.n ? x.aged / x.n : 0, flag = '—', cls = 'none';
+      if (x.liquid && x.n >= C.sellerMinAwbs) { flag = x.value >= C.sellerFraudValue ? 'Possible seller fraud (liquid damage, high value): check at exception and clearance' : 'Liquid-damage seller: check at exception and clearance'; cls = 'possible'; }
+      else if (x.n >= C.sellerMinAwbs && share >= C.sellerAgedShare) { flag = 'Ageing spike: ' + Math.round(share * 100) + '% aged ≥ ' + C.sellerAgedDays + ' days'; cls = 'jit'; }
+      return { key: x.seller, seller: x.seller, n: x.n, value: x.value, aged: x.aged, share: share, flag: flag, cls: cls, _dim: 'seller', _mode: 'seller' };
+    }).sort(function (a, b) { return b.n - a.n; });
+  }
+  function renderDCDC(view) {
+    var rows = view.filtered, out = [tabHead('dcdc'), kpiRow(view)];
+    out.push(section('Table 1 — Manifest Origin × ageing pendency', '', crossTable('dc-origin', rows, 'origin', ageCols('dcdc'), ageGet, {})));
+    out.push(section('Table 2 — Manifest Destination × ageing pendency', '', crossTable('dc-dest', top(rows, 'dest', 100), 'dest', ageCols('dcdc'), ageGet, {})));
+    var hov2k = rows.filter(function (r) { return r.hov && r.value > C.hov2ValueThreshold; });
+    var hvCols = [
+      { h: 'Flag', v: function (r) { return r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value'; }, f: function (r) { var c = r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value'; return '<span class="cat possible">' + c + '</span>'; } },
+      { h: 'AWB', v: function (r) { return r.awb; } }, { h: 'Lane Code', v: function (r) { return r.lane || 'NA'; } }, { h: 'Current location', v: function (r) { return r.loc; } },
+      { h: 'Manifest Destination', v: function (r) { return r.dest; } }, { h: 'Manifest Origin', v: function (r) { return r.origin; } },
+      { h: 'Manifest Code', v: function (r) { return r.mcode; } }, { h: 'Actual Manifest ID', v: function (r) { return na(r.amid); } },
+      { h: 'Product name', v: function (r) { return r.pname || 'NA'; } }, { h: 'Category', v: function (r) { return r.pcat || 'NA'; } },
+      { h: 'Seller', v: function (r) { return r.seller; } }, { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
+      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
+    ];
+    out.push(section('Table 3 — HOV above ₹2,000: destinations and descriptions', 'Click a row for its popup.', tbl('dc-hov2k', hvCols, hov2k, { select: true, pop: hov2k, dim: 'awb', limit: 300, sort: { i: 12, dir: -1 }, rcaDim: 'awb', rcaVal: function (r) { return r.awb; } })));
+    out.push(section('Table 4 — HOV destination pendency', '', crossTable('dc-hov-dest', top(rows.filter(function (r) { return r.hov; }), 'dest', 100), 'dest', ageCols('dcdc'), ageGet, { valueMid: true })));
+    var sellers = sellerRows(rows);
+    var sCols = [
+      { h: 'Seller', v: function (s) { return s.seller; } }, { h: 'Pendency (AWB)', num: true, v: function (s) { return s.n; } },
+      { h: 'Aged ≥ ' + C.sellerAgedDays + ' days', num: true, v: function (s) { return s.aged; } },
+      { h: 'Aged share', num: true, noTotal: true, v: function (s) { return s.share; }, f: function (s) { return Math.round(s.share * 100) + '%'; } },
+      { h: 'Flag', v: function (s) { return s.flag; }, f: function (s) { return s.flag === '—' ? '—' : '<span class="cat ' + s.cls + '">' + esc(s.flag) + '</span>'; } },
+      { h: 'Product value ₹', num: true, money: true, v: function (s) { return s.value; }, f: function (s) { return inr(s.value); } }
+    ];
+    out.push(section('Table 5 — Seller-level trend and flags', 'Blank and #N/A sellers removed. Click a seller for its ageing split and manifests. Liquid-damage sellers (Ghar, Beco) flagged for check at exception and clearance.',
+      tbl('dc-seller', sCols, sellers, { select: true, pop: rows, dim: 'seller', mode: 'seller', limit: 300, rcaDim: 'seller', rcaVal: function (x) { return x.seller; }, rowClass: function (s) { return s.cls === 'possible' ? 'flagrow' : ''; } })));
+    out.push(exportBtns([{ kind: 'dc_filtered', label: 'DC-DC Short (filtered)', n: rows.length }, { kind: 'dc_sellers', label: 'Seller trend and flags', n: sellers.length }, { kind: 'dc_hov2k', label: 'HOV above ₹2,000', n: hov2k.length }]));
+    return out.join('');
+  }
+
+  // ---------- body ----------
+  function renderBody() {
+    var body = $('#body');
+    if (!activeDs()) {
+      body.innerHTML = '<section class="card empty-state"><h2>' + (state.expiredAt ? 'Dataset expired' : 'Upload the daily base to begin') + '</h2><p>Nothing is loaded from sample data. The upload stays active for 24 hours.</p><label class="btn primary big" for="upload">Upload Daily Base</label></section>';
+      return;
+    }
+    var t = state.tab, view = computeView(t); state.view = view;
+    var html = t === 'overall' ? renderOverall(view) : t === 'mm' ? renderMM(view) : t === 'lh' ? renderLH(view) : t === 'lm' ? renderLM(view) : renderDCDC(view);
+    body.innerHTML = html + renderDiagnostics();
+  }
+  function renderDiagnostics() {
+    var ds = activeDs(); if (!ds) return '';
+    var d = ds.diagnostics;
+    return section('Data quality and diagnostics', '', '<div class="diaggrid"><div><b>Sheet</b><br>' + esc(d.sheetName) + '</div><div><b>Source rows</b><br>' + num(d.sourceRows) + '</div><div><b>Records</b><br>' + num(d.records) +
+      '</div><div><b>Unique AWB</b><br>' + num(d.uniqueAwb) + '</div><div><b>Duplicate AWB rows</b><br>' + num(d.duplicateRowsExtra) + '</div><div><b>Product value source</b><br>' + esc(d.valueHeader) +
+      '</div></div><div class="exports"><button class="btn" data-act="export" data-kind="audit">Download classification audit CSV (all records)</button></div>');
+  }
+  function renderAll() { renderHeader(); renderNav(); renderFilters(); renderBody(); if (state.popup) renderPopup(); }
+
+  // ---------- exports ----------
+  function csvSrc() {
+    var ds = activeDs(), base = ds && ds.headers ? V.baseColumns(ds.headers) : [];
+    return base.concat(V.derivedColumns(), [{ h: 'RCA', get: function (r) { return rcaText(rcaKey('awb', r.awb)); } }]);
+  }
+  function exportLanes(lanes, name) {
+    var cols = [{ h: 'Lane Code', get: function (l) { return l.lane; } }, { h: 'Scope', get: function (l) { return l.scope; } }, { h: 'Classification_category', get: function (l) { return l.category; } },
+      { h: 'Pendency', get: function (l) { return l.pendency; } }, { h: 'Unique_AWB', get: function (l) { return l.uniqueAwb; } }, { h: 'Product_Value2', get: function (l) { return l.value; } },
+      { h: 'Validated_touchpoints', get: function (l) { return l.validated; } }, { h: 'Destinations', get: function (l) { return l.destinations; } }, { h: 'Dominant_destination', get: function (l) { return l.topDest; } },
+      { h: 'Dominant_Connecting_Bagging', get: function (l) { return l.domBag; } }, { h: 'Dominant_tertiary', get: function (l) { return l.domTert; } },
+      { h: 'Flag_JIT', get: function (l) { return l.jitFlag ? 'Yes' : 'No'; } }, { h: 'Flag_broad_spread', get: function (l) { return l.broadFlag ? 'Yes' : 'No'; } }];
+    return download(name + '_' + stamp() + '.csv', V.toCsv(lanes, cols));
+  }
+  function doExport(kind) {
+    var view = state.view, src = csvSrc(), tag = state.ds ? state.ds.id : 'NA';
+    var rowsCsv = function (rows, name) { return download(name + '_' + tag + '_' + stamp() + '.csv', V.toCsv(rows, src)); };
+    switch (kind) {
+      case 'dc_filtered': return rowsCsv(view.filtered, 'DCDC_Short');
+      case 'dc_hov2k': return rowsCsv(view.filtered.filter(function (r) { return r.hov && r.value > C.hov2ValueThreshold; }), 'DCDC_HOV_Above_2000');
+      case 'dc_sellers': return download('DCDC_Seller_Trend_' + stamp() + '.csv', V.toCsv(sellerRows(view.filtered), [
+        { h: 'Seller', get: function (s) { return s.seller; } }, { h: 'Pendency', get: function (s) { return s.n; } }, { h: 'Aged_count', get: function (s) { return s.aged; } },
+        { h: 'Aged_share', get: function (s) { return s.share.toFixed(2); } }, { h: 'Flag', get: function (s) { return s.flag; } }, { h: 'Product_Value2', get: function (s) { return s.value; } }]));
+      case 'lh_confirm': return exportLanes(view.lanes.filter(function (l) { return l.category === 'Confirm Lane Issue'; }), 'LH_Confirm_Lane_Issues');
+      case 'lh_possible': return exportLanes(view.lanes.filter(function (l) { return l.category === 'Possible Lane Issue'; }), 'LH_Possible_Lane_Issues');
+      case 'lh_jit': return exportLanes(view.lanes.filter(function (l) { return l.category === 'Possible JIT/ADC Issue'; }), 'LH_Possible_JIT_ADC');
+      case 'lh_all': return exportLanes(view.lanes, 'LH_All_Analyzed_Lanes');
+      case 'lh_records': return rowsCsv(view.filtered, 'LH_Underlying_Shipments');
+      case 'audit': return rowsCsv(state.records, 'Classification_Audit');
+    }
+  }
+  function tableCsv(id) {
+    var rows = TCACHE[id] || []; if (!rows.length) return;
+    if (rows[0].awb !== undefined && rows[0].rowNo !== undefined) return download('Table_' + id + '_' + stamp() + '.csv', V.toCsv(rows, csvSrc()));
+    var cols = [{ h: 'Key', get: function (o) { return o.key; } }, { h: 'Pendency_AWB', get: function (o) { return o.n; } }, { h: 'Product_Value2', get: function (o) { return o.value; } }, { h: 'HOV', get: function (o) { return o.hov; } }];
+    var ccKeys = {}; rows.forEach(function (o) { if (o.cc) Object.keys(o.cc).forEach(function (k) { ccKeys[k] = 1; }); });
+    Object.keys(ccKeys).sort(function (x, y) { var nx = parseFloat(x), ny = parseFloat(y); return (isNaN(nx) || isNaN(ny)) ? String(x).localeCompare(String(y)) : nx - ny; }).forEach(function (k) { cols.push({ h: 'Count_' + k, get: function (o) { return (o.cc && o.cc[k]) || 0; } }); });
+    if (rows[0].flag !== undefined) cols.push({ h: 'Flag', get: function (o) { return o.flag; } });
+    var dim = (TOPTS[id] || {}).dim;
+    if (dim) cols.push({ h: 'RCA', get: function (o) { return rcaText(rcaKey(dim, o.key !== undefined ? o.key : o.awb)); } });
+    download('Table_' + id + '_' + stamp() + '.csv', V.toCsv(rows, cols));
+  }
+
+  // Measure rendered cells and give each column its own width, capped so the first column
+  // can never push the ageing columns off screen.
+  function fitColumns(id) {
+    var tables = document.querySelectorAll('table.grid');
+    var target = null;
+    Array.prototype.forEach.call(tables, function (t) { if (t.querySelector('th[data-table="' + id + '"]')) target = t; });
+    if (!target) return;
+    var ths = target.querySelectorAll('thead th');
+    var w = state.colW[id] = {};
+    Array.prototype.forEach.call(ths, function (th, i) {
+      var max = th.scrollWidth;
+      Array.prototype.forEach.call(target.querySelectorAll('tbody tr'), function (tr) {
+        var td = tr.children[i]; if (td) max = Math.max(max, td.scrollWidth);
+      });
+      w[i] = Math.min(Math.max(max + 18, 56), i === 0 ? 260 : 220);
+    });
+    renderBody();
+  }
+
+  // ---------- events ----------
+  var rzDrag = null, rzMoved = false;
+  function bind() {
+    document.addEventListener('mousedown', function (ev) {
+      var h = ev.target.closest && ev.target.closest('.rz'); if (!h) return;
+      var th = h.parentElement;
+      rzDrag = { id: h.dataset.rz, i: +h.dataset.i, th: th, table: th.closest('table'), x: ev.clientX, w: th.offsetWidth };
+      rzMoved = false; document.body.classList.add('resizing'); ev.preventDefault(); ev.stopPropagation();
+    });
+    document.addEventListener('mousemove', function (ev) {
+      if (!rzDrag) return;
+      var w = Math.max(50, rzDrag.w + ev.clientX - rzDrag.x); rzMoved = true;
+      var px = w + 'px', i = rzDrag.i;
+      var setW = function (el) { if (!el) return; el.classList.remove('capfirst'); el.style.width = px; el.style.minWidth = px; el.style.maxWidth = px; };
+      setW(rzDrag.th);
+      if (rzDrag.table) Array.prototype.forEach.call(rzDrag.table.querySelectorAll('tbody tr'), function (tr) { setW(tr.children[i]); });
+      state.colW[rzDrag.id] = state.colW[rzDrag.id] || {}; state.colW[rzDrag.id][i] = w;
+      ev.preventDefault();
+    });
+    document.addEventListener('mouseup', function () { if (rzDrag) { rzDrag = null; document.body.classList.remove('resizing'); } });
+    document.addEventListener('click', function (ev) {
+      if (rzMoved) { rzMoved = false; return; }
+      var el = ev.target.closest('[data-act]');
+      if (!el) { if (state.openFilter && !ev.target.closest('.fpanel')) { state.openFilter = null; renderFilters(); } return; }
+      var act = el.getAttribute('data-act');
+      if (el.tagName === 'INPUT' && el.type === 'checkbox') return;
+      if (act === 'tab') { closePopup(); state.tab = el.dataset.tab; state.openFilter = null; renderAll(); }
+      else if (act === 'fopen') { state.openFilter = state.openFilter === el.dataset.field ? null : el.dataset.field; state.filterSearch = ''; renderFilters(); ev.stopPropagation(); }
+      else if (act === 'fall' || act === 'fnone') {
+        var s = state.tabs[state.tab], f = el.dataset.field;
+        if (act === 'fnone') delete s.fields[f];
+        else { var q = state.filterSearch.toLowerCase(); s.fields[f] = new Set(filterOptions(state.tab, f, computeView(state.tab)).filter(function (o) { return !q || o.v.toLowerCase().indexOf(q) >= 0; }).slice(0, 300).map(function (o) { return o.v; })); }
+        renderFilters(); renderBody();
+      }
+      else if (act === 'resetdef') { var d = C.tabs[state.tab]; Object.assign(state.tabs[state.tab], { manifestType: d.manifestType, ageMin: d.ageMin, ageMax: d.ageMax }); renderFilters(); renderBody(); }
+      else if (act === 'clearall') { Object.assign(state.tabs[state.tab], { search: '', fields: {}, valueMin: null, valueMax: null }); renderFilters(); renderBody(); }
+      else if (act === 'sort') { var id = el.dataset.table, i = +el.dataset.i, cur = state.sort[id] || { i: 0, dir: -1 }; state.sort[id] = { i: i, dir: cur.i === i ? -cur.dir : -1 }; renderBody(); }
+      else if (act === 'sel') { var tid = el.dataset.table, row = TCACHE[tid][+el.dataset.idx]; openPopup(tid, row); }
+      else if (act === 'popclose') closePopup();
+      else if (act === 'popcsv') popupCsv();
+      else if (act === 'tcsv') tableCsv(el.dataset.table);
+      else if (act === 'wreset') { delete state.colW[el.dataset.table]; renderBody(); }
+      else if (act === 'wfit') { fitColumns(el.dataset.table); }
+      else if (act === 'export') doExport(el.dataset.kind);
+      else if (act === 'recalc') renderAll();
+      else if (act === 'backend') { state.showBackend = !state.showBackend; renderHeader(); }
+      else if (act === 'pull') { if (window.SYNC && window.SYNC.configured()) pullFromSheet(); else { state.showBackend = true; renderHeader(); } }
+      else if (act === 'apisave') {
+        var inp = document.getElementById('apiurl');
+        window.SYNC.setUrl(inp ? inp.value : '');
+        state.backendErr = ''; state.backend = 'Testing the backend …'; renderHeader();
+        window.SYNC.ping().then(function (r) {
+          state.backend = ''; state.showBackend = false;
+          state.notice = 'Backend connected. Writing to tab "' + r.sheet + '".'; renderAll();
+          return pullFromSheet();
+        }).catch(function (e) { state.backend = ''; state.backendErr = 'Backend test failed: ' + e.message; renderHeader(); });
+      }
+    });
+    document.addEventListener('change', function (ev) {
+      var el = ev.target, act = el.getAttribute && el.getAttribute('data-act');
+      if (act === 'ftoggle') {
+        var s = state.tabs[state.tab], f = el.dataset.field, v = el.dataset.val;
+        if (!s.fields[f]) s.fields[f] = new Set();
+        if (el.checked) s.fields[f].add(v); else s.fields[f].delete(v);
+        if (!s.fields[f].size) delete s.fields[f];
+        renderFilters(); renderBody();
+      }
+      else if (act === 'pdim') { state.prodDim = el.dataset.val; renderBody(); }
+      else if (act === 'missdim') { state.missDim = el.dataset.val; renderBody(); }
+      else if (act === 'subtoggle') { var m = state[el.dataset.group]; if (!m[state.tab]) m[state.tab] = new Set(); if (el.checked) m[state.tab].add(el.dataset.val); else m[state.tab].delete(el.dataset.val); renderBody(); }
+      else if (act === 'mt') { state.tabs[state.tab].manifestType = el.value; renderFilters(); renderBody(); }
+      else if (act === 'age') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderFilters(); renderBody(); }
+      else if (act === 'val') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderBody(); }
+      else if (el.id === 'upload' && el.files && el.files[0]) { var file = el.files[0]; el.value = ''; onUpload(file); }
+    });
+    document.addEventListener('input', function (ev) {
+      var el = ev.target, act = el.getAttribute && el.getAttribute('data-act');
+      if (act === 'search') { state.tabs[state.tab].search = el.value; renderBody(); }
+      else if (act === 'fsearch') { state.filterSearch = el.value; renderFilters(); var inp = document.querySelector('.fsearch'); if (inp) { inp.focus(); inp.setSelectionRange(el.value.length, el.value.length); } }
+    });
+    document.addEventListener('focusout', function (ev) { var el = ev.target; if (el.getAttribute && el.getAttribute('data-act') === 'remark') saveRemark(el.dataset.key, el.value); });
+    // Typing in an RCA box must not trigger a re-render, or the box would lose focus mid-word.
+    document.addEventListener('keydown', function (ev) { if (ev.target && ev.target.classList && ev.target.classList.contains('remark') && ev.key === 'Escape') { ev.stopPropagation(); ev.target.blur(); } }, true);
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') { if (state.popup) closePopup(); state.openFilter = null; renderFilters(); }
+    });
+    $('#modal').addEventListener('click', function (ev) { if (ev.target.id === 'modal') closePopup(); });
+  }
+
+  function boot() {
+    bind(); renderAll();
+    loadActive().then(function () {
+      renderAll();
+      remarkAll().then(function (all) { all.forEach(function (e) { state.remarks.set(e.key, e); }); renderBody(); }).catch(function () {});
+      setInterval(expireIfNeeded, 60 * 1000);
+      if (window.SYNC && window.SYNC.configured()) {
+        window.SYNC.loadRca().then(function (notes) {
+          Object.keys(notes).forEach(function (k) { state.remarks.set(k, { key: k, entity: 'rca', ref: k.slice(2), text: notes[k], history: [], matched: true }); });
+          renderBody();
+        }).catch(function () {});
+        if (!activeDs()) return pullFromSheet();
+      }
+    });
+  }
+
+  // Load the base that is already in the Google Sheet (what teammates and other devices see).
+  function pullFromSheet() {
+    state.backendErr = ''; state.backend = 'Checking the Google Sheet …'; renderHeader();
+    return window.SYNC.pullDataset(function (msg) { state.backend = msg; renderHeader(); })
+      .then(function (ds) {
+        state.backend = '';
+        if (!ds) { state.notice = 'The Google Sheet has no base yet. Upload a file to fill it.'; renderAll(); return; }
+        state.ds = ds; state.records = ds.records; state.expiredAt = null;
+        kvPut('active', ds).catch(function () {});
+        state.notice = 'Loaded ' + num(ds.records.length) + ' records from the Google Sheet (' + ds.headers.length + ' columns).';
+        renderAll();
+      })
+      .catch(function (e) { state.backend = ''; state.backendErr = 'Could not read the Google Sheet: ' + e.message; renderAll(); });
+  }
+  window.DASH = {
+    schema: DS_SCHEMA,
+    backendError: function (m) { state.backendErr = m; renderHeader(); }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+
+</script>
+</body>
+</html>
