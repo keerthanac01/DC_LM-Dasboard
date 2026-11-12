@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>DC-LM Dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
 :root{
   --green:#2E8B57; --deep:#1F6F45; --lime:#AACC00; --card:#F6FAF7; --amber:#C77700;
@@ -169,11 +170,68 @@ table.grid tr.dest-row td{font-weight:400}
 
 /* v4: first-column cap, RCA boxes, width controls */
 table.grid td.capfirst, table.grid th.capfirst{max-width:300px}
+.metric{display:inline-flex;align-items:center;gap:6px}
+.metric .seg{border:1px solid var(--line);background:var(--surface);color:var(--deep);padding:7px 12px;border-radius:999px;font-weight:600;cursor:pointer;font-size:12px}
+.metric .seg.on{background:#1F6F45;color:#fff;border-color:#1F6F45}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .metric .seg.on{background:#AACC00;color:#0F1A00;border-color:#AACC00} }
+:root[data-theme="dark"] .metric .seg.on{background:#AACC00;color:#0F1A00;border-color:#AACC00}
 .cellw{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
-table.grid td:first-child{overflow:hidden;text-overflow:ellipsis}
+table.grid td,table.grid th{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.grid td.rcacell{overflow:visible}
+table.grid th{position:relative}
 table.grid th{position:sticky;z-index:2}
 table.grid th .rz{width:12px;z-index:5}
 body.resizing{user-select:none;cursor:col-resize}
+/* v5: left rail, collapsible sections, ageing-spike shading */
+.shell{display:flex;align-items:flex-start;gap:0}
+nav.side{flex:0 0 212px;position:sticky;top:84px;align-self:flex-start;display:flex;flex-direction:column;gap:6px;padding:16px 10px 16px 20px;border-right:1px solid var(--line);min-height:calc(100vh - 84px)}
+nav.side .tab{width:100%;text-align:left;border-radius:9px;padding:11px 13px;font-size:13px;line-height:1.25;border:1px solid transparent;background:transparent;color:var(--deep)}
+nav.side .tab:hover{background:var(--card)}
+nav.side .tab.on{background:#1F6F45;color:#fff;border-color:#1F6F45;font-weight:700}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) nav.side .tab.on{background:#AACC00;color:#0F1A00;border-color:#AACC00} }
+:root[data-theme="dark"] nav.side .tab.on{background:#AACC00;color:#0F1A00;border-color:#AACC00}
+nav.side .railhead{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:0 13px 4px}
+.shell main{flex:1;min-width:0}
+section.card .ch{cursor:pointer;display:flex;align-items:flex-start;gap:10px}
+section.card .ch h2{flex:1}
+.caret{flex:0 0 auto;width:20px;height:20px;border-radius:6px;background:var(--card);color:var(--deep);font-size:11px;line-height:20px;text-align:center;font-weight:700}
+section.card.closed .cbody{display:none}
+section.card.closed{padding-bottom:10px}
+section.card.closed .ch .meta{display:none}
+.secbtns{display:flex;gap:8px;margin:0 0 10px}
+/* ageing spike: pendency rising at a higher ageing than the one before it */
+td.h1{background:#F1F8E6;color:#1F3310}
+td.h2{background:#DCEEBB;color:#1A2C0C}
+td.h3{background:#BFDD7A;color:#16250A;font-weight:600}
+td.h4{background:#9ABF00;color:#0F1A00;font-weight:700}
+td.spk1{box-shadow:inset 0 -3px 0 #2E8B57}
+td.spk2{box-shadow:inset 0 -3px 0 #1F6F45;outline:2px solid #1F6F45;outline-offset:-2px}
+.legend i.sw{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.08)}
+.legend i.sw.h1{background:#F1F8E6}.legend i.sw.h2{background:#DCEEBB}
+.legend i.sw.h3{background:#BFDD7A}.legend i.sw.h4{background:#9ABF00}
+.legend i.sw.spk2{background:#fff;outline:2px solid #1F6F45;outline-offset:-2px}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) td.h1{background:#1C280C;color:#CFE6A4}
+  :root:not([data-theme="light"]) td.h2{background:#2A3B10;color:#DCEFB4}
+  :root:not([data-theme="light"]) td.h3{background:#44600F;color:#EDF8D6}
+  :root:not([data-theme="light"]) td.h4{background:#7FA300;color:#0F1A00}
+  :root:not([data-theme="light"]) td.spk1{box-shadow:inset 0 -3px 0 #AACC00}
+  :root:not([data-theme="light"]) td.spk2{box-shadow:inset 0 -3px 0 #AACC00;outline-color:#AACC00}
+}
+:root[data-theme="dark"] td.h1{background:#1C280C;color:#CFE6A4}
+:root[data-theme="dark"] td.h2{background:#2A3B10;color:#DCEFB4}
+:root[data-theme="dark"] td.h3{background:#44600F;color:#EDF8D6}
+:root[data-theme="dark"] td.h4{background:#7FA300;color:#0F1A00}
+:root[data-theme="dark"] td.spk1{box-shadow:inset 0 -3px 0 #AACC00}
+:root[data-theme="dark"] td.spk2{box-shadow:inset 0 -3px 0 #AACC00;outline-color:#AACC00}
+.legend{display:inline-flex;align-items:center;gap:6px;margin-left:10px;font-size:11px;color:var(--muted)}
+.legend i{width:13px;height:13px;border-radius:3px;display:inline-block}
+@media (max-width:900px){
+  .shell{flex-direction:column}
+  nav.side{flex:none;width:100%;flex-direction:row;flex-wrap:wrap;position:static;min-height:0;border-right:0;border-bottom:1px solid var(--line);padding:10px 16px}
+  nav.side .tab{width:auto}
+  nav.side .railhead{display:none}
+}
 .backendbox{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:10px}
 .backendbox label{display:flex;flex-direction:column;gap:4px;flex:1;min-width:280px;font-size:12px;color:var(--muted)}
 .backendbox input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--bg);color:var(--ink)}
@@ -188,15 +246,188 @@ td.rcacell{white-space:normal}
 .btn.small.ghost{border-color:var(--line);color:var(--muted)}
 table.grid tr.totrow td:first-child{color:var(--deep)}
 .subbox input[type=radio]{accent-color:var(--green)}
+
+/* ============ Shadowfax Pendency Dashboard skin (matches Network Pendency Review) ============ */
+:root{
+  --green:#157F5F; --deep:#0F5132; --lime:#C4D82E; --card:#FFFFFF; --amber:#B06A00;
+  --bg:#F6F8F7; --surface:#FFFFFF; --ink:#13241C; --muted:#64756B; --line:#E3E8E6; --hl:#FFF6DC; --red:#A23B2A;
+  --rail:#FFFFFF; --chip:#FFFFFF; --thead:#FAFBFA;
+  --heat1:#E8F5EF; --heat2:#CDEADD; --heat3:#A5D9C4; --heat4:#5FBD9B;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --green:#4FC79D; --deep:#A7E8CC; --lime:#C4D82E; --card:#16211C; --bg:#0E1714; --surface:#16211C;
+  --ink:#E7F2EC; --muted:#9AB0A5; --line:#25362E; --rail:#111B17; --chip:#16211C; --thead:#13201A;
+  --heat1:#15291F; --heat2:#1D3A2B; --heat3:#2C5A42; --heat4:#3E8763;
+}}
+:root[data-theme="dark"]{
+  --green:#4FC79D; --deep:#A7E8CC; --lime:#C4D82E; --card:#16211C; --bg:#0E1714; --surface:#16211C;
+  --ink:#E7F2EC; --muted:#9AB0A5; --line:#25362E; --rail:#111B17; --chip:#16211C; --thead:#13201A;
+  --heat1:#15291F; --heat2:#1D3A2B; --heat3:#2C5A42; --heat4:#3E8763;
+}
+html,body{background:var(--bg);color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-feature-settings:'cv11','ss01';-webkit-font-smoothing:antialiased}
+table.grid td.num,table.grid th.num,.kv,.bv{font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{background:var(--surface);border-bottom:3px solid var(--lime);padding:18px 0 0}
+#hdr{padding:0 30px}
+.hdr-main{align-items:flex-start;gap:20px}
+.brand{align-items:flex-start;gap:14px}
+.logo{display:none}
+.title{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.1}
+.title::before{content:'SHADOWFAX · NETWORK PENDENCY REVIEW';display:block;
+  font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--green);margin-bottom:7px}
+.sub{color:var(--muted);font-size:13px;margin-top:6px}
+.hdr-right{gap:10px;align-items:center;padding-top:6px}
+.statusbar{padding:14px 30px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{border-radius:999px;padding:5px 13px;font-size:11px;font-weight:700;letter-spacing:.06em}
+.pill.ok{background:#E8F5EF;color:#0F5132}
+.pill.warn{background:#FDF2DC;color:#8A5A00}
+.statusbar .meta{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:12.5px;color:var(--muted)}
+.statusbar .meta b{color:var(--ink);font-weight:700}
+.banner{margin:0 30px 12px;border-radius:10px;font-size:13px}
+
+/* buttons */
+.btn{border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  font-weight:600;font-size:13px;padding:9px 15px;transition:border-color .12s,background .12s}
+.btn:hover{border-color:var(--green);background:var(--surface)}
+.btn.primary{background:var(--deep);border-color:var(--deep);color:#fff}
+.btn.primary:hover{background:#0B3F27;border-color:#0B3F27}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.small{padding:6px 11px;font-size:12px;border-radius:8px}
+
+/* left rail */
+.shell{gap:0;background:var(--bg)}
+nav.side{flex:0 0 244px;background:var(--rail);border-right:1px solid var(--line);padding:22px 14px;gap:4px;top:0;min-height:calc(100vh - 60px)}
+nav.side .railhead{font-size:10.5px;font-weight:700;letter-spacing:.13em;color:var(--muted);padding:4px 12px 8px}
+nav.side .tab{border-radius:10px;padding:12px 14px;font-size:13.5px;font-weight:600;color:var(--ink);border:1px solid transparent}
+nav.side .tab:hover{background:var(--bg)}
+nav.side .tab.on{background:var(--deep);color:#fff;border-color:var(--deep);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) nav.side .tab.on{background:#1C6B4D;color:#EAF7F0;border-color:#1C6B4D} }
+:root[data-theme="dark"] nav.side .tab.on{background:#1C6B4D;color:#EAF7F0;border-color:#1C6B4D}
+.shell main{padding:0 30px 50px}
+
+/* filters */
+.filterbar{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:22px 0 20px}
+.frow{gap:12px 14px;align-items:flex-end}
+.frow label{font-size:11px;font-weight:600;color:var(--muted);gap:5px}
+.frow input,.frow select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;background:var(--surface);color:var(--ink);font-family:inherit}
+.chip{border:1px solid var(--line);background:var(--chip);border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--ink)}
+.chip:hover{border-color:var(--green)}
+.chip.on{border-color:var(--deep);background:#E8F5EF;color:var(--deep)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .chip.on{background:#19392C;color:#A7E8CC} }
+:root[data-theme="dark"] .chip.on{background:#19392C;color:#A7E8CC}
+
+/* cards */
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:0 0 18px;box-shadow:none}
+section.card .ch h2,section.card h2{font-size:21px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+section.card .ch{gap:12px;align-items:center;margin-bottom:4px}
+section.card .ch .meta,section.card .cbody>.meta{color:var(--muted);font-size:13px;margin-bottom:14px}
+.caret{background:var(--bg);color:var(--green);border:1px solid var(--line)}
+.tabhead h1{font-size:25px;font-weight:700;letter-spacing:-.015em;color:var(--ink);margin:26px 0 6px}
+.tabhead .meta{color:var(--muted);font-size:13px}
+
+/* KPI strip */
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.kl{font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--muted);text-transform:none}
+.kv{font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.ks{font-size:11.5px;color:var(--muted)}
+
+/* tables */
+.tablewrap{border:1px solid var(--line);border-radius:12px}
+table.grid{font-size:13px}
+table.grid th{background:var(--thead);color:var(--muted);font-weight:600;font-size:11.5px;
+  letter-spacing:.03em;padding:11px 12px;border-bottom:1px solid var(--line)}
+table.grid td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink)}
+table.grid tbody tr:last-child td{border-bottom:0}
+table.grid tr.click:hover td{background:#F2F8F5}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) table.grid tr.click:hover td{background:#1A2A22} }
+:root[data-theme="dark"] table.grid tr.click:hover td{background:#1A2A22}
+table.grid tr.totrow td{background:var(--thead);color:var(--ink);border-bottom:2px solid var(--green);font-weight:700}
+.zero{color:#C3CEC8}
+
+/* heat scale, teal-green like the reference */
+td.h1{background:var(--heat1);color:var(--ink)}
+td.h2{background:var(--heat2);color:#0F2B20}
+td.h3{background:var(--heat3);color:#0C2419;font-weight:600}
+td.h4{background:var(--heat4);color:#06180F;font-weight:700}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  td.h2{color:#CFEADD} td.h3{color:#E4F5EC} td.h4{color:#07150F} }}
+:root[data-theme="dark"] td.h2{color:#CFEADD}
+:root[data-theme="dark"] td.h3{color:#E4F5EC}
+:root[data-theme="dark"] td.h4{color:#07150F}
+td.spk1{box-shadow:inset 0 -3px 0 var(--green)}
+td.spk2{box-shadow:inset 0 -3px 0 var(--deep);outline:2px solid var(--deep);outline-offset:-2px}
+.legend i.sw.h1{background:var(--heat1)}.legend i.sw.h2{background:var(--heat2)}
+.legend i.sw.h3{background:var(--heat3)}.legend i.sw.h4{background:var(--heat4)}
+.legend i.sw.spk2{outline-color:var(--deep)}
+
+/* per-table metric selector under the heading */
+.tmetric{display:flex;align-items:center;gap:7px;margin:0 0 12px}
+.tmetric .seg{border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:6px 13px;border-radius:999px;font-weight:600;cursor:pointer;font-size:12px;font-family:inherit}
+.tmetric .seg.on{background:var(--deep);color:#fff;border-color:var(--deep)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tmetric .seg.on{background:#1C6B4D;color:#EAF7F0;border-color:#1C6B4D} }
+:root[data-theme="dark"] .tmetric .seg.on{background:#1C6B4D;color:#EAF7F0;border-color:#1C6B4D}
+.subbox{gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.subopt{font-size:12.5px;color:var(--ink)}
+
+/* field list panel */
+.fieldlist{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+.fieldgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 18px;margin-top:12px}
+.fieldgrid span{font-size:12.5px;color:var(--ink);padding:3px 0;border-bottom:1px dotted var(--line)}
+.fieldgrid span i{color:var(--muted);font-style:normal;margin-right:7px;font-variant-numeric:tabular-nums}
+/* action-item severity */
+.sev{display:inline-block;border-radius:999px;padding:3px 11px;font-size:11.5px;font-weight:700}
+.sev.t{background:#F8D7D2;color:#7A2318}
+.sev.w{background:#FDF0D5;color:#7A5200}
+.sev.v{background:#E8F5EF;color:#0F5132}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  .sev.t{background:#4A1A13;color:#F6C7BF} .sev.w{background:#43340C;color:#F2DEA8} .sev.v{background:#17382A;color:#A7E8CC} }}
+:root[data-theme="dark"] .sev.t{background:#4A1A13;color:#F6C7BF}
+:root[data-theme="dark"] .sev.w{background:#43340C;color:#F2DEA8}
+:root[data-theme="dark"] .sev.v{background:#17382A;color:#A7E8CC}
+
+/* ---- tighter type scale (table text ~10px, like an Excel sheet) ---- */
+html,body{font-size:13px}
+.title{font-size:27px}
+.title::before{font-size:9.5px;letter-spacing:.13em}
+.sub{font-size:11.5px}
+.statusbar .meta{font-size:11px;padding:5px 12px}
+.pill{font-size:10px;padding:4px 11px}
+.btn{font-size:11.5px;padding:7px 12px}
+.btn.small{font-size:10.5px;padding:5px 9px}
+nav.side .tab{font-size:12px;padding:10px 12px}
+nav.side .railhead{font-size:9.5px}
+.tabhead h1{font-size:20px;margin:20px 0 5px}
+.tabhead .meta,.meta{font-size:11px}
+section.card{padding:16px 18px;margin-bottom:14px}
+section.card .ch h2,section.card h2{font-size:15.5px}
+.kpi{padding:12px 14px}
+.kl{font-size:9.5px}.kv{font-size:21px}.ks{font-size:10px}
+.frow label{font-size:9.5px}
+.frow input,.frow select{font-size:11.5px;padding:7px 9px}
+.chip{font-size:11px;padding:7px 11px}
+.fopt,.subopt{font-size:11px}
+.tmetric .seg{font-size:10.5px;padding:5px 11px}
+table.grid{font-size:10.5px}
+table.grid th{font-size:9.5px;padding:7px 9px;letter-spacing:.02em}
+table.grid td{padding:5px 9px}
+textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
+.sev{font-size:10px;padding:2px 9px}
+.fieldgrid span{font-size:11px}
 </style>
 </head>
 <body>
 <header class="top"><div id="hdr"></div></header>
-<nav class="tabs" id="nav"></nav>
-<main>
-  <div id="filters"></div>
-  <div id="body"></div>
-</main>
+<div class="shell">
+  <nav class="side" id="nav"></nav>
+  <main>
+    <div id="filters"></div>
+    <div id="body"></div>
+  </main>
+</div>
 <div id="modal"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -212,11 +443,12 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
   var CONFIG = {
     sheetPriority: ['Base', 'Short_Dispatched'],
     tabs: {
-      overall: { label: 'DCH Overall Pendency', manifestType: 'DCH2',  ageMin: 2, ageMax: 20 },
-      mm:   { label: 'MM Liability',        manifestType: 'DCH2',  ageMin: 2, ageMax: 20 },
-      lh:   { label: 'LH Liability',        manifestType: 'DCH2',  ageMin: 2, ageMax: 30 },
-      lm:   { label: 'LM Liability',        manifestType: 'DCH2',  ageMin: 2, ageMax: 20 },
-      dcdc: { label: 'DC-DC Short',         manifestType: 'DC-DC', ageMin: 2, ageMax: 25 }
+      overall: { label: 'DCH Overall Pendency', manifestType: 'DCH2',  ageMin: null, ageMax: null },
+      fwd:  { label: 'Forward Short Shipment Pendency', manifestType: 'ALL', ageMin: null, ageMax: null },
+      mm:   { label: 'MM Liability',        manifestType: 'DCH2',  ageMin: null, ageMax: null },
+      lh:   { label: 'LH Liability',        manifestType: 'DCH2',  ageMin: null, ageMax: null },
+      lm:   { label: 'LM Liability',        manifestType: 'DCH2',  ageMin: null, ageMax: null },
+      dcdc: { label: 'DC-DC Short',         manifestType: 'DC-DC', ageMin: null, ageMax: null }
     },
     laneValueThreshold: 30000,   // lane exposure strictly greater than this is flagged
     hovValueThreshold: 5000,     // HOV list threshold, strictly greater than
@@ -279,6 +511,69 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     if (a <= 1) return '1'; if (a <= 5) return '2–5'; if (a <= 10) return '6–10';
     if (a <= 15) return '11–15'; if (a <= 20) return '16–20'; if (a <= 25) return '21–25';
     if (a <= 30) return '26–30'; return '31+';
+  }
+
+  // Ageing band: every day up to AGE_BAND_MAX on its own, everything beyond it summed as "20+".
+  var AGE_BAND_MAX = 20;
+  function ageBand(a) {
+    if (a === null || a === undefined) return '(blank)';
+    return a > AGE_BAND_MAX ? (AGE_BAND_MAX + '+') : String(a);
+  }
+
+  // ---------- Collated remark buckets (MM Remarks + Landroval Check, and LM Remarks) ----------
+  function nrm(v) { return txt(v).toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+  var CB_CCTV = ['dvr issue', 'camera not aligned', 'camera not clear', 'camera not found'];
+  var CB_DCXD = ['shipment connected to wrong destination', 'miss sort - gc fault (not connected in manifest)',
+                 'fake bagging', 'potential miss from site'];
+  var CB_SEAL = ['seal mismatch @origin', 'gc created 2 bags for same manifest'];
+  var CB_REPORT = ['landroval data not found', 'rec at hub/delivered'];
+  var CB_LAND_OK = ['connected correctly', 'brsnr pendency'];
+  var CB_LAND_SEAL = ['seal mismatch', 'possible seal mismatch'];
+
+  function inList(list, v) { return list.indexOf(v) >= 0; }
+
+  // MM collated bucket: the MM remark decides, with Landroval Check resolving the CCTV cases.
+  function mmCollated(mmRemark, landroval) {
+    var m = nrm(mmRemark), l = nrm(landroval);
+    var blankM = m === '' || m === '0' || m === '#n/a' || m === 'na' || m === 'n/a';
+    if (!blankM) {
+      if (m === 'shipment connected to correct destination') return 'Connected correctly';
+      if (inList(CB_CCTV, m)) {
+        if (inList(CB_LAND_OK, l)) return 'Connected correctly';
+        if (inList(CB_LAND_SEAL, l)) return 'Seal mismatch';
+        return 'CCTV issue';
+      }
+      if (inList(CB_SEAL, m)) return 'Seal mismatch';
+      if (inList(CB_DCXD, m)) return 'DC/XD miss';
+      if (inList(CB_REPORT, m)) return 'Report issue';
+      if (m === 'sdd shipment' || m === 'sdd') return 'SDD';
+      if (m.indexOf('duplicate ptl') === 0) return 'Duplicate PTL / Manual station';
+    }
+    // Nothing usable in the MM remark: fall back to Landroval, else it is still to be worked.
+    if (inList(CB_LAND_OK, l)) return 'Connected correctly';
+    if (inList(CB_LAND_SEAL, l)) return 'Seal mismatch';
+    return 'WIP';
+  }
+
+  var CB_LM_SHORT = ['short found', 'short validated', 'approved'];
+  var CB_LM_CCTV = ['backup gap', 'backup issue', 'camera issues', 'camera issue', 'no footage found', 'offline', 'time mismatch'];
+  var CB_LM_EXCESS = ['excess', 'no short found', 'no short'];
+  var CB_LM_PROCESS = ['process breach ( multiple bagging / debagging )', 'process breach',
+                    'no bagging / debagging at the given time', 'no debagging at the given time',
+                    'multiple bagging at the given time'];
+
+  function lmCollated(lmRemark) {
+    var v = nrm(lmRemark);
+    if (v === '' || v === '0' || v === '#n/a' || v === 'na' || v === 'n/a') return 'WIP';
+    if (inList(CB_LM_SHORT, v)) return 'Short found';
+    if (inList(CB_LM_CCTV, v)) return 'CCTV issue';
+    if (inList(CB_LM_EXCESS, v)) return 'Excess / No short found';
+    if (inList(CB_LM_PROCESS, v)) return 'Process breach';
+    if (v === 'rejected') return 'Rejected';
+    if (v === 'unable to validate') return 'Unable to validate';
+    if (v === 'lm fraud') return 'LM fraud';
+    return txt(lmRemark);
   }
 
   // ---------- Remark dictionaries (keys are normalised) ----------
@@ -360,6 +655,8 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       shipInManifest: manifestCount(g('shipInManifest'), g('awbInManifest')),
       actionUser: isMissingCode(g('actionUser')) ? '' : txt(g('actionUser')),
       dcRemark: isMissing(g('dcRemark')) ? 'NA' : txt(g('dcRemark')),
+      mmColl: mmCollated(g('mmRemarks'), g('landroval')),
+      lmColl: lmCollated(g('lmRemarks')),
       bucket: '',
       value: toNum(valueRaw) === null ? 0 : toNum(valueRaw),
       valueOk: toNum(valueRaw) !== null,
@@ -408,6 +705,10 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
   }
 
   function classifyRecord(rec) {
+    // Datasets cached before the collated buckets existed carry no mmColl/lmColl.
+    // Rebuild them from the raw remarks the record already stores, so nothing renders as undefined.
+    if (rec.mmColl === undefined || rec.mmColl === null) rec.mmColl = mmCollated(rec.mm, rec.land);
+    if (rec.lmColl === undefined || rec.lmColl === null) rec.lmColl = lmCollated(rec.lm);
     rec.lmShort = LM_SHORT.has(norm(rec.lm));
     rec.lmBlank = isMissing(rec.lm);
     classifyMM(rec);
@@ -448,7 +749,11 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     var lo = (f && f.ageMin !== undefined && f.ageMin !== null) ? f.ageMin : cfg.ageMin;
     var hi = (f && f.ageMax !== undefined && f.ageMax !== null) ? f.ageMax : cfg.ageMax;
     return records.filter(function (r) {
-      return (mt === 'ALL' || r.mt === mt) && r.age !== null && r.age >= lo && r.age <= hi;
+      if (!(mt === 'ALL' || r.mt === mt)) return false;
+      if (r.age === null) return lo === null && hi === null;   // unaged rows show only when no bound is set
+      if (lo !== null && r.age < lo) return false;
+      if (hi !== null && r.age > hi) return false;
+      return true;
     });
   }
 
@@ -462,6 +767,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       case 'lm': return pop.filter(function (r) { return r.lmCls === 'LM_LIABILITY'; });
       case 'dcdc': return pop;
       case 'overall': return pop;
+      case 'fwd': return pop;
     }
     return [];
   }
@@ -475,6 +781,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       case 'lm': return pop.filter(function (r) { return r.lmCls === 'REVIEW' || (r.lmCls === 'LM_LIABILITY' && r.mmCls === 'REVIEW'); });
       case 'dcdc': return pop.filter(function (r) { return !r.origin || !r.dest || !r.valueOk; });
       case 'overall': return pop.filter(function (r) { return !r.loc; });
+      case 'fwd': return pop.filter(function (r) { return !r.loc; });
     }
     return [];
   }
@@ -501,8 +808,10 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
   var KEYS = {
     loc:      { label: 'Current Location',       get: function (r) { return r.loc || '(blank)'; } },
     mmReason: { label: 'MM liability reason',    get: function (r) { return r.mmReason || '(none)'; } },
-    lmClass:  { label: 'LM collated bucket',     get: function (r) { return lmBucket(r); } },
+    lmClass:  { label: 'LM classification',      get: function (r) { return lmBucket(r); } },
+    lmColl:   { label: 'LM collated bucket',     get: function (r) { return r.lmColl; } },
     ageBucket:{ label: 'Ageing bucket',          get: function (r) { return ageBucket(r.age); } },
+    ageBand:  { label: 'Ageing (20+ bucketed)', get: function (r) { return ageBand(r.age); } },
     age:      { label: 'Ageing (exact)',         get: function (r) { return r.age === null ? '(blank)' : String(r.age); } },
     mcode:    { label: 'Manifest Code',          get: function (r) { return r.mcode || '(blank)'; } },
     amid:     { label: 'Actual Manifest ID',     get: function (r) { return r.amid || '(blank)'; } },
@@ -518,7 +827,8 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     pname:    { label: 'Product Name',           get: function (r) { return r.pname || '(blank)'; } },
     pcat:     { label: 'Product Category',       get: function (r) { return r.pcat || '(blank)'; } },
     wrongDest:{ label: 'Wrongly connected destination', get: function (r) { return r.wrongDest || 'NA'; } },
-    bucket:   { label: 'MM Collated bucket',     get: function (r) { return mmBucketOf(r); } },
+    bucket:   { label: 'MM liability bucket',    get: function (r) { return mmBucketOf(r); } },
+    mmColl:   { label: 'MM collated bucket',     get: function (r) { return r.mmColl; } },
     pod:      { label: 'POD Mapping',            get: function (r) { return r.pod || 'NA'; } },
     podZone:  { label: 'POD_Zone',               get: function (r) { return r.podZone || 'NA'; } },
     seller:   { label: 'Seller name',            get: function (r) { return r.seller || 'NA'; } },
@@ -625,7 +935,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
   }
 
   // ---------- Filters ----------
-  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser'];
+  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser', 'ageBand', 'mmColl', 'lmColl'];
   function filterValue(r, field, ctx) {
     if (field === 'ageBucket') return ageBucket(r.age);
     if (field === 'category') return ctx && ctx.laneCat ? (ctx.laneCat[r.lane] || '(none)') : '(none)';
@@ -696,7 +1006,9 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       { h: 'Criticality', get: function (r) { return criticality(r); } },
       { h: 'MM_Collated_Bucket', get: function (r) { return r.mmBucket || ''; } },
       { h: 'DC_Remark', get: function (r) { return r.dcRemark || ''; } },
-      { h: 'LM_Collated_Bucket', get: function (r) { return lmBucket(r); } },
+      { h: 'MM_Collated_Bucket', get: function (r) { return r.mmColl; } },
+      { h: 'LM_Collated_Bucket', get: function (r) { return r.lmColl; } },
+      { h: 'Ageing_Bucket_20plus', get: function (r) { return ageBand(r.age); } },
       { h: 'Source_Row', get: function (r) { return r.rowNo; } }
     ];
   }
@@ -707,7 +1019,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     resolveHeaders: resolveHeaders, buildRecord: buildRecord, classifyRecord: classifyRecord, classifyMM: classifyMM,
     buildDataset: buildDataset, population: population, tabRows: tabRows, reviewRows: reviewRows, reviewReason: reviewReason,
     pivot: pivot, summary: summary, analyzeLanes: analyzeLanes, applyFilters: applyFilters, filterValue: filterValue,
-    criticality: criticality, countBy: countBy, lmBucket: lmBucket, mmBucketOf: mmBucketOf, toCsv: toCsv, baseColumns: baseColumns, derivedColumns: derivedColumns
+    criticality: criticality, countBy: countBy, lmBucket: lmBucket, mmBucketOf: mmBucketOf, mmCollated: mmCollated, lmCollated: lmCollated, ageBand: ageBand, AGE_BAND_MAX: AGE_BAND_MAX, toCsv: toCsv, baseColumns: baseColumns, derivedColumns: derivedColumns
   };
 });
 
@@ -724,12 +1036,20 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
   var CHUNK_ROWS = 1500;     // rows per POST; keeps each Apps Script call well inside its 6-minute budget
   var PAGE_ROWS = 5000;      // rows per GET when reading the sheet back
 
-  // The columns kept in the sheet: every header the engine maps, plus the resolved value column.
-  var PERSIST = ['Awb_number', 'Manifest_Type', 'Ageing_from_Bag_Rec', 'Current_location', 'Lane Code',
-    'Tertiary Lane', 'Connecting Bagging', 'Manifest_origin', 'Manifest_Destination', 'Manifest_code',
-    'ActualManifestID', 'MM Remarks', 'LM Remarks', 'Landroval Check', 'HOV', 'Wrongly Connceted Destination',
-    'product_names', 'product_categories', 'POD Mapping', 'POD_Zone', 'seller_name', 'HOV2',
-    'Shipment in Manifest', 'Remarks', 'awbs_in_manifest', 'action_user', 'last_action_user', 'Pendency Count'];
+  // Columns kept in the sheet, exactly as Lakshita specified, plus the resolved product value.
+  // ('product_value2' is not a header in the base; the value is resolved and written as Product_Value2.)
+  var PERSIST = [
+    'Ageing_from_bag_recc', 'Awb_number', 'seller_name', 'Client', 'order_status', 'Manifest_Type', 'Bagging_dc',
+    'Manifest_origin', 'Manifest_Destination', 'Connecting Bagging', 'RTS', 'Lane Code', 'Tertiary Lane',
+    'Manifest_code', 'MM Remarks', 'LM Remarks', 'ActualManifestID', 'Count', 'Type', 'Type - 2', 'Pendency Count',
+    'Difference', 'Manifest RCA', 'Landroval Check', 'seal_number', 'Manifest_status', 'Manifest_Creation',
+    'mm_origin', 'mm_destination', 'MM_Status', 'MM_code', 'vehicle_number', 'vendor_name', 'mm_in_transit_time',
+    'mm_received_time', 'manifest_received_time', 'Current_location', 'Ageing', 'Vertical', 'State', 'POD Mapping',
+    'POD_Zone', 'payment_mode', 'Manifest_rec_at_via', 'HOV', 'HOV2', 'rto_queue_flag', 'client_flag_final',
+    'Ageing_from_Bag_Rec', 'Ageing_From_MM_Transit', 'awbs_in_manifest', 'Current_Location_Region', 'scanned_time',
+    'bin_level', 'bin_name', 'message', 'action_user', 'shipment_type', 'scanned_location', 'layout_type',
+    'layout_name', 'physical_rack_id', 'sfx_order_id', 'sku_id', 'product_names', 'product_categories',
+    'Wrongly Connceted Destination'];
   var VALUE_COL = 'Product_Value2';
 
   function url() {
@@ -886,32 +1206,50 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
 (function () {
   'use strict';
   var V = window.VIS, C = V.CONFIG;
-  var TABS = ['overall', 'mm', 'lh', 'lm', 'dcdc'];
-  var TAB_TITLE = { overall: 'DCH Overall Pendency', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability', dcdc: 'DC-DC Short' };
+  var TABS = ['fwd', 'mm', 'lh', 'lm'];
+  var TAB_TITLE = { fwd: 'Forward Short Shipment Pendency View', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability' };
   var TAB_FIELDS = {
-    overall: ['loc', 'dest', 'lane', 'pod', 'podZone', 'seller', 'bucket', 'lmClass', 'mmReason', 'dcRemark', 'landroval', 'hov', 'hov2', 'pname', 'pcat', 'mcode'],
-    mm: ['loc', 'bucket', 'mmReason', 'dest', 'mcode', 'amid', 'wrongDest', 'landroval', 'lmClass', 'dcRemark', 'seller', 'hov', 'hov2', 'actionUser'],
-    lh: ['lane', 'tert', 'bag', 'category', 'dest', 'loc', 'lmClass', 'bucket', 'dcRemark', 'pod', 'podZone'],
-    lm: ['loc', 'dest', 'pod', 'podZone', 'seller', 'bucket', 'lmClass', 'dcRemark', 'landroval', 'hov', 'hov2', 'pname', 'pcat', 'mcode'],
-    dcdc: ['origin', 'dest', 'loc', 'seller', 'hov', 'hov2', 'pname', 'pcat', 'mcode', 'dcRemark']
+    fwd: ['loc', 'origin', 'dest', 'lane', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'hov2', 'mcode'],
+    mm: ['loc', 'dest', 'mcode', 'wrongDest', 'landroval', 'mmColl', 'lmColl', 'seller', 'hov2', 'actionUser'],
+    lh: ['lane', 'tert', 'bag', 'category', 'dest', 'loc', 'mmColl', 'lmColl', 'pod', 'podZone'],
+    lm: ['loc', 'dest', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'landroval', 'hov2', 'mcode'],
   };
   var FIELD_LABEL = { category: 'Lane category', hov: 'HOV', hov2: 'HOV2', bucket: 'MM Collated bucket', dcRemark: 'DC remark' };
   var MM_SUB = ['Fake bagging', 'Shipment connected to wrong destination', 'Miss sort GC fault'];
   var CCTV = 'CCTV issue at DC- Short at Hub';
+  var RCA_TABS = { lh: 1 };   // RCA by tab; individual tables opt in with rcaForce
+  var SPIKE_MIN_AGE = 3;        // only flag ageing 3 and above
+  var SPIKE_MIN_COUNT = 5;      // ignore spikes on tiny counts
+  var SPIKE_LIGHT = 1.5, SPIKE_STRONG = 2.0;
+  var FIELD_LIST = [
+    'Ageing_from_bag_recc', 'Awb_number', 'seller_name', 'Client', 'order_status', 'Manifest_Type', 'Bagging_dc',
+    'Manifest_origin', 'Manifest_Destination', 'Connecting Bagging', 'RTS', 'Lane Code', 'Tertiary Lane',
+    'Manifest_code', 'MM Remarks', 'LM Remarks', 'ActualManifestID', 'Count', 'Type', 'Type - 2',
+    'Pendency Count', 'Difference', 'Manifest RCA', 'Landroval Check', 'seal_number', 'Manifest_status',
+    'Manifest_Creation', 'mm_origin', 'mm_destination', 'MM_Status', 'MM_code', 'vehicle_number', 'vendor_name',
+    'mm_in_transit_time', 'mm_received_time', 'manifest_received_time', 'Current_location', 'Ageing', 'Vertical',
+    'State', 'POD Mapping', 'POD_Zone', 'payment_mode', 'Manifest_rec_at_via', 'HOV', 'HOV2', 'rto_queue_flag',
+    'client_flag_final', 'Ageing_from_Bag_Rec', 'Ageing_From_MM_Transit', 'awbs_in_manifest',
+    'Current_Location_Region', 'scanned_time', 'bin_level', 'bin_name', 'message', 'action_user',
+    'shipment_type', 'scanned_location', 'layout_type', 'layout_name', 'physical_rack_id', 'sfx_order_id',
+    'sku_id', 'product_names', 'product_categories', 'Wrongly Connceted Destination', 'Product_Value2'];
   var DS_SCHEMA = 3;             // bump when the stored record shape changes
   var MISS_MIN = 5;              // repeat product misses at one hub before it is flagged
   var WD_MIN = 3;                // wrongly connected destination: minimum short AWBs shown
   var AU_MIN = 3, AU_AGE_MIN = 2, AU_AGE_MAX = 30;  // action user trend: frequency over ageing 2-30
 
   var state = {
-    tab: 'overall', ds: null, records: [], expiredAt: null, lastUploadAt: null,
+    tab: 'fwd', ds: null, records: [], expiredAt: null, lastUploadAt: null,
     remarks: new Map(), sort: {}, colW: {}, openFilter: null, filterSearch: '',
-    mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
+    mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', openSec: {}, tblMT: {}, tblMetric: {}, showFields: false, podOpen: {}, podPick: null,
+    pivot: { row: '', row2: '', col: 'Ageing band (20+)', val: 'awb' }, backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
     tabs: {}
   };
   TABS.forEach(function (t) {
     state.tabs[t] = { manifestType: C.tabs[t].manifestType, ageMin: C.tabs[t].ageMin, ageMax: C.tabs[t].ageMax, search: '', fields: {}, valueMin: null, valueMax: null };
   });
+  // LH opens on confirmed lanes only; the category filter still offers the rest.
+  state.tabs.lh.fields.category = new Set(['Confirm Lane Issue']);
 
   // ---------- helpers ----------
   function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -1076,6 +1414,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     var ds = activeDs();
     $('#hdr').innerHTML = '<div class="hdr-main"><div class="brand"><div class="logo">S</div><div><div class="title">DC-LM Dashboard</div><div class="sub">Shadowfax · Middle Mile Audit &amp; Compliance · Daily pendency</div></div></div>' +
       '<div class="hdr-right"><label class="btn primary" for="upload">Upload Daily Base</label><input id="upload" type="file" accept=".xlsx,.xls,.csv" hidden />' +
+      '<button class="btn" data-act="fields">Field list</button>' +
       (window.SYNC ? '<button class="btn" data-act="pull">Load from Sheet</button><button class="btn ghost" data-act="backend">Backend</button>' : '') +
       (ds ? '<button class="btn" data-act="recalc">Refresh</button>' : '') + '</div></div>' +
       '<div class="statusbar">' + statusBlock() + (ds && ds.reportingDate ? ' <span class="meta">· Reporting date <b>' + esc(ds.reportingDate) + '</b></span>' : '') + '</div>' +
@@ -1083,8 +1422,9 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       (state.notice ? '<div class="banner ok">' + esc(state.notice) + '</div>' : '') + (state.storageWarning ? '<div class="banner warn">' + esc(state.storageWarning) + '</div>' : '') +
       (state.backend ? '<div class="banner info">' + esc(state.backend) + '</div>' : '') +
       (state.backendErr ? '<div class="banner err">' + esc(state.backendErr) + '</div>' : '') +
-      backendBox();
+      backendBox() + fieldListBox();
   }
+  function fieldListBox() { return ''; }
   function backendBox() {
     if (!window.SYNC) return '';
     if (!state.showBackend) {
@@ -1098,7 +1438,11 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       '<div class="meta">Stored in this browser. Deploy the Apps Script with access set to “Anyone”, then paste its /exec URL here.</div></div>';
   }
 
-  function renderNav() { $('#nav').innerHTML = TABS.map(function (t) { return '<button class="tab ' + (state.tab === t ? 'on' : '') + '" data-act="tab" data-tab="' + t + '">' + TAB_TITLE[t] + '</button>'; }).join(''); }
+  function renderNav() {
+    $('#nav').innerHTML = '<div class="railhead">Views</div>' + TABS.map(function (t) {
+      return '<button class="tab ' + (state.tab === t ? 'on' : '') + '" data-act="tab" data-tab="' + t + '">' + TAB_TITLE[t] + '</button>';
+    }).join('');
+  }
 
   // ---------- filters ----------
   function renderFilters() {
@@ -1120,16 +1464,16 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       return '<div class="chipwrap"><button class="chip ' + (sel ? 'on' : '') + '" data-act="fopen" data-field="' + f + '">' + esc(keyLabel(f)) + (sel ? ' · ' + sel : '') + ' ▾</button>' + panel + '</div>';
     }).join('');
     $('#filters').innerHTML = '<div class="filterbar"><div class="frow">' +
-      '<label>Manifest_Type <select data-act="mt">' + ['DCH2', 'DC-DC', 'ALL'].map(function (m) { return '<option ' + (s.manifestType === m ? 'selected' : '') + ' value="' + m + '">' + m + '</option>'; }).join('') + '</select></label>' +
-      '<label>Ageing from <input type="number" min="0" data-act="age" data-k="ageMin" value="' + s.ageMin + '" /></label>' +
-      '<label>to <input type="number" min="0" data-act="age" data-k="ageMax" value="' + s.ageMax + '" /></label>' +
-      '<label>Value ₹ min <input type="number" min="0" data-act="val" data-k="valueMin" value="' + (s.valueMin === null ? '' : s.valueMin) + '" /></label>' +
-      '<label>max <input type="number" min="0" data-act="val" data-k="valueMax" value="' + (s.valueMax === null ? '' : s.valueMax) + '" /></label>' +
+      (t === 'fwd' ? '' : '<label>Manifest_Type <select data-act="mt">' + ['DCH2', 'DC-DC', 'ALL'].map(function (m) { return '<option ' + (s.manifestType === m ? 'selected' : '') + ' value="' + m + '">' + m + '</option>'; }).join('') + '</select></label>') +
+      '<label>Ageing from <input type="number" min="0" data-act="age" data-k="ageMin" placeholder="all" value="' + (s.ageMin === null ? '' : s.ageMin) + '" /></label>' +
+      '<label>to <input type="number" min="0" data-act="age" data-k="ageMax" placeholder="all" value="' + (s.ageMax === null ? '' : s.ageMax) + '" /></label>' +
+
       '<label class="grow">Search AWB / manifest / lane / destination / location <input type="search" data-act="search" value="' + esc(s.search) + '" placeholder="Type to search…" /></label>' +
-      '<button class="btn" data-act="resetdef">Tab default (' + cfg.manifestType + ', ' + cfg.ageMin + '–' + cfg.ageMax + ')</button>' +
+
+
       '<button class="btn ghost" data-act="clearall">Clear all</button></div>' +
       '<div class="frow chips">' + chips + '</div>' +
-      '<div class="meta">Multi-select per field; fields combine with AND. Click any row to open its popup with the underlying data. Press Esc to close.</div></div>';
+      '<div class="meta">Ageing from <b>Ageing_from_Bag_Rec</b> — leave both boxes empty for every ageing day, or set your own window. Multi-select per field; fields combine with AND. Click any row for its underlying data, Esc to close.</div></div>';
   }
 
   // ---------- tables ----------
@@ -1145,7 +1489,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
   function tbl(id, cols, data, opts) {
     opts = opts || {};
     // Every table ends with an RCA box unless it opts out.
-    if (opts.rcaDim && !cols.some(function (c) { return c.rca; })) {
+    if (opts.rcaDim && (RCA_TABS[state.tab] || opts.rcaForce) && !cols.some(function (c) { return c.rca; })) {
       var vf = opts.rcaVal || function (r) { return r.key !== undefined ? r.key : r.awb; };
       cols = cols.concat([rcaCol(opts.rcaDim, vf)]);
     }
@@ -1154,19 +1498,21 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     cols.forEach(function (c, i) { if (pi < 0 && c.pend) pi = i; });
     if (pi < 0) cols.forEach(function (c, i) { if (pi < 0 && c.num && /pendency|misses/i.test(c.h)) pi = i; });
     var s = state.sort[id] || opts.sortForce || (pi >= 0 ? { i: pi, dir: -1 } : (opts.sort || { i: 0, dir: -1 }));
-    var c = cols[s.i], sorted = data.slice();
+    if (s.i < 0) s = null;   // keep the order the caller built
+    var c = s ? cols[s.i] : null, sorted = data.slice();
     if (c && c.v) sorted.sort(function (a, b) { var x = c.v(a), y = c.v(b); if (typeof x === 'number' && typeof y === 'number') return (x - y) * s.dir; return String(x).localeCompare(String(y)) * s.dir; });
-    TCACHE[id] = sorted; TOPTS[id] = { pop: opts.pop || data, dim: opts.dim, mode: opts.mode || 'records', select: !!opts.select };
+    TCACHE[id] = sorted; TOPTS[id] = { pop: opts.pop || data, dim: opts.dim, mode: opts.mode || 'records', select: !!opts.select, cols: cols };
     var lim = opts.limit || 300, widths = state.colW[id] || {};
     var head = cols.map(function (col, i) {
       // An explicit width must also lift the default first-column cap, or the column cannot grow.
       var w = widths[i] ? ' style="width:' + widths[i] + 'px;min-width:' + widths[i] + 'px;max-width:' + widths[i] + 'px"' : '';
       var cap = (i === 0 && !widths[i]) ? 'capfirst ' : '';
-      return '<th class="' + (col.num ? 'num ' : '') + cap + '"' + w + ' data-act="sort" data-table="' + id + '" data-i="' + i + '">' + esc(col.h) + (s.i === i ? (s.dir > 0 ? ' ▲' : ' ▼') : '') + '<span class="rz" data-rz="' + id + '" data-i="' + i + '" title="Drag to resize this column"></span></th>';
+      return '<th class="' + (col.num ? 'num ' : '') + cap + '"' + w + ' data-act="sort" data-table="' + id + '" data-i="' + i + '">' + esc(col.h) + (s && s.i === i ? (s.dir > 0 ? ' ▲' : ' ▼') : '') + '<span class="rz" data-rz="' + id + '" data-i="' + i + '" title="Drag to resize this column"></span></th>';
     }).join('');
     var body = sorted.slice(0, lim).map(function (row, ri) {
       var cls = (opts.rowClass ? opts.rowClass(row) : '') + (opts.select ? ' click' : '');
-      var attrs = ' class="' + cls.trim() + '"' + (opts.select ? ' data-act="sel" data-table="' + id + '" data-idx="' + ri + '"' : '');
+      var custom = opts.rowAttrs ? opts.rowAttrs(row, ri) : '';
+      var attrs = ' class="' + cls.trim() + '"' + (custom || (opts.select ? ' data-act="sel" data-table="' + id + '" data-idx="' + ri + '"' : ''));
       return '<tr' + attrs + '>' + cols.map(function (col, ci) {
         var plain = col.v ? String(col.v(row)) : '';
         var inner = col.f ? col.f(row) : esc(plain);
@@ -1176,38 +1522,116 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
         return '<td class="' + (col.num ? 'num ' : '') + (col.rca ? 'rcacell ' : '') + ccap + (col.cls ? col.cls(row) : '') + '"' + ttl + cw + '>' + inner + '</td>';
       }).join('') + '</tr>';
     }).join('');
-    var tot = (opts.noTotal || !sorted.length) ? '' : totalsRow(cols, data);
+    // A tree table must not add parent and child rows together.
+    var totData = opts.totalFilter ? data.filter(opts.totalFilter) : data;
+    var tot = (opts.noTotal || !sorted.length) ? '' : totalsRow(cols, totData);
     if (!sorted.length) body = '<tr><td colspan="' + cols.length + '" class="empty">No rows match the current filters.</td></tr>';
     var foot = '<div class="tfoot meta">' + (sorted.length > lim ? 'Showing first ' + num(lim) + ' of ' + num(sorted.length) + '. ' : '') +
       (opts.noCsv ? '' : '<button class="btn small" data-act="tcsv" data-table="' + id + '">Download this table (CSV)</button>') +
+      ' <button class="btn small" data-act="tcopy" data-table="' + id + '">Copy table</button>' +
       ' <button class="btn small ghost" data-act="wfit" data-table="' + id + '">Fit columns</button>' +
       ' <button class="btn small ghost" data-act="wreset" data-table="' + id + '">Reset widths</button></div>';
     return '<div class="tablewrap"><table class="grid"><thead><tr>' + head + '</tr></thead><tbody>' + tot + body + '</tbody></table></div>' + foot;
   }
-  // crossTable: rows = dimension; columns = values of colGet (ageing or MM bucket); value column last unless valueMid
+  // crossTable: rows = dimension; columns = values of colGet (ageing band or MM bucket).
   function crossTable(id, rows, rowDim, cols, colGet, opts) {
     opts = opts || {};
     var G = new Map();
     rows.forEach(function (r) {
       var k = V.KEYS[rowDim].get(r), g = G.get(k);
-      if (!g) { g = { key: k, n: 0, value: 0, hov: 0, freq: 0, cc: {}, awb: new Set() }; G.set(k, g); }
+      if (!g) { g = { key: k, n: 0, value: 0, hov: 0, freq: 0, cc: {}, cv: {}, awb: new Set() }; G.set(k, g); }
       g.n++; g.value += r.value; if (r.hov) g.hov++;
       if (opts.countIf && opts.countIf(r)) g.freq++;
-      var c = colGet(r); g.cc[c] = (g.cc[c] || 0) + 1; g.awb.add(r.awb);
+      var c = colGet(r);
+      g.cc[c] = (g.cc[c] || 0) + 1;
+      g.cv[c] = (g.cv[c] || 0) + r.value;
+      g.awb.add(r.awb);
     });
-    var data = Array.from(G.values()).map(function (g) { return { key: g.key, n: g.n, value: g.value, hov: g.hov, freq: g.freq, cc: g.cc, _dim: rowDim, _mode: opts.mode }; });
+    var data = Array.from(G.values()).map(function (g) { return { key: g.key, n: g.n, value: g.value, hov: g.hov, freq: g.freq, cc: g.cc, cv: g.cv, _dim: rowDim, _mode: opts.mode }; });
     if (opts.minTotal) data = data.filter(function (o) { return o.n > opts.minTotal; });
     var lab = { h: keyLabel(rowDim), v: function (o) { return o.key; }, f: function (o) { return '<span class="cellw">' + esc(o.key) + '</span>'; } };
-    var pend = { h: opts.pendLabel || 'Pendency (AWB)', num: true, pend: true, v: function (o) { return o.n; } };
+    // Each table carries its own AWB / product-value selector under its heading.
+    var money = (state.tblMetric[id] || 'awb') === 'value';
+    var pend = money
+      ? { h: opts.pendLabel ? opts.pendLabel.replace(/\(AWB\)/, '₹') : 'Product value ₹', num: true, pend: true, money: true, v: function (o) { return o.value; }, f: function (o) { return inr(o.value); } }
+      : { h: opts.pendLabel || 'Pendency (AWB)', num: true, pend: true, v: function (o) { return o.n; } };
     var hov = { h: 'HOV', num: true, v: function (o) { return o.hov; } };
-    var val = { h: 'Product value ₹', num: true, money: true, v: function (o) { return o.value; }, f: function (o) { return inr(o.value); } };
-    var ageC = cols.map(function (c) { return { h: c.label, num: true, v: function (o) { return o.cc[c.key] || 0; }, f: function (o) { var x = o.cc[c.key] || 0; return x ? num(x) : '<span class="zero">·</span>'; } }; });
+    var cell = function (o, k) { return (money ? o.cv[k] : o.cc[k]) || 0; };
+    // Conditional formatting is scaled inside each row, so every DC reads against its own worst day.
+    var heat = function (o, k) {
+      var m = 0, x = cell(o, k);
+      for (var j = 0; j < cols.length; j++) { var v = cell(o, cols[j].key); if (v > m) m = v; }
+      if (!x || !m) return '';
+      var f = x / m;
+      return f >= 0.75 ? 'h4' : f >= 0.5 ? 'h3' : f >= 0.25 ? 'h2' : 'h1';
+    };
+    var ageC = cols.map(function (c, ci) {
+      return { h: c.label, num: true, money: money,
+        v: function (o) { return cell(o, c.key); },
+        cls: function (o) { return (heat(o, c.key) + ' ' + spikeClass(o, cols, ci, money)).trim(); },
+        f: function (o) { var x = cell(o, c.key); return x ? (money ? inr(x) : num(x)) : '<span class="zero">·</span>'; } };
+    });
     var head = opts.freqLabel ? [lab, pend, { h: opts.freqLabel, num: true, v: function (o) { return o.freq; } }, hov] : [lab, pend, hov];
-    var cdefs = opts.valueMid ? [lab, pend, val, hov].concat(ageC) : head.concat(ageC, [val]);
-    return tbl(id, cdefs, data, { select: opts.select !== false, rowClass: opts.rowClass, sort: opts.sort, limit: opts.limit || 300, pop: rows, dim: rowDim, mode: opts.mode, rcaDim: rowDim, sortForce: opts.sortForce });
+    var cdefs = head.concat(ageC);
+    return metricPicker(id) + tbl(id, cdefs, data, { select: opts.select !== false, rowClass: opts.rowClass, sort: opts.sort, limit: opts.limit || 300, pop: rows, dim: rowDim, mode: opts.mode, rcaDim: rowDim, rcaForce: opts.rcaForce, sortForce: opts.sortForce });
   }
-  function ageCols(t) { var s = state.tabs[t]; return range(s.ageMin, s.ageMax).map(function (a) { return { key: String(a), label: 'Age ' + a }; }); }
-  function ageGet(r) { return r.age === null ? '(blank)' : String(r.age); }
+  // Only the ageing values actually present are given a column, so an unfiltered view
+  // does not render a hundred empty days.
+  function banded(t) { return t !== 'lh'; }   // LH keeps every ageing day; the rest cap at 20+
+  function ageCols(t, rows) {
+    var s = state.tabs[t], seen = {}, over = false, cap = V.AGE_BAND_MAX;
+    (rows || []).forEach(function (r) {
+      if (r.age === null) return;
+      if (s.ageMin !== null && r.age < s.ageMin) return;
+      if (s.ageMax !== null && r.age > s.ageMax) return;
+      if (banded(t) && r.age > cap) { over = true; return; }
+      seen[r.age] = 1;
+    });
+    var keys = Object.keys(seen).map(Number).sort(function (a, b) { return a - b; });
+    var cols = keys.map(function (a) { return { key: String(a), label: 'Age ' + a }; });
+    if (over) cols.push({ key: cap + '+', label: 'Age ' + cap + '+' });
+    if (!cols.length) cols = [{ key: '0', label: 'Age 0' }];
+    return cols;
+  }
+  function metricPicker(id) {
+    var cur = state.tblMetric[id] || 'awb';
+    return '<div class="tmetric"><span class="meta">Show</span>' +
+      [['awb', 'AWB count'], ['value', 'Product value ₹']].map(function (o) {
+        return '<button class="seg ' + (cur === o[0] ? 'on' : '') + '" data-act="metric" data-table="' + id + '" data-val="' + o[0] + '">' + o[1] + '</button>';
+      }).join('') + '</div>';
+  }
+  function ageGetFor(t) {
+    return banded(t) ? function (r) { return V.ageBand(r.age); }
+                     : function (r) { return r.age === null ? '(blank)' : String(r.age); };
+  }
+  function ageGet(r) { return V.ageBand(r.age); }   // banded by default; LH passes ageGetFor('lh')
+  // A cell is a spike when pendency climbs at a higher ageing than the ageing before it.
+  function spikeClass(o, cols, ci, money) {
+    var pick = function (k) { return (money ? o.cv[k] : o.cc[k]) || 0; };
+    var age = parseFloat(cols[ci].key);
+    if (isNaN(age) || age < SPIKE_MIN_AGE) return '';
+    var x = pick(cols[ci].key);
+    if (!money && x < SPIKE_MIN_COUNT) return '';
+    var prev = 0, maxPrev = 0, found = false, sum = 0, n = 0;
+    for (var j = 0; j < cols.length; j++) {
+      var v = pick(cols[j].key);
+      if (v > 0) { sum += v; n++; }
+      if (j < ci) {
+        if (v > maxPrev) maxPrev = v;
+        if (v > 0) { prev = v; found = true; }   // nearest earlier ageing with pendency
+      }
+    }
+    if (!found || x <= prev) return '';
+    if (n && x < sum / n) return '';             // must also be material for this row
+    var ratio = x / prev;
+    if (ratio >= SPIKE_STRONG && x >= maxPrev) return 'spk2';
+    if (ratio >= SPIKE_LIGHT) return 'spk1';
+    return '';
+  }
+  function spikeLegend() {
+    return '<span class="legend"><i class="sw h1"></i><i class="sw h2"></i><i class="sw h3"></i><i class="sw h4"></i>' +
+      'low to high within each row<i class="sw spk2" style="margin-left:10px"></i>ageing spike vs the day before</span>';
+  }
   function bucketCols() { return [{ key: 'Seal mismatch', label: 'Seal mismatch' }, { key: 'DC/XD misroute/ fake bagging', label: 'DC/XD misroute / fake bagging' }, { key: CCTV, label: 'CCTV issue at DC / short at Hub' }]; }
 
   // ---------- popup ----------
@@ -1276,9 +1700,20 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     ];
   }
   // Every other tab: the entire base, column for column.
+  // Raw MM/LM remark text is replaced by the collated buckets wherever data is shown.
+  var HIDE_COLS = { 'mm remarks': 1, 'lm remarks': 1, 'lm vs non lm': 1 };
+  function visibleBase(ds) {
+    return V.baseColumns(ds.headers).filter(function (c) { return !HIDE_COLS[String(c.h).toLowerCase().trim()]; });
+  }
   function baseCols() {
     var ds = activeDs();
-    return ds && ds.headers ? V.baseColumns(ds.headers) .map(function (c) { return { h: c.h, v: c.get }; }) : awbCols();
+    if (!ds || !ds.headers) return awbCols();
+    var cols = visibleBase(ds).map(function (c) { return { h: c.h, v: c.get }; });
+    var buckets = [{ h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
+                   { h: 'LM collated bucket', v: function (r) { return r.lmColl; } }];
+    var at = cols.findIndex(function (c) { return String(c.h).toLowerCase().trim() === 'awb_number'; });
+    if (at < 0) return cols.concat(buckets);
+    return cols.slice(0, at + 1).concat(buckets, cols.slice(at + 1));
   }
   function awbCols() {
     return [
@@ -1290,7 +1725,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
       { h: 'Product name', v: function (r) { return r.pname || 'NA'; } }, { h: 'Product category', v: function (r) { return r.pcat || 'NA'; } },
       { h: 'Seller', v: function (r) { return r.seller; } }, { h: 'HOV', v: function (r) { return r.hov ? 'HOV' : 'NON'; } }, { h: 'HOV2', v: function (r) { return r.hov2 ? 'HOV' : 'NON'; } },
-      { h: 'MM collated bucket', v: function (r) { return V.mmBucketOf(r); } }, { h: 'LM collated bucket', v: function (r) { return V.lmBucket(r); } },
+      { h: 'MM collated bucket', v: function (r) { return r.mmColl; } }, { h: 'LM collated bucket', v: function (r) { return r.lmColl; } },
       { h: 'Landroval', v: function (r) { return na(r.land); } }, { h: 'DC remark', v: function (r) { return r.dcRemark || 'NA'; } },
       { h: 'POD Mapping', v: function (r) { return r.pod; } }, { h: 'POD_Zone', v: function (r) { return r.podZone; } },
       { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
@@ -1352,7 +1787,19 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
 
   // ---------- KPIs ----------
   function kpi(label, value, sub, cls) { return '<div class="kpi ' + (cls || '') + '"><div class="kl">' + esc(label) + '</div><div class="kv">' + value + '</div>' + (sub ? '<div class="ks">' + sub + '</div>' : '') + '</div>'; }
-  function section(title, note, inner) { return '<section class="card"><div class="ch"><h2>' + esc(title) + '</h2>' + (note ? '<div class="meta">' + note + '</div>' : '') + '</div>' + inner + '</section>'; }
+  var secIdx = 0;
+  function secId(title) { return state.tab + '|' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 48); }
+  function isOpen(id, idx) {
+    if (state.openSec[id] !== undefined) return state.openSec[id];
+    return idx === 0;   // first table of a tab starts open, the rest collapsed
+  }
+  function section(title, note, inner) {
+    var id = secId(title), idx = secIdx++, open = isOpen(id, idx);
+    return '<section class="card ' + (open ? '' : 'closed') + '" data-sec="' + esc(id) + '">' +
+      '<div class="ch" data-act="sec" data-sec="' + esc(id) + '"><span class="caret">' + (open ? '&#9662;' : '&#9656;') + '</span>' +
+      '<h2>' + esc(title) + '</h2></div>' +
+      '<div class="cbody">' + (note ? '<div class="meta">' + note + '</div>' : '') + inner + '</div></section>';
+  }
   function catClass(c) { return c === 'Confirm Lane Issue' ? 'confirm' : c === 'Possible Lane Issue' ? 'possible' : c === 'Possible JIT/ADC Issue' ? 'jit' : 'none'; }
   function kpiRow(view) {
     var rows = view.filtered, s = V.summary(rows);
@@ -1360,7 +1807,26 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       kpi('HOV', num(s.hovCount), inr(s.hovValue) + ' HOV value') + kpi('Product value', inr(s.value), 'Sum of Product_Value2') +
       kpi('Review records', num(view.review.length), 'Not counted in totals', view.review.length ? 'warn' : '') + '</div>';
   }
-  function tabHead(t) { var c = C.tabs[t]; return '<div class="tabhead"><h1>' + TAB_TITLE[t] + '</h1><div class="meta">Default: Manifest_Type ' + c.manifestType + ', ageing ' + c.ageMin + '–' + c.ageMax + ' (inclusive). Click a row for its popup.</div></div>'; }
+  function tabHead(t) {
+    var c = C.tabs[t], s2 = state.tabs[t];
+    var win = (s2.ageMin === null && s2.ageMax === null) ? 'all ageing days'
+      : 'ageing ' + (s2.ageMin === null ? 'min' : s2.ageMin) + '–' + (s2.ageMax === null ? 'max' : s2.ageMax);
+    var band = banded(t) ? 'ageing banded to ' + V.AGE_BAND_MAX + '+' : 'every ageing day';
+    return '<div class="tabhead"><h1>' + TAB_TITLE[t] + '</h1><div class="meta">Manifest_Type ' + c.manifestType + ' · ' + win + ' · ' + band +
+      '. Click a section heading to open or collapse it.</div></div>' +
+      '<div class="secbtns"><button class="btn small" data-act="openall">Expand all</button>' +
+      '<button class="btn small ghost" data-act="closeall">Collapse all</button></div>';
+  }
+  // Some tables are pinned to one Manifest_Type; others let the viewer pick under the heading.
+  function mtScope(rows, mt) { return mt ? rows.filter(function (r) { return r.mt === mt; }) : rows; }
+  function mtPicker(id) {
+    var cur = state.tblMT[id] || '';
+    return '<div class="subbox"><span class="meta">Manifest type:</span>' +
+      [['', 'Overall'], ['DCH2', 'DCH2'], ['DC-DC', 'DC-DC']].map(function (o) {
+        return '<label class="subopt"><input type="radio" name="mt-' + id + '" data-act="tblmt" data-table="' + id + '" data-val="' + o[0] + '" ' + (cur === o[0] ? 'checked' : '') + ' /> ' + o[1] + '</label>';
+      }).join('') + '</div>';
+  }
+
   function top(rows, dim, n) { var c = V.countBy(rows, function (r) { return V.KEYS[dim].get(r); }); var keep = new Set(Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }).slice(0, n)); return rows.filter(function (r) { return keep.has(V.KEYS[dim].get(r)); }); }
   function exportBtns(items) { return '<div class="exports">' + items.map(function (i) { return '<button class="btn" data-act="export" data-kind="' + i.kind + '">' + esc(i.label) + ' <span class="meta">(' + num(i.n) + ')</span></button>'; }).join('') + '</div>'; }
   // RCA notes are keyed by dimension + value, so the same destination/manifest/AWB keeps one note across tables.
@@ -1375,79 +1841,137 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
 
   function remarkInput(key, placeholder) { var e = state.remarks.get(key); return '<textarea class="remark" rows="1" data-act="remark" data-key="' + esc(key) + '" placeholder="' + esc(placeholder || 'Remark…') + '">' + esc(e ? e.text : '') + '</textarea>'; }
 
-  // ---------- tab: overall ----------
-  function renderOverall(view) {
-    var rows = view.filtered, out = [tabHead('overall'), kpiRow(view)];
-    out.push(section('Current Location × ageing pendency', 'AWB count by current location and exact ageing. Grand totals on top.', crossTable('ov-loc', rows, 'loc', ageCols('overall'), ageGet, { mode: 'records' })));
-    out.push(section('Manifest Destination × ageing pendency (top 50)', '', crossTable('ov-dest', top(rows, 'dest', 50), 'dest', ageCols('overall'), ageGet, {})));
-    // One dimension only. Product category repeats far more than product name in the base,
-    // so it is the dimension that shows a real trend; the toggle keeps names available.
+  // ---------- tab: Forward Short Shipment Pendency View (DCH2 + DC-DC) ----------
+  function renderFwd(view) {
+    var all = view.filtered, t = 'fwd', ag = ageGetFor(t), out = [tabHead(t), kpiRow(view)];
+
+    // 1 — pinned to DCH2
+    var r1 = mtScope(all, 'DCH2');
+    out.push(section('DCH2 Forward Short — Current Location × ageing wise pendency',
+      'Manifest_Type DCH2. Every ageing day to ' + V.AGE_BAND_MAX + ', then one ' + V.AGE_BAND_MAX + '+ bucket.',
+      crossTable('fwd-loc', r1, 'loc', ageCols(t, r1), ag, { mode: 'records' })));
+
+    // 2 and 3 — pinned to DC-DC
+    var r2 = mtScope(all, 'DC-DC');
+    out.push(section('DC-DC Manifest Origin × ageing wise pendency', 'Manifest_Type DC-DC.',
+      crossTable('fwd-origin', r2, 'origin', ageCols(t, r2), ag, {})));
+    out.push(section('DC-DC Manifest Destination × ageing wise pendency', 'Manifest_Type DC-DC.',
+      crossTable('fwd-dest', top(r2, 'dest', 100), 'dest', ageCols(t, r2), ag, {})));
+
+    // 4 — HOV detail, viewer picks the manifest type
+    var r4 = mtScope(all, state.tblMT['fwd-hov2k'] || '');
+    var hov2k = r4.filter(function (r) { return r.hov && r.value > C.hov2ValueThreshold; });
+    var hvCols = [
+      { h: 'Flag', v: function (r) { return r.age !== null && r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value'; },
+        f: function (r) { return '<span class="cat possible">' + (r.age !== null && r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value') + '</span>'; } },
+      { h: 'AWB', v: function (r) { return r.awb; } },
+      { h: 'Current location', v: function (r) { return r.loc; } },
+      { h: 'Manifest Destination', v: function (r) { return r.dest; } },
+      { h: 'Manifest Code', v: function (r) { return r.mcode; } },
+      { h: 'Product name', v: function (r) { return r.pname || 'NA'; } },
+      { h: 'Product category', v: function (r) { return r.pcat || 'NA'; } },
+      { h: 'Seller', v: function (r) { return r.seller; } },
+      { h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
+      { h: 'LM collated bucket', v: function (r) { return r.lmColl; } },
+      { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
+      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
+    ];
+    out.push(section('HOV above ₹' + num(C.hov2ValueThreshold) + ' — shipment detail (Overall)',
+      'Write findings straight into the RCA column. Click a row for the full base data.',
+      mtPicker('fwd-hov2k') + tbl('fwd-hov2k', hvCols, hov2k, { select: true, pop: hov2k, dim: 'awb', limit: 300, sort: { i: 11, dir: -1 }, rcaDim: 'awb', rcaForce: true, rcaVal: function (r) { return r.awb; } })));
+
+    // 5 — product trend, viewer picks the manifest type
+    var r5 = mtScope(all, state.tblMT['fwd-prod'] || '');
     var pdim = state.prodDim === 'pname' ? 'pname' : 'pcat';
     var pdimLabel = pdim === 'pcat' ? 'Product category' : 'Product name';
-    var pRows = rows.filter(function (r) { return pdim === 'pcat' ? r.pcat : r.pname; });
+    var pRows = r5.filter(function (r) { return pdim === 'pcat' ? r.pcat : r.pname; });
     var pg = V.pivot(pRows, [pdim]).sort(function (a, b) { return b.pendency - a.pendency; }).slice(0, 150).map(function (g) {
       return { key: g.keys[0], n: g.pendency, hov: g.hovCount, value: g.value, _dim: pdim, _rows: g.rows, _title: pdimLabel + ': ' + g.keys[0] };
     });
     var toggle = '<div class="subbox"><span class="meta">Trend by:</span>' +
       ['pcat', 'pname'].map(function (d) { return '<label class="subopt"><input type="radio" name="pdim" data-act="pdim" data-val="' + d + '" ' + (pdim === d ? 'checked' : '') + ' /> ' + (d === 'pcat' ? 'Product category' : 'Product name') + '</label>'; }).join('') +
-      '<span class="meta">Blank / 0 values are excluded.</span></div>';
-    out.push(section('Product trend — ' + pdimLabel, 'Pendency and product value impacted, one dimension at a time. Click a row for the full base data behind it.',
-      toggle + tbl('ov-prod', [
+      '<span class="meta">Blank / 0 values excluded.</span></div>';
+    out.push(section('Product trend — Category (Overall)', 'Click a row for the full base data behind it.',
+      mtPicker('fwd-prod') + toggle + tbl('fwd-prod', [
         { h: pdimLabel, v: function (p) { return p.key; } },
-        { h: 'Pendency (AWB)', num: true, v: function (p) { return p.n; } }, { h: 'HOV', num: true, v: function (p) { return p.hov; } },
+        { h: 'Pendency (AWB)', num: true, pend: true, v: function (p) { return p.n; } },
+        { h: 'HOV', num: true, v: function (p) { return p.hov; } },
         { h: 'Product value ₹', num: true, money: true, v: function (p) { return p.value; }, f: function (p) { return inr(p.value); } }
-      ], pg, { select: true, pop: pRows, dim: pdim, limit: 150, rcaDim: pdim, sort: { i: 1, dir: -1 } })));
+      ], pg, { select: true, pop: pRows, dim: pdim, limit: 150 })));
 
-    // Repeat misses: the same product group going missing at the same hub, more than CONFIG-threshold times.
-    var missDim = state.missDim === 'dest' ? 'dest' : 'loc';
-    var missLabel = missDim === 'dest' ? 'Manifest Destination' : 'Current Location';
-    var mg = new Map();
-    pRows.forEach(function (r) {
-      var hub = V.KEYS[missDim].get(r), prod = pdim === 'pcat' ? r.pcat : r.pname, k = hub + '\u001f' + prod;
-      if (!mg.has(k)) mg.set(k, { hub: hub, prod: prod, rows: [] });
-      mg.get(k).rows.push(r);
-    });
-    var missRows = Array.from(mg.values()).filter(function (g) { return g.rows.length > MISS_MIN; }).map(function (g) {
-      return { key: g.hub + ' · ' + g.prod, hub: g.hub, prod: g.prod, n: g.rows.length,
-        hov: g.rows.filter(function (r) { return r.hov; }).length, value: g.rows.reduce(function (s, r) { return s + r.value; }, 0),
-        _dim: missDim, _rows: g.rows, _title: g.hub + ' · ' + g.prod };
-    }).sort(function (a, b) { return b.n - a.n; });
-    var missToggle = '<div class="subbox"><span class="meta">Hub dimension:</span>' +
-      ['loc', 'dest'].map(function (d) { return '<label class="subopt"><input type="radio" name="missdim" data-act="missdim" data-val="' + d + '" ' + (missDim === d ? 'checked' : '') + ' /> ' + (d === 'loc' ? 'Current Location' : 'Manifest Destination') + '</label>'; }).join('') + '</div>';
-    out.push(section('Repeat product misses by hub (more than ' + MISS_MIN + ')', 'Where the same ' + pdimLabel.toLowerCase() + ' goes missing repeatedly at one hub — ' + num(missRows.length) + ' combinations above the threshold. Click a row for the full base data behind it.',
-      missToggle + tbl('ov-miss', [
-        { h: missLabel, v: function (p) { return p.hub; } }, { h: pdimLabel, v: function (p) { return p.prod; } },
-        { h: 'Misses (AWB)', num: true, v: function (p) { return p.n; } }, { h: 'HOV', num: true, v: function (p) { return p.hov; } },
-        { h: 'Product value ₹', num: true, money: true, v: function (p) { return p.value; }, f: function (p) { return inr(p.value); } }
-      ], missRows, { select: true, pop: pRows, dim: missDim, limit: 300, sort: { i: 2, dir: -1 }, rowClass: function () { return 'flagrow'; }, rcaDim: 'miss', rcaVal: function (p) { return p.key; } })));
+    // 6 — seller trend, viewer picks the manifest type
+    var r6 = mtScope(all, state.tblMT['fwd-seller'] || '');
+    var sellers = sellerRows(r6);
+    out.push(section('Seller-level trend and flags', 'Blank and #N/A sellers removed. Liquid-damage sellers (Ghar, Beco) flagged for check at exception and clearance.',
+      mtPicker('fwd-seller') + tbl('fwd-seller', [
+        { h: 'Seller', v: function (x) { return x.seller; } },
+        { h: 'Pendency (AWB)', num: true, pend: true, v: function (x) { return x.n; } },
+        { h: 'Aged ≥ ' + C.sellerAgedDays + ' days', num: true, v: function (x) { return x.aged; } },
+        { h: 'Aged share', num: true, noTotal: true, v: function (x) { return x.share; }, f: function (x) { return Math.round(x.share * 100) + '%'; } },
+        { h: 'Flag', v: function (x) { return x.flag; }, f: function (x) { return x.flag === '—' ? '—' : '<span class="cat ' + x.cls + '">' + esc(x.flag) + '</span>'; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.value; }, f: function (x) { return inr(x.value); } }
+      ], sellers, { select: true, pop: r6, dim: 'seller', mode: 'seller', limit: 300, rowClass: function (x) { return x.cls === 'possible' ? 'flagrow' : ''; } })));
+
+    out.push(exportBtns([{ kind: 'fwd_filtered', label: 'Forward short pendency (filtered)', n: all.length },
+      { kind: 'dc_sellers', label: 'Seller trend and flags', n: sellers.length },
+      { kind: 'dc_hov2k', label: 'HOV above ₹' + num(C.hov2ValueThreshold), n: hov2k.length }]));
     return out.join('');
   }
 
-  // ---------- tab: MM ----------
+  // ---------- tab: MM Liability ----------
+  // Frequency = how many DIFFERENT ageing days a user carries MM liability on, inside the
+  // selected ageing window. 2 AWBs at ageing 3 and 10 at ageing 6 is a frequency of 2, not 12.
+  function actionItem(freq) {
+    if (freq > 4) return { label: 'Termination', cls: 't' };
+    if (freq >= 3) return { label: 'Training / written warning', cls: 'w' };
+    if (freq >= 1) return { label: 'Verbal warning', cls: 'v' };
+    return { label: '—', cls: '' };
+  }
   function renderMM(view) {
     var rows = view.filtered, out = [tabHead('mm'), kpiRow(view)];
     var mmRows = rows.filter(function (r) { return r.mmBucket; });
-    out.push(section('DC/XD misses Summary DC wise', 'MM liability by current location and ageing. Grand totals on top.', crossTable('mm-sum', mmRows, 'loc', ageCols('mm'), ageGet, {})));
-    var sealRows = rows.filter(function (r) { return r.mmBucket === 'Seal mismatch'; });
-    out.push(section('Table 2 — Seal mismatch, Current Location view', 'Click a location for manifest codes, shipments in manifest, pendency count, Actual Manifest ID and wrongly connected manifest destination.', crossTable('mm-seal', sealRows, 'loc', ageCols('mm'), ageGet, { mode: 'manifest' })));
-    var misRows = rows.filter(function (r) { return r.mmBucket === 'DC/XD misroute/ fake bagging'; });
-    var subSet = state.mmSub.mm || new Set();
-    var t3 = subSet.size ? misRows.filter(function (r) { return subSet.has(r.mmReason); }) : misRows;
-    out.push(section('Table 3 — DC/XD misroute / fake bagging, Current Location view', 'Tick MM remarks to include (none ticked = all three).', subCheckboxes('mmSub', MM_SUB) + crossTable('mm-mis', t3, 'loc', ageCols('mm'), ageGet, {})));
-    var wr = rows.filter(function (r) { return r.wrongDest; });
-    out.push(section('Table 4 — Wrongly connected manifest destination', 'Only destinations with more than ' + WD_MIN + ' short AWBs. Self hubs (not ending in _SCC) highlighted in amber.',
-      crossTable('mm-wd', wr, 'wrongDest', ageCols('mm'), ageGet, { minTotal: WD_MIN, rowClass: function (o) { return o.key && o.key.slice(-4).toUpperCase() !== '_SCC' ? 'selfhub' : ''; }, mode: 'records' })));
 
-    // Action user trend: frequency counted over ageing 2-30 regardless of the tab's ageing slider,
-    // so the >3 rule the audit team uses stays stable.
-    var auBase = V.applyFilters(V.tabRows(state.records, 'mm', { manifestType: state.tabs.mm.manifestType, ageMin: AU_AGE_MIN, ageMax: AU_AGE_MAX }), state.tabs.mm, {});
-    var auRows = auBase.filter(function (r) { return r.mmBucket && r.actionUser; });
-    var auCols = range(AU_AGE_MIN, AU_AGE_MAX).map(function (a) { return { key: String(a), label: 'Age ' + a }; });
-    out.push(section('Table 5 — Action user trend', 'Action users (source column <b>action_user</b>) carrying more than ' + AU_MIN + ' MM liability AWBs. Frequency is the COUNTA of ageing ' + AU_AGE_MIN + '–' + AU_AGE_MAX + ', independent of the ageing filter above; this table is sorted by frequency, highest first.',
-      crossTable('mm-au', auRows, 'actionUser', auCols, ageGet, { minTotal: AU_MIN, mode: 'records',
-        freqLabel: 'Frequency (ageing ' + AU_AGE_MIN + '–' + AU_AGE_MAX + ')',
-        countIf: function (r) { return r.age !== null && r.age >= AU_AGE_MIN && r.age <= AU_AGE_MAX; },
-        sortForce: { i: 2, dir: -1 } })));
+    out.push(section('DC/XD misses Summary DC wise', 'MM liability by current location and ageing. Grand totals on top.',
+      crossTable('mm-sum', mmRows, 'loc', ageCols('mm', mmRows), ageGet, {})));
+
+    // Action user trend — second table, driven by the ageing window selected above.
+    var s2 = state.tabs.mm;
+    var win = (s2.ageMin === null && s2.ageMax === null) ? 'all ageing days'
+      : 'ageing ' + (s2.ageMin === null ? 'min' : s2.ageMin) + '–' + (s2.ageMax === null ? 'max' : s2.ageMax);
+    var auRows = mmRows.filter(function (r) { return r.actionUser; });
+    var g = new Map();
+    auRows.forEach(function (r) {
+      var k = r.actionUser;
+      if (!g.has(k)) g.set(k, { key: k, n: 0, value: 0, days: new Set(), rows: [] });
+      var x = g.get(k);
+      x.n++; x.value += r.value; x.rows.push(r);
+      if (r.age !== null) x.days.add(r.age);
+    });
+    var au = Array.from(g.values()).map(function (x) {
+      var f = x.days.size, a = actionItem(f);
+      return { key: x.key, n: x.n, value: x.value, freq: f, act: a.label, cls: a.cls,
+               days: Array.from(x.days).sort(function (p, q) { return p - q; }).join(', '),
+               _dim: 'actionUser', _rows: x.rows, _title: 'Action user: ' + x.key };
+    }).sort(function (a, b) { return b.freq - a.freq || b.n - a.n; });
+    out.push(section('Action user trend', 'Source column <b>action_user</b>, ' + win +
+      '. <b>Frequency</b> is the number of distinct ageing days on which that user carries MM liability — not the AWB count. ' +
+      'Action item: more than 4 → termination · 3 or 4 → training / written warning · 1 or 2 → verbal warning.',
+      tbl('mm-au', [
+        { h: 'Action user', v: function (x) { return x.key; } },
+        { h: 'Frequency (distinct ageing days)', num: true, v: function (x) { return x.freq; } },
+        { h: 'Action item', v: function (x) { return x.act; }, f: function (x) { return '<span class="sev ' + x.cls + '">' + esc(x.act) + '</span>'; } },
+        { h: 'Grand total MM liability (AWB)', num: true, pend: true, v: function (x) { return x.n; } },
+        { h: 'Ageing days hit', v: function (x) { return x.days; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.value; }, f: function (x) { return inr(x.value); } }
+      ], au, { select: true, pop: auRows, dim: 'actionUser', limit: 400, sortForce: { i: 1, dir: -1 } })));
+
+    var sealRows = rows.filter(function (r) { return r.mmBucket === 'Seal mismatch'; });
+    out.push(section('Seal mismatch — Current Location view', 'Click a location for manifest codes, shipments in manifest, pendency count, Actual Manifest ID and wrongly connected manifest destination.',
+      crossTable('mm-seal', sealRows, 'loc', ageCols('mm', sealRows), ageGet, { mode: 'manifest', rcaForce: true })));
+
+    var wr = rows.filter(function (r) { return r.wrongDest; });
+    out.push(section('Wrongly connected manifest destination', 'Only destinations with more than ' + WD_MIN + ' short AWBs. Self hubs (not ending in _SCC) highlighted in amber.',
+      crossTable('mm-wd', wr, 'wrongDest', ageCols('mm', wr), ageGet, { minTotal: WD_MIN, rowClass: function (o) { return o.key && o.key.slice(-4).toUpperCase() !== '_SCC' ? 'selfhub' : ''; }, mode: 'records' })));
     return out.join('');
   }
   function subCheckboxes(group, values) {
@@ -1479,7 +2003,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       { h: 'Product value ₹', num: true, money: true, v: function (l) { return l.value; }, f: function (l) { return (l.valueFlag ? '<span class="flag">▲ </span>' : '') + inr(l.value); }, cls: function (l) { return l.valueFlag ? 'hl' : ''; } }
     ];
     out.push(section('Lane table', 'A lane is confirmed only with at least ' + C.confirmMinValidated + ' validated shorts; the top ' + C.confirmHighlightTop + ' of those by pendency are highlighted and ranked. Lanes with 1–' + (C.confirmMinValidated - 1) + ' validated shorts sit in Possible. Click a lane for its tree.', tbl('lh-lanes', topCols, lt, { select: true, pop: rows, dim: 'lane', mode: 'lane', limit: 300, sort: { i: 3, dir: -1 }, rowClass: function (l) { return l.topConfirm ? 'lanetop' : ''; }, rcaDim: 'lane', rcaVal: function (l) { return l.lane; } })));
-    out.push(section('Lane × destination × ageing pendency', '', crossTable('lh-dest', rows, 'dest', ageCols('lh'), ageGet, {})));
+    out.push(section('Lane × destination × ageing pendency', '', crossTable('lh-dest', rows, 'dest', ageCols('lh', rows), ageGetFor('lh'), {})));
     var missing = lanes.filter(function (l) { return l.missingRemarksFlag; }).map(function (l) { return Object.assign({}, l, { key: l.lane, _dim: 'lane', _mode: 'lane' }); });
     out.push(section('Missing / unclear LM remarks', 'Lanes with at least ' + C.minLaneAwbs + ' AWBs, no validated touchpoints, and at least half without LM remarks.',
       tbl('lh-miss', [{ h: 'Lane Code', v: function (l) { return l.lane; } }, { h: 'AWB pendency', num: true, v: function (l) { return l.pendency; } }, { h: 'Blank LM remarks', num: true, v: function (l) { return l.lmBlank; } },
@@ -1492,34 +2016,119 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     return out.join('');
   }
 
-  // ---------- tab: LM ----------
+  // ---------- tab: LM Liability ----------
+  var LM_HIGH_AGE = 4;        // 4+ ageing counts as high in LM liability
+  var LM_SMALL_DIFF = 3;      // a manifest with only 1-3 shipments short is worth a look
+
   function renderLM(view) {
     var rows = view.filtered, out = [tabHead('lm'), kpiRow(view)];
-    out.push(section('Table 1 — POD_Zone × ageing pendency', '', crossTable('lm-zone', rows, 'podZone', ageCols('lm'), ageGet, {})));
-    out.push(section('Table 2 — Top 50 Manifest Destinations × ageing', '', crossTable('lm-dest', top(rows, 'dest', 50), 'dest', ageCols('lm'), ageGet, {})));
-    var podVals = Array.from(new Set(view.base.map(function (r) { return r.pod; }))).sort();
-    var podSet = state.podSel.lm || new Set();
-    var podRows = podSet.size ? rows.filter(function (r) { return podSet.has(r.pod); }) : rows;
-    out.push(section('Table 3 — POD Mapping × Manifest Destination', 'Tick POD Mappings (none = all). Top 20 manifest destinations shown.',
-      '<div class="podbox">' + podVals.map(function (v) { return '<label class="subopt"><input type="checkbox" data-act="subtoggle" data-group="podSel" data-val="' + esc(v) + '" ' + (podSet.has(v) ? 'checked' : '') + ' /> ' + esc(v) + '</label>'; }).join('') + '</div>' +
-      crossTable('lm-pod-dest', top(podRows, 'dest', 20), 'dest', ageCols('lm'), ageGet, {})));
+
+    out.push(section('POD_Zone × ageing pendency', '',
+      crossTable('lm-zone', rows, 'podZone', ageCols('lm', rows), ageGet, {})));
+
+    // One table for every POD Mapping, sorted by pendency, each expanding to its top hubs.
+    // Hub = Manifest_Destination.
+    var focusRows = rows.filter(function (r) { return r.lmColl !== 'Short found'; });
+    var podAll = {};
+    focusRows.forEach(function (r) { (podAll[r.pod] = podAll[r.pod] || []).push(r); });
+    var podNames = Object.keys(podAll).sort(function (a, b) { return podAll[b].length - podAll[a].length; });
+    var picked = state.podPick;
+    var checks = '<div class="subbox"><span class="meta">Show POD Mapping:</span>' +
+      podNames.map(function (pn) {
+        return '<label class="subopt"><input type="checkbox" data-act="podpick" data-val="' + esc(pn) + '" ' +
+          (picked && picked.has(pn) ? 'checked' : '') + ' /> ' + esc(pn) + ' <span class="meta">(' + num(podAll[pn].length) + ')</span></label>';
+      }).join('') + '<span class="meta">None ticked = all PODs.</span></div>';
+
+    function hubStats(rs, label, pod) {
+      var high = rs.filter(function (r) { return r.age !== null && r.age >= LM_HIGH_AGE; });
+      var byAge = {}; rs.forEach(function (r) { if (r.age !== null) byAge[r.age] = (byAge[r.age] || 0) + 1; });
+      var earlyMax = 0, highMax = 0, highDay = '';
+      Object.keys(byAge).forEach(function (k) {
+        var a = +k, n = byAge[k];
+        if (a < LM_HIGH_AGE) { if (n > earlyMax) earlyMax = n; }
+        else if (n > highMax) { highMax = n; highDay = k; }
+      });
+      var perMani = {}; high.forEach(function (r) { perMani[r.mcode] = (perMani[r.mcode] || 0) + 1; });
+      var thin = Object.keys(perMani).filter(function (m) { return perMani[m] <= LM_SMALL_DIFF; }).length;
+      var hov2 = rs.filter(function (r) { return r.hov2; }).length;
+      var why = [];
+      if (highMax > 0 && highMax >= earlyMax) why.push('Spike at ageing ' + highDay);
+      if (thin) why.push(thin + ' manifest' + (thin > 1 ? 's' : '') + ' with ≤' + LM_SMALL_DIFF + ' short');
+      if (hov2) why.push(hov2 + ' HOV2');
+      return { key: label, pod: pod, n: rs.length, high: high.length, hov2: hov2,
+               value: rs.reduce(function (a, r) { return a + r.value; }, 0),
+               why: why.length ? why.join(' · ') : '—', focus: why.length > 0 && high.length > 0,
+               _dim: 'dest', _rows: rs, _title: label };
+    }
+
+    var treeRows = [];
+    podNames.filter(function (pn) { return !picked || picked.has(pn); }).forEach(function (pn) {
+      var pr = podAll[pn], open = !!state.podOpen[pn];
+      var head = hubStats(pr, pn, pn);
+      head.isPod = true; head.open = open; head._title = 'POD Mapping: ' + pn;
+      head._dim = 'pod';
+      treeRows.push(head);
+      if (!open) return;
+      var byDest = new Map();
+      pr.forEach(function (r) { if (!byDest.has(r.dest)) byDest.set(r.dest, []); byDest.get(r.dest).push(r); });
+      Array.from(byDest.entries())
+        .map(function (e) { return hubStats(e[1], e[0], pn); })
+        .sort(function (a, b) { return b.n - a.n; })
+        .slice(0, 10)
+        .forEach(function (h) { h.isPod = false; treeRows.push(h); });
+    });
+
+    out.push(section('POD-wise top hubs to focus on',
+      'Short found removed · ' + num(focusRows.length) + ' AWBs. PODs ranked by pendency; click a POD row to open its top 10 hubs (hub = Manifest_Destination). High = ageing ' + LM_HIGH_AGE + '+. Highlighted rows have a high-ageing spike, thin manifests or HOV2.',
+      checks + tbl('lm-pod', [
+        { h: 'POD Mapping / Hub (Manifest Destination)', v: function (x) { return x.key; },
+          f: function (x) { return x.isPod
+            ? '<b>' + (x.open ? '&#9662;' : '&#9656;') + ' ' + esc(x.key) + '</b>'
+            : '<span class="ind2">' + esc(x.key) + '</span>'; } },
+        { h: 'Pendency (AWB)', num: true, pend: true, v: function (x) { return x.n; } },
+        { h: 'High ageing (' + LM_HIGH_AGE + '+)', num: true, v: function (x) { return x.high; } },
+        { h: 'HOV2', num: true, v: function (x) { return x.hov2; } },
+        { h: 'Why it needs focus', v: function (x) { return x.why; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.value; }, f: function (x) { return inr(x.value); } }
+      ], treeRows, { select: true, pop: focusRows, dim: 'dest', limit: 600, noTotal: false,
+        sortForce: { i: -1, dir: -1 },
+        rowAttrs: function (x, ri) {
+          return x.isPod ? ' data-act="podtog" data-pod="' + esc(x.pod) + '"'
+                         : ' data-act="sel" data-table="lm-pod" data-idx="' + ri + '"';
+        },
+        totalFilter: function (x) { return x.isPod; },
+        rowClass: function (x) { return x.isPod ? 'lane-row' : (x.focus ? 'flagrow' : ''); } })));
+
+    // HOV2 cut, ageing as a row value rather than a column
     var hovRows = rows.filter(function (r) { return r.hov2; });
-    out.push(section('Table 4 — HOV2 cut, top destinations', 'Click a destination, or any row, for the underlying data (lane, location, product, value, manifest shipments, pendency, LM/MM remarks).',
-      crossTable('lm-hov2', top(hovRows, 'dest', 50), 'dest', ageCols('lm'), ageGet, { valueMid: true, pendLabel: 'HOV pendency (AWB)' })));
+    out.push(section('HOV2 cut — shipment detail', 'Ageing shown per row. Write findings into the RCA column.',
+      tbl('lm-hov2', [
+        { h: 'Manifest Destination', v: function (r) { return r.dest; } },
+        { h: 'HOV', v: function (r) { return r.hov ? 'HOV' : 'NON'; } },
+        { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } },
+        { h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
+        { h: 'LM collated bucket', v: function (r) { return r.lmColl; } }
+      ], hovRows, { select: true, pop: hovRows, dim: 'awb', limit: 400, sort: { i: 2, dir: -1 },
+                    rcaDim: 'awb', rcaForce: true, rcaVal: function (r) { return r.awb; } })));
+
     var big = rows.filter(function (r) { return r.value > C.hovValueThreshold; });
     var crit = function (r) { return r.age !== null && r.age >= C.criticalAgeDays ? 'Critical (>5k and aged)' : 'High value (>5k)'; };
-    var bigCols = [
-      { h: 'Criticality', v: function (r) { return crit(r); }, f: function (r) { var c = crit(r); return '<span class="cat ' + (c.indexOf('Critical') === 0 ? 'possible' : 'jit') + '">' + esc(c) + '</span>'; } },
-      { h: 'AWB', v: function (r) { return r.awb; } }, { h: 'Lane Code', v: function (r) { return r.lane || 'NA'; } }, { h: 'Current location', v: function (r) { return r.loc; } },
-      { h: 'Manifest Destination', v: function (r) { return r.dest; } }, { h: 'Manifest Code', v: function (r) { return r.mcode; } },
-      { h: 'Shipments in manifest', v: function (r) { return na(r.shipInManifest); } }, { h: 'Product name', v: function (r) { return r.pname || 'NA'; } },
-      { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
-      { h: 'MM collated bucket', v: function (r) { return V.mmBucketOf(r); } }, { h: 'LM collated bucket', v: function (r) { return V.lmBucket(r); } },
-      { h: 'Calling remark', v: function () { return ''; }, f: function (r) { return remarkInput('A|' + r.awb, 'Calling remark for this AWB…'); } },
-      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
-    ];
-    out.push(section('Table 4.1 — Above ₹5,000 AWBs', 'Strictly above ₹5,000. Critical = above ₹5k and ageing ≥ ' + C.criticalAgeDays + ' days. Click a row for its popup.',
-      tbl('lm-5k', bigCols, big, { select: true, pop: rows, dim: 'awb', limit: 300, sort: { i: 12, dir: -1 }, rcaDim: 'awb', rcaVal: function (r) { return r.awb; } })));
+    out.push(section('Above ₹5,000 AWBs', 'Strictly above ₹5,000. Critical = above ₹5k and ageing ≥ ' + C.criticalAgeDays + ' days.',
+      tbl('lm-5k', [
+        { h: 'Criticality', v: function (r) { return crit(r); }, f: function (r) { var c = crit(r); return '<span class="cat ' + (c.indexOf('Critical') === 0 ? 'possible' : 'jit') + '">' + esc(c) + '</span>'; } },
+        { h: 'AWB', v: function (r) { return r.awb; } },
+        { h: 'Current location', v: function (r) { return r.loc; } },
+        { h: 'Manifest Destination', v: function (r) { return r.dest; } },
+        { h: 'Manifest Code', v: function (r) { return r.mcode; } },
+        { h: 'Shipments in manifest', v: function (r) { return na(r.shipInManifest); } },
+        { h: 'Product name', v: function (r) { return r.pname || 'NA'; } },
+        { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
+        { h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
+        { h: 'LM collated bucket', v: function (r) { return r.lmColl; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
+      ], big, { select: true, pop: rows, dim: 'awb', limit: 300, sort: { i: 10, dir: -1 },
+                rcaDim: 'awb', rcaForce: true, rcaVal: function (r) { return r.awb; } })));
     return out.join('');
   }
 
@@ -1539,59 +2148,116 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       return { key: x.seller, seller: x.seller, n: x.n, value: x.value, aged: x.aged, share: share, flag: flag, cls: cls, _dim: 'seller', _mode: 'seller' };
     }).sort(function (a, b) { return b.n - a.n; });
   }
-  function renderDCDC(view) {
-    var rows = view.filtered, out = [tabHead('dcdc'), kpiRow(view)];
-    out.push(section('Table 1 — Manifest Origin × ageing pendency', '', crossTable('dc-origin', rows, 'origin', ageCols('dcdc'), ageGet, {})));
-    out.push(section('Table 2 — Manifest Destination × ageing pendency', '', crossTable('dc-dest', top(rows, 'dest', 100), 'dest', ageCols('dcdc'), ageGet, {})));
-    var hov2k = rows.filter(function (r) { return r.hov && r.value > C.hov2ValueThreshold; });
-    var hvCols = [
-      { h: 'Flag', v: function (r) { return r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value'; }, f: function (r) { var c = r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value'; return '<span class="cat possible">' + c + '</span>'; } },
-      { h: 'AWB', v: function (r) { return r.awb; } }, { h: 'Lane Code', v: function (r) { return r.lane || 'NA'; } }, { h: 'Current location', v: function (r) { return r.loc; } },
-      { h: 'Manifest Destination', v: function (r) { return r.dest; } }, { h: 'Manifest Origin', v: function (r) { return r.origin; } },
-      { h: 'Manifest Code', v: function (r) { return r.mcode; } }, { h: 'Actual Manifest ID', v: function (r) { return na(r.amid); } },
-      { h: 'Product name', v: function (r) { return r.pname || 'NA'; } }, { h: 'Category', v: function (r) { return r.pcat || 'NA'; } },
-      { h: 'Seller', v: function (r) { return r.seller; } }, { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
-      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
-    ];
-    out.push(section('Table 3 — HOV above ₹2,000: destinations and descriptions', 'Click a row for its popup.', tbl('dc-hov2k', hvCols, hov2k, { select: true, pop: hov2k, dim: 'awb', limit: 300, sort: { i: 12, dir: -1 }, rcaDim: 'awb', rcaVal: function (r) { return r.awb; } })));
-    out.push(section('Table 4 — HOV destination pendency', '', crossTable('dc-hov-dest', top(rows.filter(function (r) { return r.hov; }), 'dest', 100), 'dest', ageCols('dcdc'), ageGet, { valueMid: true })));
-    var sellers = sellerRows(rows);
-    var sCols = [
-      { h: 'Seller', v: function (s) { return s.seller; } }, { h: 'Pendency (AWB)', num: true, v: function (s) { return s.n; } },
-      { h: 'Aged ≥ ' + C.sellerAgedDays + ' days', num: true, v: function (s) { return s.aged; } },
-      { h: 'Aged share', num: true, noTotal: true, v: function (s) { return s.share; }, f: function (s) { return Math.round(s.share * 100) + '%'; } },
-      { h: 'Flag', v: function (s) { return s.flag; }, f: function (s) { return s.flag === '—' ? '—' : '<span class="cat ' + s.cls + '">' + esc(s.flag) + '</span>'; } },
-      { h: 'Product value ₹', num: true, money: true, v: function (s) { return s.value; }, f: function (s) { return inr(s.value); } }
-    ];
-    out.push(section('Table 5 — Seller-level trend and flags', 'Blank and #N/A sellers removed. Click a seller for its ageing split and manifests. Liquid-damage sellers (Ghar, Beco) flagged for check at exception and clearance.',
-      tbl('dc-seller', sCols, sellers, { select: true, pop: rows, dim: 'seller', mode: 'seller', limit: 300, rcaDim: 'seller', rcaVal: function (x) { return x.seller; }, rowClass: function (s) { return s.cls === 'possible' ? 'flagrow' : ''; } })));
-    out.push(exportBtns([{ kind: 'dc_filtered', label: 'DC-DC Short (filtered)', n: rows.length }, { kind: 'dc_sellers', label: 'Seller trend and flags', n: sellers.length }, { kind: 'dc_hov2k', label: 'HOV above ₹2,000', n: hov2k.length }]));
-    return out.join('');
+  // ---------- body ----------
+  // ---------- pivot builder (Field list) ----------
+  // Every stored column, plus the derived ones, usable as a pivot row / column / filter.
+  function pivotFields() {
+    var ds = activeDs();
+    if (!ds || !ds.headers) return [];
+    var out = visibleBase(ds).map(function (c) { return { name: c.h, get: c.get }; });
+    out.push({ name: 'MM collated bucket', get: function (r) { return r.mmColl; } });
+    out.push({ name: 'LM collated bucket', get: function (r) { return r.lmColl; } });
+    out.push({ name: 'Ageing band (20+)', get: function (r) { return V.ageBand(r.age); } });
+    out.push({ name: 'HOV flag', get: function (r) { return r.hov ? 'HOV' : 'NON'; } });
+    return out;
+  }
+  function pvField(name) {
+    var f = pivotFields().filter(function (x) { return x.name === name; })[0];
+    return f || null;
+  }
+  function pvVal(f, r) {
+    var v = f ? f.get(r) : '';
+    v = (v === null || v === undefined || String(v).trim() === '') ? '(blank)' : String(v).trim();
+    return v;
+  }
+  function renderPivot(rows) {
+    var fields = pivotFields();
+    if (!fields.length) return '';
+    var pv = state.pivot;
+    if (!pv.row) pv.row = (fields.filter(function (f) { return f.name === 'Current_location'; })[0] || fields[0]).name;
+    var sel = function (act, cur, blank) {
+      return '<select data-act="' + act + '">' + (blank ? '<option value="">' + blank + '</option>' : '') +
+        fields.map(function (f) { return '<option ' + (cur === f.name ? 'selected' : '') + ' value="' + esc(f.name) + '">' + esc(f.name) + '</option>'; }).join('') + '</select>';
+    };
+    var controls = '<div class="frow">' +
+      '<label>Rows ' + sel('pvrow', pv.row, '') + '</label>' +
+      '<label>Sub-rows ' + sel('pvrow2', pv.row2, '— none —') + '</label>' +
+      '<label>Columns ' + sel('pvcol', pv.col, '— none —') + '</label>' +
+      '<label>Values <select data-act="pvval">' +
+        [['awb', 'AWB count (pendency)'], ['value', 'Product value ₹'], ['hov', 'HOV count'], ['mani', 'Distinct manifests']]
+          .map(function (o) { return '<option ' + (pv.val === o[0] ? 'selected' : '') + ' value="' + o[0] + '">' + o[1] + '</option>'; }).join('') +
+      '</select></label>' +
+      '<button class="btn small ghost" data-act="fields">Close pivot</button></div>';
+
+    var fRow = pvField(pv.row), fRow2 = pv.row2 ? pvField(pv.row2) : null, fCol = pv.col ? pvField(pv.col) : null;
+    var money = pv.val === 'value';
+    var add = function (cellObj, k, r) {
+      var c = cellObj[k] || (cellObj[k] = { n: 0, v: 0, h: 0, m: {} });
+      c.n++; c.v += r.value; if (r.hov) c.h++; c.m[r.mcode] = 1;
+    };
+    var pick = function (c) {
+      if (!c) return 0;
+      return pv.val === 'value' ? c.v : pv.val === 'hov' ? c.h : pv.val === 'mani' ? Object.keys(c.m).length : c.n;
+    };
+    var G = new Map(), colSet = {};
+    rows.forEach(function (r) {
+      var k1 = pvVal(fRow, r), k2 = fRow2 ? pvVal(fRow2, r) : '';
+      var key = k1 + '\u001f' + k2;
+      var g = G.get(key);
+      if (!g) { g = { k1: k1, k2: k2, cells: {}, tot: { n: 0, v: 0, h: 0, m: {} } }; G.set(key, g); }
+      var ck = fCol ? pvVal(fCol, r) : '*';
+      colSet[ck] = 1;
+      add(g.cells, ck, r);
+      g.tot.n++; g.tot.v += r.value; if (r.hov) g.tot.h++; g.tot.m[r.mcode] = 1;
+    });
+    var colKeys = Object.keys(colSet).sort(function (a, b) {
+      var na = parseFloat(a), nb = parseFloat(b);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return a.localeCompare(b);
+    });
+    var data = Array.from(G.values()).map(function (g) {
+      return { key: g.k1, sub: g.k2, cells: g.cells, total: pick(g.tot),
+               _rows: null, _dim: 'loc', _title: g.k1 + (g.k2 ? ' · ' + g.k2 : '') };
+    }).sort(function (a, b) { return b.total - a.total; });
+
+    var cdefs = [{ h: pv.row, v: function (x) { return x.key; } }];
+    if (fRow2) cdefs.push({ h: pv.row2, v: function (x) { return x.sub; } });
+    cdefs.push({ h: pv.val === 'value' ? 'Product value ₹' : pv.val === 'hov' ? 'HOV' : pv.val === 'mani' ? 'Manifests' : 'Pendency (AWB)',
+                 num: true, pend: true, money: money, v: function (x) { return x.total; },
+                 f: function (x) { return money ? inr(x.total) : num(x.total); } });
+    if (fCol) {
+      var maxOf = function (x) { var m = 0; colKeys.forEach(function (k) { var y = pick(x.cells[k]); if (y > m) m = y; }); return m; };
+      colKeys.slice(0, 60).forEach(function (k) {
+        cdefs.push({ h: k, num: true, money: money,
+          v: function (x) { return pick(x.cells[k]); },
+          cls: function (x) { var m = maxOf(x), y = pick(x.cells[k]); if (!y || !m) return ''; var f = y / m;
+            return f >= 0.75 ? 'h4' : f >= 0.5 ? 'h3' : f >= 0.25 ? 'h2' : 'h1'; },
+          f: function (x) { var y = pick(x.cells[k]); return y ? (money ? inr(y) : num(y)) : '<span class="zero">·</span>'; } });
+      });
+    }
+    var note = 'Pivoting ' + num(rows.length) + ' filtered AWBs from this tab. ' +
+      (fCol && colKeys.length > 60 ? 'Showing the first 60 of ' + num(colKeys.length) + ' column values. ' : '') +
+      'Use Copy table to paste it straight into Excel.';
+    return '<section class="card"><div class="ch"><h2>Pivot — build your own view</h2></div>' +
+      '<div class="meta">' + note + '</div>' + controls +
+      tbl('pivot', cdefs, data, { limit: 400, select: false, sortForce: { i: fRow2 ? 2 : 1, dir: -1 } }) + '</section>';
   }
 
-  // ---------- body ----------
   function renderBody() {
     var body = $('#body');
     if (!activeDs()) {
       body.innerHTML = '<section class="card empty-state"><h2>' + (state.expiredAt ? 'Dataset expired' : 'Upload the daily base to begin') + '</h2><p>Nothing is loaded from sample data. The upload stays active for 24 hours.</p><label class="btn primary big" for="upload">Upload Daily Base</label></section>';
       return;
     }
-    var t = state.tab, view = computeView(t); state.view = view;
-    var html = t === 'overall' ? renderOverall(view) : t === 'mm' ? renderMM(view) : t === 'lh' ? renderLH(view) : t === 'lm' ? renderLM(view) : renderDCDC(view);
-    body.innerHTML = html + renderDiagnostics();
-  }
-  function renderDiagnostics() {
-    var ds = activeDs(); if (!ds) return '';
-    var d = ds.diagnostics;
-    return section('Data quality and diagnostics', '', '<div class="diaggrid"><div><b>Sheet</b><br>' + esc(d.sheetName) + '</div><div><b>Source rows</b><br>' + num(d.sourceRows) + '</div><div><b>Records</b><br>' + num(d.records) +
-      '</div><div><b>Unique AWB</b><br>' + num(d.uniqueAwb) + '</div><div><b>Duplicate AWB rows</b><br>' + num(d.duplicateRowsExtra) + '</div><div><b>Product value source</b><br>' + esc(d.valueHeader) +
-      '</div></div><div class="exports"><button class="btn" data-act="export" data-kind="audit">Download classification audit CSV (all records)</button></div>');
+    var t = state.tab, view = computeView(t); state.view = view; secIdx = 0;
+    var html = t === 'fwd' ? renderFwd(view) : t === 'mm' ? renderMM(view) : t === 'lh' ? renderLH(view) : renderLM(view);
+    body.innerHTML = (state.showFields ? renderPivot(view.filtered) : '') + html;
   }
   function renderAll() { renderHeader(); renderNav(); renderFilters(); renderBody(); if (state.popup) renderPopup(); }
 
   // ---------- exports ----------
   function csvSrc() {
-    var ds = activeDs(), base = ds && ds.headers ? V.baseColumns(ds.headers) : [];
+    var ds = activeDs(), base = (ds && ds.headers) ? visibleBase(ds) : [];
     return base.concat(V.derivedColumns(), [{ h: 'RCA', get: function (r) { return rcaText(rcaKey('awb', r.awb)); } }]);
   }
   function exportLanes(lanes, name) {
@@ -1606,7 +2272,7 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
     var view = state.view, src = csvSrc(), tag = state.ds ? state.ds.id : 'NA';
     var rowsCsv = function (rows, name) { return download(name + '_' + tag + '_' + stamp() + '.csv', V.toCsv(rows, src)); };
     switch (kind) {
-      case 'dc_filtered': return rowsCsv(view.filtered, 'DCDC_Short');
+      case 'fwd_filtered': return rowsCsv(view.filtered, 'Forward_Short_Pendency');
       case 'dc_hov2k': return rowsCsv(view.filtered.filter(function (r) { return r.hov && r.value > C.hov2ValueThreshold; }), 'DCDC_HOV_Above_2000');
       case 'dc_sellers': return download('DCDC_Seller_Trend_' + stamp() + '.csv', V.toCsv(sellerRows(view.filtered), [
         { h: 'Seller', get: function (s) { return s.seller; } }, { h: 'Pendency', get: function (s) { return s.n; } }, { h: 'Aged_count', get: function (s) { return s.aged; } },
@@ -1619,12 +2285,38 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       case 'audit': return rowsCsv(state.records, 'Classification_Audit');
     }
   }
+  // Tab-separated text, so a paste lands in Excel as proper columns.
+  function copyTable(id, btn) {
+    var rows = TCACHE[id] || [], cols = (TOPTS[id] || {}).cols || [];
+    if (!rows.length || !cols.length) return;
+    var use = cols.filter(function (c) { return !c.rca; });
+    var clean = function (v) { return String(v === null || v === undefined ? '' : v).replace(/[\t\r\n]+/g, ' '); };
+    var lines = [use.map(function (c) { return clean(c.h); }).join('\t')];
+    rows.forEach(function (r) { lines.push(use.map(function (c) { return clean(c.v ? c.v(r) : ''); }).join('\t')); });
+    var text = lines.join('\r\n');
+    var done = function (msg) { if (btn) { var o = btn.textContent; btn.textContent = msg; setTimeout(function () { btn.textContent = o; }, 1600); } };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done('Copied — paste into Excel'); }, function () { fallbackCopy(text, done); });
+    } else fallbackCopy(text, done);
+  }
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    done(ok ? 'Copied — paste into Excel' : 'Press Ctrl+C to copy');
+  }
+
   function tableCsv(id) {
     var rows = TCACHE[id] || []; if (!rows.length) return;
     if (rows[0].awb !== undefined && rows[0].rowNo !== undefined) return download('Table_' + id + '_' + stamp() + '.csv', V.toCsv(rows, csvSrc()));
+    var money = (state.tblMetric[id] || 'awb') === 'value';
     var cols = [{ h: 'Key', get: function (o) { return o.key; } }, { h: 'Pendency_AWB', get: function (o) { return o.n; } }, { h: 'Product_Value2', get: function (o) { return o.value; } }, { h: 'HOV', get: function (o) { return o.hov; } }];
     var ccKeys = {}; rows.forEach(function (o) { if (o.cc) Object.keys(o.cc).forEach(function (k) { ccKeys[k] = 1; }); });
-    Object.keys(ccKeys).sort(function (x, y) { var nx = parseFloat(x), ny = parseFloat(y); return (isNaN(nx) || isNaN(ny)) ? String(x).localeCompare(String(y)) : nx - ny; }).forEach(function (k) { cols.push({ h: 'Count_' + k, get: function (o) { return (o.cc && o.cc[k]) || 0; } }); });
+    Object.keys(ccKeys).sort(function (x, y) { var nx = parseFloat(x), ny = parseFloat(y); return (isNaN(nx) || isNaN(ny)) ? String(x).localeCompare(String(y)) : nx - ny; })
+      .forEach(function (k) { cols.push({ h: (money ? 'Value_' : 'Count_') + k, get: function (o) { return ((money ? o.cv : o.cc) || {})[k] || 0; } }); });
     if (rows[0].flag !== undefined) cols.push({ h: 'Flag', get: function (o) { return o.flag; } });
     var dim = (TOPTS[id] || {}).dim;
     if (dim) cols.push({ h: 'RCA', get: function (o) { return rcaText(rcaKey(dim, o.key !== undefined ? o.key : o.awb)); } });
@@ -1687,14 +2379,29 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
       else if (act === 'resetdef') { var d = C.tabs[state.tab]; Object.assign(state.tabs[state.tab], { manifestType: d.manifestType, ageMin: d.ageMin, ageMax: d.ageMax }); renderFilters(); renderBody(); }
       else if (act === 'clearall') { Object.assign(state.tabs[state.tab], { search: '', fields: {}, valueMin: null, valueMax: null }); renderFilters(); renderBody(); }
       else if (act === 'sort') { var id = el.dataset.table, i = +el.dataset.i, cur = state.sort[id] || { i: 0, dir: -1 }; state.sort[id] = { i: i, dir: cur.i === i ? -cur.dir : -1 }; renderBody(); }
+      else if (act === 'podtog') { var pk = el.dataset.pod; state.podOpen[pk] = !state.podOpen[pk]; renderBody(); }
       else if (act === 'sel') { var tid = el.dataset.table, row = TCACHE[tid][+el.dataset.idx]; openPopup(tid, row); }
       else if (act === 'popclose') closePopup();
       else if (act === 'popcsv') popupCsv();
       else if (act === 'tcsv') tableCsv(el.dataset.table);
+      else if (act === 'tcopy') copyTable(el.dataset.table, el);
       else if (act === 'wreset') { delete state.colW[el.dataset.table]; renderBody(); }
       else if (act === 'wfit') { fitColumns(el.dataset.table); }
       else if (act === 'export') doExport(el.dataset.kind);
       else if (act === 'recalc') renderAll();
+      else if (act === 'sec') {
+        var sid = el.dataset.sec, sec = document.querySelector('section.card[data-sec="' + sid.replace(/"/g, '\\"') + '"]');
+        var nowOpen = sec ? sec.classList.contains('closed') : true;
+        state.openSec[sid] = nowOpen;
+        if (sec) { sec.classList.toggle('closed', !nowOpen); var cr = sec.querySelector('.caret'); if (cr) cr.innerHTML = nowOpen ? '&#9662;' : '&#9656;'; }
+      }
+      else if (act === 'openall' || act === 'closeall') {
+        var want = act === 'openall';
+        Array.prototype.forEach.call(document.querySelectorAll('section.card[data-sec]'), function (sec) { state.openSec[sec.dataset.sec] = want; });
+        renderBody();
+      }
+      else if (act === 'metric') { state.tblMetric[el.dataset.table] = el.dataset.val; renderBody(); }
+      else if (act === 'fields') { state.showFields = !state.showFields; renderAll(); }
       else if (act === 'backend') { state.showBackend = !state.showBackend; renderHeader(); }
       else if (act === 'pull') { if (window.SYNC && window.SYNC.configured()) pullFromSheet(); else { state.showBackend = true; renderHeader(); } }
       else if (act === 'apisave') {
@@ -1718,8 +2425,19 @@ table.grid tr.totrow td:first-child{color:var(--deep)}
         renderFilters(); renderBody();
       }
       else if (act === 'pdim') { state.prodDim = el.dataset.val; renderBody(); }
+      else if (act === 'tblmt') { state.tblMT[el.dataset.table] = el.dataset.val; renderBody(); }
       else if (act === 'missdim') { state.missDim = el.dataset.val; renderBody(); }
+      else if (act === 'podpick') {
+        if (!state.podPick) state.podPick = new Set();
+        if (el.checked) state.podPick.add(el.dataset.val); else state.podPick.delete(el.dataset.val);
+        if (!state.podPick.size) state.podPick = null;
+        renderBody();
+      }
       else if (act === 'subtoggle') { var m = state[el.dataset.group]; if (!m[state.tab]) m[state.tab] = new Set(); if (el.checked) m[state.tab].add(el.dataset.val); else m[state.tab].delete(el.dataset.val); renderBody(); }
+      else if (act === 'pvrow') { state.pivot.row = el.value; renderBody(); }
+      else if (act === 'pvrow2') { state.pivot.row2 = el.value; renderBody(); }
+      else if (act === 'pvcol') { state.pivot.col = el.value; renderBody(); }
+      else if (act === 'pvval') { state.pivot.val = el.value; renderBody(); }
       else if (act === 'mt') { state.tabs[state.tab].manifestType = el.value; renderFilters(); renderBody(); }
       else if (act === 'age') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderFilters(); renderBody(); }
       else if (act === 'val') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderBody(); }
