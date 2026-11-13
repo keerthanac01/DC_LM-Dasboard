@@ -99,8 +99,9 @@ table.grid tr.click:hover td{background:var(--card)}
 table.grid td.hl{background:var(--hl)}
 td.empty{text-align:center;color:var(--muted);padding:14px}
 .cat{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}
-.cat.confirm{background:#EEF8D9;color:#4C6A00;border-color:var(--lime)}
-:root[data-theme="dark"] .cat.confirm,:root:not([data-theme="light"]) .cat.confirm{color:#D9EE7A;background:#2A3510}
+.cat.confirm{background:#FFF9D6;color:#7A6400;border-color:#F2E38B}
+:root[data-theme="dark"] .cat.confirm{color:#F2E38B;background:#3A3312}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cat.confirm{color:#F2E38B;background:#3A3312} }
 .cat.possible{background:var(--card);color:var(--amber);border-color:var(--amber)}
 .cat.jit{background:var(--card);color:var(--deep);border-color:var(--green)}
 .cat.none{background:var(--surface);color:var(--muted);border-color:var(--line)}
@@ -236,9 +237,10 @@ td.spk2{box-shadow:inset 0 -3px 0 #1F6F45;outline:2px solid #1F6F45;outline-offs
 .backendbox label{display:flex;flex-direction:column;gap:4px;flex:1;min-width:280px;font-size:12px;color:var(--muted)}
 .backendbox input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--bg);color:var(--ink)}
 .backendbox .meta{flex-basis:100%}
-table.grid tr.lanetop td{background:#EEF8D9}
-table.grid tr.lanetop td:first-child{box-shadow:inset 3px 0 0 var(--lime)}
-:root[data-theme="dark"] table.grid tr.lanetop td,:root:not([data-theme="light"]) table.grid tr.lanetop td{background:#2A3510}
+table.grid tr.lanetop td{background:#FFFBEA}
+table.grid tr.lanetop td:first-child{box-shadow:inset 3px 0 0 #F2E38B}
+:root[data-theme="dark"] table.grid tr.lanetop td{background:#3A3312}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) table.grid tr.lanetop td{background:#3A3312} }
 .rank{display:inline-block;background:var(--deep);color:#fff;border-radius:999px;padding:0 7px;font-size:10.5px;font-weight:700}
 body.resizing table.grid th{cursor:col-resize}
 textarea.remark.rca{width:170px;min-height:26px;font-size:11.5px}
@@ -417,6 +419,57 @@ table.grid td{padding:5px 9px}
 textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
 .sev{font-size:10px;padding:2px 9px}
 .fieldgrid span{font-size:11px}
+
+/* ---- PivotTable Fields panel ---- */
+.pvpanel{position:fixed;top:0;right:0;width:390px;height:100vh;overflow:auto;z-index:40;
+  background:var(--surface);border-left:1px solid var(--line);box-shadow:-6px 0 22px rgba(0,0,0,.10);padding:16px 18px 24px}
+.pvhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.pvhead h2{font-size:17px;font-weight:700;color:var(--ink);margin:0}
+.pvx{border:0;background:transparent;font-size:21px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:7px}
+.pvx:hover{background:var(--bg);color:var(--ink)}
+.pvlbl{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+.pvsel,.pvsearch{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;
+  background:var(--surface);color:var(--ink);font-family:inherit}
+.pvfields{border:1px solid var(--line);border-radius:8px;max-height:190px;overflow:auto;margin-top:8px;padding:5px 0}
+.pvf{display:flex;align-items:center;gap:8px;padding:5px 11px;font-size:11.5px;color:var(--ink);cursor:pointer}
+.pvf:hover{background:var(--bg)}
+.pvf input{accent-color:var(--deep)}
+.pvareas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.pvarea{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:8px;min-height:92px}
+.pvat{font-size:9.5px;font-weight:700;letter-spacing:.09em;color:var(--muted);margin-bottom:7px}
+.pvempty{font-size:10px;color:var(--muted);line-height:1.45}
+.pvchip{display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--line);
+  border-radius:7px;padding:4px 5px 4px 8px;margin-bottom:5px;font-size:10.5px}
+.pvchip span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.pvchip button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:10px;padding:2px 3px;border-radius:4px;line-height:1}
+.pvchip button:hover{background:var(--bg);color:var(--ink)}
+.pvfoot{display:flex;gap:8px;margin-top:16px}
+.pvfoot .btn{flex:1}
+.shell.pvopen main{padding-right:406px}
+.locpick{max-height:124px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+@media (max-width:1100px){ .pvpanel{width:100%;left:0} .shell.pvopen main{padding-right:30px} }
+
+/* ---- pivot panel sits in the corner without taking the page ---- */
+.pvpanel{width:328px;padding:14px 14px 20px}
+.pvpanel .pvareas{grid-template-columns:1fr 1fr;gap:8px}
+.pvpanel .pvarea{min-height:78px;padding:7px}
+.pvfields{max-height:168px}
+.shell.pvopen main{padding-right:344px}
+/* the panel is docked, so the header must give it room instead of sitting under it */
+body.pvopen header.top{padding-right:328px}
+@media (max-width:1180px){ .pvpanel{width:300px} .shell.pvopen main{padding-right:316px} body.pvopen header.top{padding-right:300px} }
+@media (max-width:900px){ .pvpanel{width:100%} .shell.pvopen main{padding-right:16px} body.pvopen header.top{padding-right:0} }
+
+/* ---- per-table toolbar, top right ---- */
+.ttools{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin:0 0 8px}
+.ttools .meta{margin-right:auto;font-size:10px}
+.tfoot{display:none}
+
+/* ---- grouped header + RCA note in the lane popup ---- */
+table.grid th.grp{text-align:center;background:var(--heat1);color:var(--deep);font-weight:700;letter-spacing:.04em;border-left:1px solid var(--line)}
+table.grid.tree th{position:static}
+.rcanote{background:var(--heat1);border-left:3px solid var(--green);border-radius:8px;
+  padding:10px 13px;margin-bottom:12px;font-size:11.5px;line-height:1.55;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -455,7 +508,8 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     olderAgeingDays: 10,         // "older pending" tag for DC-DC criticality (assumption)
     minLaneAwbs: 10,             // minimum lane pendency before a pattern is called (assumption)
     confirmMinValidated: 5,      // Confirm Lane Issue needs at least this many validated shorts in the lane
-    confirmHighlightTop: 25,     // of the confirmed lanes, highlight this many by pendency
+    confirmHighlightTop: 10,     // top lanes by pendency stay 'Confirm Lane Issue'
+    confirmShowMax: 30,          // nothing beyond this rank is flagged at all
     jitShareThreshold: 0.6,      // Connecting Bagging share for Possible JIT/ADC (assumption)
     jitMinBagAwbs: 5,            // minimum AWBs in the dominant bagging (assumption)
     // JIT/ADC concentration also requires >= 2 distinct Connecting Bagging values on the lane (a single-bagging lane is not 'concentrated')
@@ -484,6 +538,7 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     ['pod', 'POD Mapping', true], ['podZone', 'POD_Zone', true], ['seller', 'seller_name', true], ['hov2', 'HOV2', true],
     ['shipInManifest', 'Shipment in Manifest', true], ['dcRemark', 'Remarks', true],
     ['awbInManifest', 'awbs_in_manifest', true], ['actionUser', 'action_user', true],
+    ['region', 'Current_Location_Region', true],
     ['lastActionUser', 'last_action_user', true], ['pendencyCount', 'Pendency Count', true]
   ];
   var VALUE_HEADERS = ['Product_Value2', 'product_value'];
@@ -654,6 +709,7 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       hov2: norm(g('hov2')) === 'hov',
       shipInManifest: manifestCount(g('shipInManifest'), g('awbInManifest')),
       actionUser: isMissingCode(g('actionUser')) ? '' : txt(g('actionUser')),
+      region: isMissingCode(g('region')) ? '' : txt(g('region')),
       dcRemark: isMissing(g('dcRemark')) ? 'NA' : txt(g('dcRemark')),
       mmColl: mmCollated(g('mmRemarks'), g('landroval')),
       lmColl: lmCollated(g('lmRemarks')),
@@ -834,7 +890,8 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     seller:   { label: 'Seller name',            get: function (r) { return r.seller || 'NA'; } },
     hov2:     { label: 'HOV2 status',            get: function (r) { return r.hov2 ? 'HOV' : 'NON HOV'; } },
     dcRemark: { label: 'DC remark',              get: function (r) { return r.dcRemark || 'NA'; } },
-    actionUser:{ label: 'Action user',           get: function (r) { return r.actionUser || '(blank)'; } }
+    actionUser:{ label: 'Action user',           get: function (r) { return r.actionUser || '(blank)'; } },
+    region:   { label: 'Current location region', get: function (r) { return r.region || '(blank)'; } }
   };
 
   function countBy(rows, fn) {
@@ -928,14 +985,22 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       });
     });
     lanes.sort(function (a, b) { return b.value - a.value; });
-    lanes.filter(function (l) { return l.category === 'Confirm Lane Issue'; })
-      .sort(function (a, b) { return b.pendency - a.pendency; })
-      .forEach(function (l, i) { l.confirmRank = i + 1; l.topConfirm = i < CONFIG.confirmHighlightTop; });
+    // Only lanes that pass the confirm test are reported at all. They rank by pendency:
+    // the top slice stays Confirm, the next band reads Possible, the rest are not flagged.
+    var confirmed = lanes.filter(function (l) { return l.category === 'Confirm Lane Issue'; })
+      .sort(function (a, b) { return b.pendency - a.pendency; });
+    lanes.forEach(function (l) { l.category = 'Not flagged for Lane'; l.confirmRank = 0; l.topConfirm = false; });
+    confirmed.forEach(function (l, i) {
+      l.confirmRank = i + 1;
+      l.topConfirm = i < CONFIG.confirmHighlightTop;
+      if (i < CONFIG.confirmHighlightTop) l.category = 'Confirm Lane Issue';
+      else if (i < CONFIG.confirmShowMax) l.category = 'Possible Lane Issue';
+    });
     return lanes;
   }
 
   // ---------- Filters ----------
-  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser', 'ageBand', 'mmColl', 'lmColl'];
+  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser', 'ageBand', 'mmColl', 'lmColl', 'region'];
   function filterValue(r, field, ctx) {
     if (field === 'ageBucket') return ageBucket(r.age);
     if (field === 'category') return ctx && ctx.laneCat ? (ctx.laneCat[r.lane] || '(none)') : '(none)';
@@ -1209,10 +1274,10 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
   var TABS = ['fwd', 'mm', 'lh', 'lm'];
   var TAB_TITLE = { fwd: 'Forward Short Shipment Pendency View', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability' };
   var TAB_FIELDS = {
-    fwd: ['loc', 'origin', 'dest', 'lane', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'hov2', 'mcode'],
-    mm: ['loc', 'dest', 'mcode', 'wrongDest', 'landroval', 'mmColl', 'lmColl', 'seller', 'hov2', 'actionUser'],
-    lh: ['lane', 'tert', 'bag', 'category', 'dest', 'loc', 'mmColl', 'lmColl', 'pod', 'podZone'],
-    lm: ['loc', 'dest', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'landroval', 'hov2', 'mcode'],
+    fwd: ['loc', 'region', 'origin', 'dest', 'lane', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'hov2', 'mcode'],
+    mm: ['loc', 'region', 'dest', 'mcode', 'wrongDest', 'landroval', 'mmColl', 'lmColl', 'seller', 'hov2', 'actionUser'],
+    lh: ['loc', 'region', 'lane', 'tert', 'bag', 'category', 'dest', 'mmColl', 'lmColl', 'pod', 'podZone'],
+    lm: ['loc', 'region', 'dest', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'landroval', 'hov2', 'mcode'],
   };
   var FIELD_LABEL = { category: 'Lane category', hov: 'HOV', hov2: 'HOV2', bucket: 'MM Collated bucket', dcRemark: 'DC remark' };
   var MM_SUB = ['Fake bagging', 'Shipment connected to wrong destination', 'Miss sort GC fault'];
@@ -1242,14 +1307,14 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     tab: 'fwd', ds: null, records: [], expiredAt: null, lastUploadAt: null,
     remarks: new Map(), sort: {}, colW: {}, openFilter: null, filterSearch: '',
     mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', openSec: {}, tblMT: {}, tblMetric: {}, showFields: false, podOpen: {}, podPick: null,
-    pivot: { row: '', row2: '', col: 'Ageing band (20+)', val: 'awb' }, backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
+    pivot: { scope: 'fwd', rows: ['Current_location'], cols: ['Ageing band (20+)'], filters: [], vals: ['awb'], fsel: {}, search: '' },
+    fwdRegion: '', fwdLoc: null, backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
     tabs: {}
   };
   TABS.forEach(function (t) {
     state.tabs[t] = { manifestType: C.tabs[t].manifestType, ageMin: C.tabs[t].ageMin, ageMax: C.tabs[t].ageMax, search: '', fields: {}, valueMin: null, valueMax: null };
   });
-  // LH opens on confirmed lanes only; the category filter still offers the rest.
-  state.tabs.lh.fields.category = new Set(['Confirm Lane Issue']);
+  // LH reports only the top-ranked confirmed lanes; both labels show by default.
 
   // ---------- helpers ----------
   function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -1393,6 +1458,7 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     var base = V.tabRows(recs, t, baseFilters(t));
     var noCat = { search: s.search, fields: Object.assign({}, s.fields), valueMin: s.valueMin, valueMax: s.valueMax };
     delete noCat.fields.category;
+    if (t === 'lh') { delete noCat.fields.lane; noCat.search = ''; }
     var lanes = null, laneCat = null;
     if (t === 'lh') { lanes = V.analyzeLanes(V.applyFilters(base, noCat)); laneCat = {}; lanes.forEach(function (l) { laneCat[l.lane] = l.category; }); }
     var filtered = V.applyFilters(base, s, { laneCat: laneCat });
@@ -1422,9 +1488,9 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       (state.notice ? '<div class="banner ok">' + esc(state.notice) + '</div>' : '') + (state.storageWarning ? '<div class="banner warn">' + esc(state.storageWarning) + '</div>' : '') +
       (state.backend ? '<div class="banner info">' + esc(state.backend) + '</div>' : '') +
       (state.backendErr ? '<div class="banner err">' + esc(state.backendErr) + '</div>' : '') +
-      backendBox() + fieldListBox();
+      backendBox() + fieldsPanel();
   }
-  function fieldListBox() { return ''; }
+
   function backendBox() {
     if (!window.SYNC) return '';
     if (!state.showBackend) {
@@ -1500,7 +1566,17 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     var s = state.sort[id] || opts.sortForce || (pi >= 0 ? { i: pi, dir: -1 } : (opts.sort || { i: 0, dir: -1 }));
     if (s.i < 0) s = null;   // keep the order the caller built
     var c = s ? cols[s.i] : null, sorted = data.slice();
-    if (c && c.v) sorted.sort(function (a, b) { var x = c.v(a), y = c.v(b); if (typeof x === 'number' && typeof y === 'number') return (x - y) * s.dir; return String(x).localeCompare(String(y)) * s.dir; });
+    var cmp = function (a, b) { var x = c.v(a), y = c.v(b); if (typeof x === 'number' && typeof y === 'number') return (x - y) * s.dir; return String(x).localeCompare(String(y)) * s.dir; };
+    if (c && c.v && opts.treeParent) {
+      // Tree tables: sort the parent rows, then each parent's children under it, so groups never break apart.
+      var kids = new Map(), parents = [];
+      data.forEach(function (r) {
+        if (opts.treeParent(r)) parents.push(r);
+        else { var g = opts.treeGroup(r); if (!kids.has(g)) kids.set(g, []); kids.get(g).push(r); }
+      });
+      sorted = [];
+      parents.sort(cmp).forEach(function (p) { sorted.push(p); (kids.get(opts.treeGroup(p)) || []).sort(cmp).forEach(function (k) { sorted.push(k); }); });
+    } else if (c && c.v) sorted.sort(cmp);
     TCACHE[id] = sorted; TOPTS[id] = { pop: opts.pop || data, dim: opts.dim, mode: opts.mode || 'records', select: !!opts.select, cols: cols };
     var lim = opts.limit || 300, widths = state.colW[id] || {};
     var head = cols.map(function (col, i) {
@@ -1526,12 +1602,12 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     var totData = opts.totalFilter ? data.filter(opts.totalFilter) : data;
     var tot = (opts.noTotal || !sorted.length) ? '' : totalsRow(cols, totData);
     if (!sorted.length) body = '<tr><td colspan="' + cols.length + '" class="empty">No rows match the current filters.</td></tr>';
-    var foot = '<div class="tfoot meta">' + (sorted.length > lim ? 'Showing first ' + num(lim) + ' of ' + num(sorted.length) + '. ' : '') +
-      (opts.noCsv ? '' : '<button class="btn small" data-act="tcsv" data-table="' + id + '">Download this table (CSV)</button>') +
-      ' <button class="btn small" data-act="tcopy" data-table="' + id + '">Copy table</button>' +
-      ' <button class="btn small ghost" data-act="wfit" data-table="' + id + '">Fit columns</button>' +
-      ' <button class="btn small ghost" data-act="wreset" data-table="' + id + '">Reset widths</button></div>';
-    return '<div class="tablewrap"><table class="grid"><thead><tr>' + head + '</tr></thead><tbody>' + tot + body + '</tbody></table></div>' + foot;
+    var tools = '<div class="ttools"><span class="meta">' + (sorted.length > lim ? 'First ' + num(lim) + ' of ' + num(sorted.length) : '') + '</span>' +
+      (opts.noCsv ? '' : '<button class="btn small" data-act="tcsv" data-table="' + id + '">Download CSV</button>') +
+      '<button class="btn small" data-act="tcopy" data-table="' + id + '">Copy table</button>' +
+      '<button class="btn small ghost" data-act="wfit" data-table="' + id + '">Fit columns</button>' +
+      '<button class="btn small ghost" data-act="wreset" data-table="' + id + '">Reset widths</button></div>';
+    return tools + '<div class="tablewrap"><table class="grid"><thead><tr>' + head + '</tr></thead><tbody>' + tot + body + '</tbody></table></div>';
   }
   // crossTable: rows = dimension; columns = values of colGet (ageing band or MM bucket).
   function crossTable(id, rows, rowDim, cols, colGet, opts) {
@@ -1660,30 +1736,59 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       return { mcode: g.keys[0], ship: first(function (r) { return na(r.shipInManifest); }), pend: g.pendency, amid: first(function (r) { return na(r.amid); }), wrong: first(function (r) { return na(r.wrongDest); }), value: g.value, hov: g.hovCount, dest: first(function (r) { return r.dest; }) };
     });
   }
-  function laneTreeHtml(rows) {
-    var byTert = V.countBy(rows, function (r) { return r.tert || ''; });
-    var tertKeys = Object.keys(byTert).filter(function (k) { return k; }).sort(function (a, b) { return byTert[b] - byTert[a]; });
-    var line = function (cls, label, sub, rs) {
-      var short = rs.filter(function (r) { return r.lmShort; }).length;
-      return '<tr class="' + cls + '"><td>' + label + '</td><td class="num">' + num(rs.length) + '</td><td class="num">' + inr(rs.reduce(function (s, r) { return s + r.value; }, 0)) + '</td><td class="num">' + num(short) + '</td><td class="num">' + num(rs.filter(function (r) { return r.hov; }).length) + '</td><td>' + (sub || '') + '</td></tr>';
+  function laneTreeHtml(rows, lane) {
+    var ages = Array.from(new Set(rows.filter(function (r) { return r.age !== null; }).map(function (r) { return r.age; })))
+      .sort(function (a, b) { return a - b; });
+    var blank = rows.some(function (r) { return r.age === null; });
+    var keys = ages.map(String); if (blank) keys.push('(blank)');
+    var keyOf = function (r) { return r.age === null ? '(blank)' : String(r.age); };
+
+    var stat = function (rs) {
+      var c = {}, v = {};
+      rs.forEach(function (r) { var k = keyOf(r); c[k] = (c[k] || 0) + 1; v[k] = (v[k] || 0) + r.value; });
+      return { c: c, v: v, n: rs.length, val: rs.reduce(function (a, r) { return a + r.value; }, 0),
+               short: rs.filter(function (r) { return r.lmShort; }).length,
+               hov: rs.filter(function (r) { return r.hov; }).length };
     };
-    var destRows = function (rs) {
-      return V.pivot(rs, ['dest']).sort(function (a, b) { return b.pendency - a.pendency; }).map(function (g) {
-        var short = g.rows.filter(function (r) { return r.lmShort; }).length;
-        return '<tr class="dest-row"><td class="ind2">' + esc(g.keys[0]) + '</td><td class="num">' + num(g.pendency) + '</td><td class="num">' + inr(g.value) + '</td><td class="num">' + (short ? '<span class="shortchip">' + num(short) + '</span>' : '0') + '</td><td class="num">' + num(g.hovCount) + '</td><td>' + ageSpan(g.rows) + '</td></tr>';
-      }).join('');
+    var row = function (cls, label, rs) {
+      var s2 = stat(rs);
+      return '<tr class="' + cls + '"><td>' + label + '</td>' +
+        keys.map(function (k) { var x = s2.c[k] || 0; return '<td class="num">' + (x ? num(x) : '<span class="zero">·</span>') + '</td>'; }).join('') +
+        keys.map(function (k) { var x = s2.v[k] || 0; return '<td class="num">' + (x ? inr(x) : '<span class="zero">·</span>') + '</td>'; }).join('') +
+        '<td class="num"><b>' + num(s2.n) + '</b></td><td class="num"><b>' + inr(s2.val) + '</b></td>' +
+        '<td class="num">' + (s2.short ? '<span class="shortchip">' + num(s2.short) + '</span>' : '0') + '</td>' +
+        '<td class="num">' + num(s2.hov) + '</td></tr>';
     };
-    var html = '<table class="grid tree"><thead><tr><th>Lane / tertiary lane / manifest destination</th><th class="num">Pendency (AWB)</th><th class="num">Product value ₹</th><th class="num">Short validations (LM)</th><th class="num">HOV</th><th>Ageing</th></tr></thead><tbody>';
-    html += line('lane-row', '<b>' + esc(rows[0] ? rows[0].lane : '') + '</b> <span class="meta">lane</span>', '', rows);
+
+    var head = '<thead><tr><th rowspan="2">Lane / tertiary lane / manifest destination</th>' +
+      '<th colspan="' + keys.length + '" class="grp">Count of Awb_number · ageing</th>' +
+      '<th colspan="' + keys.length + '" class="grp">Sum of product_value2 · ageing</th>' +
+      '<th rowspan="2" class="num">Total AWB</th><th rowspan="2" class="num">Total value ₹</th>' +
+      '<th rowspan="2" class="num">Short validations (LM)</th><th rowspan="2" class="num">HOV</th></tr><tr>' +
+      keys.map(function (k) { return '<th class="num">' + esc(k) + '</th>'; }).join('') +
+      keys.map(function (k) { return '<th class="num">' + esc(k) + '</th>'; }).join('') + '</tr></thead>';
+
+    var body = row('lane-row', '<b>' + esc(lane || (rows[0] ? rows[0].lane : '')) + '</b> <span class="meta">lane</span>', rows);
+    var tertCounts = V.countBy(rows, function (r) { return r.tert || ''; });
+    var tertKeys = Object.keys(tertCounts).filter(function (k) { return k; })
+      .sort(function (a, b) { return tertCounts[b] - tertCounts[a]; });
+    var destBlock = function (rs) {
+      return V.pivot(rs, ['dest']).sort(function (a, b) { return b.pendency - a.pendency; })
+        .map(function (g) { return row('dest-row', '<span class="ind2">' + esc(g.keys[0]) + '</span>', g.rows); }).join('');
+    };
     tertKeys.forEach(function (tk) {
       var trs = rows.filter(function (r) { return r.tert === tk; });
-      html += line('tert-row', '<span class="ind1">▸ ' + esc(tk) + '</span> <span class="meta">tertiary lane</span>', '', trs);
-      html += destRows(trs);
+      body += row('tert-row', '<span class="ind1">▸ ' + esc(tk) + '</span> <span class="meta">tertiary lane</span>', trs);
+      body += destBlock(trs);
     });
     var zonal = rows.filter(function (r) { return !r.tert; });
-    if (zonal.length) { html += line('tert-row', '<span class="ind1">▸ Zonal (no tertiary lane tagged)</span>', '', zonal); html += destRows(zonal); }
-    return html + '</tbody></table>';
+    if (zonal.length) {
+      body += row('tert-row', '<span class="ind1">▸ Zonal (no tertiary lane tagged)</span>', zonal);
+      body += destBlock(zonal);
+    }
+    return '<div class="tablewrap"><table class="grid tree">' + head + '<tbody>' + body + '</tbody></table></div>';
   }
+
   function ageSpan(rs) {
     var c = V.countBy(rs, function (r) { return r.age === null ? '-' : String(r.age); });
     return Object.keys(c).sort(function (a, b) { return (+a || 0) - (+b || 0); }).slice(0, 12).map(function (k) { return 'A' + k + ':' + c[k]; }).join(' · ');
@@ -1743,7 +1848,12 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
         { h: 'Wrongly connected manifest destination', v: function (x) { return x.wrong; } }
       ], manifestRows(rows), { limit: 500, noTotal: false, noCsv: true });
     } else if (p.mode === 'lane') {
-      body = '<section class="card"><h3>Lane tree: tertiary lanes → manifest destinations</h3><div class="meta">Lane highlighted; tertiary lanes beneath; manifest destinations beneath each. Short validations = LM Short Found / Approved / Short validated.</div>' + laneTreeHtml(rows) + '</section>' +
+      var lobj = (state.view && state.view.lanes || []).filter(function (l) { return l.lane === p.key; })[0];
+      body = '<section class="card">' +
+        (lobj ? '<div class="rcanote"><b>' + esc(lobj.category) + '</b> · ' + esc(laneNature(lobj)) + '<br>' + esc(laneRca(lobj)) + '</div>' : '') +
+        '<h3>Lane tree: tertiary lanes → manifest destinations</h3>' +
+        '<div class="meta">Ageing across the columns: AWB counts, then product value, then totals. Short validations = LM Short Found / Approved / Short validated.</div>' +
+        laneTreeHtml(rows, p.key) + '</section>' +
         '<section class="card"><h3>Manifests in this lane</h3>' + tbl('pop-mani', [
           { h: 'Manifest Code', v: function (x) { return x.mcode; } }, { h: 'Shipments in manifest', v: function (x) { return x.ship; } },
           { h: 'Pendency count', num: true, v: function (x) { return x.pend; } }, { h: 'Actual Manifest ID', v: function (x) { return x.amid; } },
@@ -1800,7 +1910,29 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       '<h2>' + esc(title) + '</h2></div>' +
       '<div class="cbody">' + (note ? '<div class="meta">' + note + '</div>' : '') + inner + '</div></section>';
   }
-  function catClass(c) { return c === 'Confirm Lane Issue' ? 'confirm' : c === 'Possible Lane Issue' ? 'possible' : c === 'Possible JIT/ADC Issue' ? 'jit' : 'none'; }
+  // The classification signals stay visible even though the category now reads Confirm / Possible.
+  function laneNature(l) {
+    var bits = [l.scope === 'Tertiary' ? 'Tertiary lane' : 'Zonal lane'];
+    if (l.jitFlag) bits.push('JIT / ADC issue');
+    if (l.broadFlag) bits.push('Broad destination spread');
+    if (l.tertDominant) bits.push('Tertiary dominant');
+    if (l.valueFlag) bits.push('High value');
+    if (l.missingRemarksFlag) bits.push('LM remarks missing');
+    return bits.join(' · ');
+  }
+  function laneRca(l) {
+    if (l.category === 'Not flagged for Lane') {
+      if (l.validated < C.confirmMinValidated) return 'Only ' + l.validated + ' validated short' + (l.validated === 1 ? '' : 's') + ' (needs ' + C.confirmMinValidated + '+), so the pendency is not attributed to the lane.';
+      return 'Ranks #' + l.confirmRank + ' by pendency among lanes with ' + C.confirmMinValidated + '+ validated shorts; only the top ' + C.confirmShowMax + ' are reported.';
+    }
+    var why;
+    if (l.jitFlag) why = Math.round(l.domBagShare * 100) + '% of the loss sits on one bagging point (' + l.domBag + '), so it reads as a JIT/ADC touchpoint rather than the whole lane';
+    else if (l.broadFlag) why = 'loss is spread over ' + l.destinations + ' destinations with no hub above 50%, so the lane itself is the common factor';
+    else why = Math.round(l.topDestShare * 100) + '% lands at ' + l.topDest + ', so the miss is concentrated at that destination';
+    return l.validated + ' validated short' + (l.validated === 1 ? '' : 's') + ' on a ' +
+      (l.scope === 'Tertiary' ? 'tertiary' : 'zonal') + ' lane carrying ' + num(l.pendency) + ' AWBs; ' + why + '.';
+  }
+  function catClass(c) { return c === 'Confirm Lane Issue' ? 'confirm' : c === 'Possible Lane Issue' ? 'possible' : 'none'; }
   function kpiRow(view) {
     var rows = view.filtered, s = V.summary(rows);
     return '<div class="kpis">' + kpi('AWB pendency', num(s.uniqueAwb), 'Unique AWB = pendency') + kpi('Manifests', num(s.manifests), 'Unique Manifest Code') +
@@ -1848,7 +1980,7 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     // 1 — pinned to DCH2
     var r1 = mtScope(all, 'DCH2');
     out.push(section('DCH2 Forward Short — Current Location × ageing wise pendency',
-      'Manifest_Type DCH2. Every ageing day to ' + V.AGE_BAND_MAX + ', then one ' + V.AGE_BAND_MAX + '+ bucket.',
+      'Manifest_Type DCH2. Every ageing day to ' + V.AGE_BAND_MAX + ', then one ' + V.AGE_BAND_MAX + '+ bucket. Use the Current Location and Current location region filters at the top.',
       crossTable('fwd-loc', r1, 'loc', ageCols(t, r1), ag, { mode: 'records' })));
 
     // 2 and 3 — pinned to DC-DC
@@ -1941,29 +2073,30 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     var auRows = mmRows.filter(function (r) { return r.actionUser; });
     var g = new Map();
     auRows.forEach(function (r) {
-      var k = r.actionUser;
-      if (!g.has(k)) g.set(k, { key: k, n: 0, value: 0, days: new Set(), rows: [] });
+      var k = r.actionUser + '\u001f' + r.loc;
+      if (!g.has(k)) g.set(k, { user: r.actionUser, loc: r.loc, n: 0, value: 0, days: new Set(), rows: [] });
       var x = g.get(k);
       x.n++; x.value += r.value; x.rows.push(r);
       if (r.age !== null) x.days.add(r.age);
     });
     var au = Array.from(g.values()).map(function (x) {
       var f = x.days.size, a = actionItem(f);
-      return { key: x.key, n: x.n, value: x.value, freq: f, act: a.label, cls: a.cls,
+      return { key: x.user, loc: x.loc, n: x.n, value: x.value, freq: f, act: a.label, cls: a.cls,
                days: Array.from(x.days).sort(function (p, q) { return p - q; }).join(', '),
-               _dim: 'actionUser', _rows: x.rows, _title: 'Action user: ' + x.key };
+               _dim: 'actionUser', _rows: x.rows, _title: 'Action user ' + x.user + ' · ' + x.loc };
     }).sort(function (a, b) { return b.freq - a.freq || b.n - a.n; });
     out.push(section('Action user trend', 'Source column <b>action_user</b>, ' + win +
       '. <b>Frequency</b> is the number of distinct ageing days on which that user carries MM liability — not the AWB count. ' +
       'Action item: more than 4 → termination · 3 or 4 → training / written warning · 1 or 2 → verbal warning.',
       tbl('mm-au', [
         { h: 'Action user', v: function (x) { return x.key; } },
+        { h: 'Current location', v: function (x) { return x.loc; } },
+        { h: 'Grand total MM liability (AWB)', num: true, pend: true, v: function (x) { return x.n; } },
         { h: 'Frequency (distinct ageing days)', num: true, v: function (x) { return x.freq; } },
         { h: 'Action item', v: function (x) { return x.act; }, f: function (x) { return '<span class="sev ' + x.cls + '">' + esc(x.act) + '</span>'; } },
-        { h: 'Grand total MM liability (AWB)', num: true, pend: true, v: function (x) { return x.n; } },
         { h: 'Ageing days hit', v: function (x) { return x.days; } },
         { h: 'Product value ₹', num: true, money: true, v: function (x) { return x.value; }, f: function (x) { return inr(x.value); } }
-      ], au, { select: true, pop: auRows, dim: 'actionUser', limit: 400, sortForce: { i: 1, dir: -1 } })));
+      ], au, { select: true, pop: auRows, dim: 'actionUser', limit: 400, sortForce: { i: 3, dir: -1 } })));
 
     var sealRows = rows.filter(function (r) { return r.mmBucket === 'Seal mismatch'; });
     out.push(section('Seal mismatch — Current Location view', 'Click a location for manifest codes, shipments in manifest, pendency count, Actual Manifest ID and wrongly connected manifest destination.',
@@ -1981,38 +2114,47 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
 
   // ---------- tab: LH ----------
   function renderLH(view) {
-    var rows = view.filtered, lanes = view.lanes || [];
-    var laneList = lanes.filter(function (l) { return !state.tabs.lh.fields.category || state.tabs.lh.fields.category.has(l.category); });
+    var rows = view.filtered, allLanes = view.lanes || [];
+    var lanes = allLanes.filter(function (l) { return l.confirmRank > 0 && l.confirmRank <= C.confirmShowMax; });
+    // Default: only confirm/possible lanes. Searching a lane code (box below or the Lane chip) shows any lane, flagged or not.
+    var q = (state.laneQ || '').trim().toLowerCase(), chip = state.tabs.lh.fields.lane;
+    var searching = !!q || !!(chip && chip.size);
+    var laneList = (searching ? allLanes.filter(function (l) {
+        return (!q || String(l.lane).toLowerCase().indexOf(q) >= 0) && (!chip || !chip.size || chip.has(l.lane));
+      }) : lanes.slice())
+      .sort(function (a, b) {
+        var ra = a.category === 'Not flagged for Lane' ? 1e9 : a.confirmRank, rb = b.category === 'Not flagged for Lane' ? 1e9 : b.confirmRank;
+        return ra - rb || b.pendency - a.pendency;
+      });
     var counts = V.countBy(lanes, function (l) { return l.category; });
-    var cats = ['Confirm Lane Issue', 'Possible Lane Issue', 'Possible JIT/ADC Issue', 'No pattern flagged'];
-    var catSet = state.tabs.lh.fields.category || new Set();
-    var out = [tabHead('lh'), '<div class="kpis">' + kpi('Lanes', num(lanes.length), 'Lane Code present') + kpi('Confirm', num(counts['Confirm Lane Issue'] || 0), '≥ ' + C.confirmMinValidated + ' validated shorts · top ' + C.confirmHighlightTop + ' highlighted') +
-      kpi('Possible Lane', num(counts['Possible Lane Issue'] || 0), 'Partly validated (1–' + (C.confirmMinValidated - 1) + ') or broad spread') + kpi('Possible JIT/ADC', num(counts['Possible JIT/ADC Issue'] || 0), 'One Connecting Bagging') +
-      kpi('AWB pendency (after MM removal)', num(new Set(rows.map(function (r) { return r.awb; })).size), inr(rows.reduce(function (s, r) { return s + r.value; }, 0)) + ' · CCTV/short bucket kept') + '</div>'];
-    out.push(section('Lane category', 'Tick one or more categories to filter the lane table below.',
-      '<div class="subbox">' + cats.map(function (c) { return '<label class="subopt"><input type="checkbox" data-act="ftoggle" data-field="category" data-val="' + esc(c) + '" ' + (catSet.has(c) ? 'checked' : '') + ' /> ' + esc(c) + ' <span class="meta">(' + num(counts[c] || 0) + ')</span></label>'; }).join('') + '</div>'));
+    var out = [tabHead('lh'), '<div class="kpis">' +
+      kpi('Lanes reported', num(lanes.length), 'Top ' + C.confirmShowMax + ' by pendency; nothing else is flagged') +
+      kpi('Confirm lane issue', num(counts['Confirm Lane Issue'] || 0), 'Top ' + C.confirmHighlightTop + ' by pendency') +
+      kpi('Possible lane issue', num(counts['Possible Lane Issue'] || 0), 'Rank ' + (C.confirmHighlightTop + 1) + '–' + C.confirmShowMax) +
+      kpi('AWB pendency', num(new Set(rows.map(function (r) { return r.awb; })).size), inr(rows.reduce(function (a, r) { return a + r.value; }, 0))) + '</div>'];
+
     var lt = laneList.map(function (l) { return Object.assign({}, l, { key: l.lane, _dim: 'lane', _mode: 'lane' }); });
-    var topCols = [
-      { h: 'Lane Code', v: function (l) { return l.lane; } }, { h: 'Scope', v: function (l) { return l.scope; } },
-      { h: 'Category', v: function (l) { return l.category; }, f: function (l) { return '<span class="cat ' + catClass(l.category) + '">' + esc(l.category) + '</span>' + (l.topConfirm ? ' <span class="rank">#' + l.confirmRank + '</span>' : '') + (l.partialValidated ? ' <span class="meta">partly validated</span>' : ''); } },
-      { h: 'AWB pendency', num: true, v: function (l) { return l.pendency; } }, { h: 'Destinations', num: true, v: function (l) { return l.destinations; } },
-      { h: 'Validated short touchpoints', num: true, v: function (l) { return l.validated; } },
-      { h: 'Dominant destination', v: function (l) { return l.topDest + ' (' + Math.round(l.topDestShare * 100) + '%)'; } },
-      { h: 'Dominant Connecting Bagging', v: function (l) { return l.domBag + ' (' + Math.round(l.domBagShare * 100) + '%)'; } },
-      { h: 'Secondary flags', v: function (l) { return [l.jitFlag ? 'JIT concentration' : '', l.broadFlag ? 'Broad spread' : '', l.tertDominant ? 'Tertiary dominant' : '', l.missingRemarksFlag ? 'Missing LM remarks' : ''].filter(Boolean).join(', ') || '—'; } },
-      { h: 'Product value ₹', num: true, money: true, v: function (l) { return l.value; }, f: function (l) { return (l.valueFlag ? '<span class="flag">▲ </span>' : '') + inr(l.value); }, cls: function (l) { return l.valueFlag ? 'hl' : ''; } }
-    ];
-    out.push(section('Lane table', 'A lane is confirmed only with at least ' + C.confirmMinValidated + ' validated shorts; the top ' + C.confirmHighlightTop + ' of those by pendency are highlighted and ranked. Lanes with 1–' + (C.confirmMinValidated - 1) + ' validated shorts sit in Possible. Click a lane for its tree.', tbl('lh-lanes', topCols, lt, { select: true, pop: rows, dim: 'lane', mode: 'lane', limit: 300, sort: { i: 3, dir: -1 }, rowClass: function (l) { return l.topConfirm ? 'lanetop' : ''; }, rcaDim: 'lane', rcaVal: function (l) { return l.lane; } })));
-    out.push(section('Lane × destination × ageing pendency', '', crossTable('lh-dest', rows, 'dest', ageCols('lh', rows), ageGetFor('lh'), {})));
-    var missing = lanes.filter(function (l) { return l.missingRemarksFlag; }).map(function (l) { return Object.assign({}, l, { key: l.lane, _dim: 'lane', _mode: 'lane' }); });
-    out.push(section('Missing / unclear LM remarks', 'Lanes with at least ' + C.minLaneAwbs + ' AWBs, no validated touchpoints, and at least half without LM remarks.',
-      tbl('lh-miss', [{ h: 'Lane Code', v: function (l) { return l.lane; } }, { h: 'AWB pendency', num: true, v: function (l) { return l.pendency; } }, { h: 'Blank LM remarks', num: true, v: function (l) { return l.lmBlank; } },
-        { h: 'Product value ₹', num: true, money: true, v: function (l) { return l.value; }, f: function (l) { return inr(l.value); } }], missing, { select: true, pop: rows, dim: 'lane', mode: 'lane', limit: 200, sort: { i: 1, dir: -1 }, rcaDim: 'lane', rcaVal: function (l) { return l.lane; } })));
-    out.push(section('Downloads', '', exportBtns([
-      { kind: 'lh_confirm', label: 'Confirm Lane Issues', n: laneList.filter(function (l) { return l.category === 'Confirm Lane Issue'; }).length },
-      { kind: 'lh_possible', label: 'Possible Lane Issues', n: laneList.filter(function (l) { return l.category === 'Possible Lane Issue'; }).length },
-      { kind: 'lh_jit', label: 'Possible JIT/ADC Issues', n: laneList.filter(function (l) { return l.category === 'Possible JIT/ADC Issue'; }).length },
-      { kind: 'lh_all', label: 'All analysed lanes', n: laneList.length }, { kind: 'lh_records', label: 'Underlying shipments (filtered)', n: rows.length }])));
+    var searchBox = '<div class="subbox"><span class="meta">Search lane code:</span>' +
+      '<input class="fsearch lanesearch" data-act="laneq" placeholder="Type any lane code…" value="' + esc(state.laneQ || '') + '" style="max-width:260px" />' +
+      '<span class="meta">' + (searching ? num(laneList.length) + ' matching lane' + (laneList.length === 1 ? '' : 's') + ' (lanes outside the top ' + C.confirmShowMax + ' read “Not flagged for Lane”)' : 'Blank = confirm / possible lanes only.') + '</span></div>';
+    out.push(section('Lane table', 'Click a lane for its tree: tertiary lanes, manifest destinations, short validations and ageing. Click any column header to sort.',
+      searchBox + tbl('lh-lanes', [
+        { h: '#', num: true, noTotal: true, v: function (l) { return l.category === 'Not flagged for Lane' ? 1e9 : l.confirmRank; },
+          f: function (l) { return l.category === 'Not flagged for Lane' ? '—' : String(l.confirmRank); } },
+        { h: 'Lane Code', v: function (l) { return l.lane; } },
+        { h: 'Category', v: function (l) { return l.category; },
+          f: function (l) { return '<span class="cat ' + catClass(l.category) + '">' + esc(l.category) + '</span>'; } },
+        { h: 'Lane type / signals', v: function (l) { return laneNature(l); } },
+        { h: 'AWB pendency', num: true, pend: true, v: function (l) { return l.pendency; } },
+        { h: 'Validated shorts', num: true, v: function (l) { return l.validated; } },
+        { h: 'Destinations', num: true, v: function (l) { return l.destinations; } },
+        { h: 'Dominant destination', v: function (l) { return l.topDest + ' (' + Math.round(l.topDestShare * 100) + '%)'; } },
+        { h: 'Dominant Connecting Bagging', v: function (l) { return l.domBag + ' (' + Math.round(l.domBagShare * 100) + '%)'; } },
+        { h: 'Product value ₹', num: true, money: true, v: function (l) { return l.value; }, f: function (l) { return inr(l.value); } },
+        { h: 'Why it is flagged', v: function (l) { return laneRca(l); } }
+      ], lt, { select: true, pop: rows, dim: 'lane', mode: 'lane', limit: 200, sortForce: { i: 0, dir: 1 },
+               rowClass: function (l) { return l.topConfirm ? 'lanetop' : ''; },
+               rcaDim: 'lane', rcaVal: function (l) { return l.lane; } })));
     return out.join('');
   }
 
@@ -2097,6 +2239,7 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
                          : ' data-act="sel" data-table="lm-pod" data-idx="' + ri + '"';
         },
         totalFilter: function (x) { return x.isPod; },
+        treeParent: function (x) { return x.isPod; }, treeGroup: function (x) { return x.pod; },
         rowClass: function (x) { return x.isPod ? 'lane-row' : (x.focus ? 'flagrow' : ''); } })));
 
     // HOV2 cut, ageing as a row value rather than a column
@@ -2149,8 +2292,10 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     }).sort(function (a, b) { return b.n - a.n; });
   }
   // ---------- body ----------
-  // ---------- pivot builder (Field list) ----------
-  // Every stored column, plus the derived ones, usable as a pivot row / column / filter.
+  // ---------- PivotTable Fields (Excel-style field list + four areas) ----------
+  var PV_AREAS = [['filters', 'FILTERS', '▼'], ['cols', 'COLUMNS', '❘❘❘'], ['rows', 'ROWS', '☰'], ['vals', 'VALUES', 'Σ']];
+  var PV_VALS = { awb: 'Count of Awb_number', value: 'Sum of Product_Value2', hov: 'Count of HOV', mani: 'Distinct Manifest_code' };
+
   function pivotFields() {
     var ds = activeDs();
     if (!ds || !ds.headers) return [];
@@ -2158,56 +2303,98 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     out.push({ name: 'MM collated bucket', get: function (r) { return r.mmColl; } });
     out.push({ name: 'LM collated bucket', get: function (r) { return r.lmColl; } });
     out.push({ name: 'Ageing band (20+)', get: function (r) { return V.ageBand(r.age); } });
+    out.push({ name: 'Current location region', get: function (r) { return r.region; } });
     out.push({ name: 'HOV flag', get: function (r) { return r.hov ? 'HOV' : 'NON'; } });
     return out;
   }
-  function pvField(name) {
-    var f = pivotFields().filter(function (x) { return x.name === name; })[0];
-    return f || null;
-  }
+  function pvField(name) { return pivotFields().filter(function (x) { return x.name === name; })[0] || null; }
   function pvVal(f, r) {
     var v = f ? f.get(r) : '';
-    v = (v === null || v === undefined || String(v).trim() === '') ? '(blank)' : String(v).trim();
-    return v;
+    return (v === null || v === undefined || String(v).trim() === '') ? '(blank)' : String(v).trim();
   }
-  function renderPivot(rows) {
-    var fields = pivotFields();
-    if (!fields.length) return '';
+  function pvUsed(name) {
     var pv = state.pivot;
-    if (!pv.row) pv.row = (fields.filter(function (f) { return f.name === 'Current_location'; })[0] || fields[0]).name;
-    var sel = function (act, cur, blank) {
-      return '<select data-act="' + act + '">' + (blank ? '<option value="">' + blank + '</option>' : '') +
-        fields.map(function (f) { return '<option ' + (cur === f.name ? 'selected' : '') + ' value="' + esc(f.name) + '">' + esc(f.name) + '</option>'; }).join('') + '</select>';
-    };
-    var controls = '<div class="frow">' +
-      '<label>Rows ' + sel('pvrow', pv.row, '') + '</label>' +
-      '<label>Sub-rows ' + sel('pvrow2', pv.row2, '— none —') + '</label>' +
-      '<label>Columns ' + sel('pvcol', pv.col, '— none —') + '</label>' +
-      '<label>Values <select data-act="pvval">' +
-        [['awb', 'AWB count (pendency)'], ['value', 'Product value ₹'], ['hov', 'HOV count'], ['mani', 'Distinct manifests']]
-          .map(function (o) { return '<option ' + (pv.val === o[0] ? 'selected' : '') + ' value="' + o[0] + '">' + o[1] + '</option>'; }).join('') +
-      '</select></label>' +
-      '<button class="btn small ghost" data-act="fields">Close pivot</button></div>';
+    return pv.rows.indexOf(name) >= 0 || pv.cols.indexOf(name) >= 0 || pv.filters.indexOf(name) >= 0;
+  }
+  function pvRemove(name) {
+    var pv = state.pivot;
+    ['rows', 'cols', 'filters'].forEach(function (a) {
+      var i = pv[a].indexOf(name); if (i >= 0) pv[a].splice(i, 1);
+    });
+  }
 
-    var fRow = pvField(pv.row), fRow2 = pv.row2 ? pvField(pv.row2) : null, fCol = pv.col ? pvField(pv.col) : null;
-    var money = pv.val === 'value';
-    var add = function (cellObj, k, r) {
-      var c = cellObj[k] || (cellObj[k] = { n: 0, v: 0, h: 0, m: {} });
-      c.n++; c.v += r.value; if (r.hov) c.h++; c.m[r.mcode] = 1;
+  function fieldsPanel() {
+    if (!state.showFields) return '';
+    var pv = state.pivot, all = pivotFields();
+    if (!all.length) return '<aside class="pvpanel"><div class="pvhead"><h2>PivotTable Fields</h2>' +
+      '<button class="pvx" data-act="fields">&times;</button></div><div class="meta">Upload a base first.</div></aside>';
+    var q = (pv.search || '').toLowerCase();
+    var listed = all.filter(function (f) { return !q || f.name.toLowerCase().indexOf(q) >= 0; });
+    var chip = function (area, name, i, n) {
+      var label = area === 'vals' ? (PV_VALS[name] || name) : name;
+      return '<div class="pvchip"><span>' + esc(label) + '</span>' +
+        (area !== 'vals' && i > 0 ? '<button data-act="pvmove" data-area="' + area + '" data-name="' + esc(name) + '" data-dir="-1" title="Move up">&#9650;</button>' : '') +
+        (area !== 'vals' && i < n - 1 ? '<button data-act="pvmove" data-area="' + area + '" data-name="' + esc(name) + '" data-dir="1" title="Move down">&#9660;</button>' : '') +
+        (area !== 'vals' ? '<button data-act="pvshift" data-area="' + area + '" data-name="' + esc(name) + '" title="Move to another area">&#8677;</button>' : '') +
+        '<button data-act="pvdrop" data-area="' + area + '" data-name="' + esc(name) + '" title="Remove">&times;</button></div>';
     };
+    var area = function (key, title, icon) {
+      var items = pv[key] || [];
+      var body = items.length
+        ? items.map(function (n, i) { return chip(key, n, i, items.length); }).join('')
+        : '<div class="pvempty">' + (key === 'filters' ? 'Tick a field and send it here to filter every table.' : 'Drop fields here.') + '</div>';
+      return '<div class="pvarea"><div class="pvat">' + icon + ' ' + title + '</div>' + body + '</div>';
+    };
+    return '<aside class="pvpanel">' +
+      '<div class="pvhead"><h2>PivotTable Fields</h2><button class="pvx" data-act="fields" title="Close">&times;</button></div>' +
+      '<label class="pvlbl">Table</label>' +
+      '<select class="pvsel" data-act="pvscope">' + TABS.map(function (tb) {
+        return '<option ' + (pv.scope === tb ? 'selected' : '') + ' value="' + tb + '">' + TAB_TITLE[tb] + ' · ' + (PV_VALS[pv.vals[0]] || 'Count') + '</option>';
+      }).join('') + '</select>' +
+      '<label class="pvlbl">Choose fields to add to report:</label>' +
+      '<input class="pvsearch" data-act="pvsearch" placeholder="Search" value="' + esc(pv.search || '') + '" />' +
+      '<div class="pvfields">' + listed.slice(0, 400).map(function (f) {
+        return '<label class="pvf"><input type="checkbox" data-act="pvpick" data-name="' + esc(f.name) + '" ' + (pvUsed(f.name) ? 'checked' : '') + ' /> ' + esc(f.name) + '</label>';
+      }).join('') + '</div>' +
+      '<div class="pvlbl">Drag fields between areas below:</div>' +
+      '<div class="pvareas">' + PV_AREAS.map(function (a) { return area(a[0], a[1], a[2]); }).join('') + '</div>' +
+      '<div class="pvvals"><label class="pvlbl">Values</label><select class="pvsel" data-act="pvval">' +
+        Object.keys(PV_VALS).map(function (k) { return '<option ' + (pv.vals[0] === k ? 'selected' : '') + ' value="' + k + '">' + PV_VALS[k] + '</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="pvfoot"><button class="btn small" data-act="pvreset">Reset this table</button>' +
+      '<button class="btn small primary" data-act="fields">Done</button></div></aside>';
+  }
+
+  function renderPivot() {
+    var pv = state.pivot;
+    if (!activeDs()) return '';
+    var src = computeView(pv.scope || state.tab);
+    var rows = src.filtered;
+    // Area filters apply on top of the tab's own filters.
+    (pv.filters || []).forEach(function (fn) {
+      var pick = pv.fsel[fn];
+      if (!pick) return;
+      var f = pvField(fn);
+      rows = rows.filter(function (r) { return pvVal(f, r) === pick; });
+    });
+    var rowFs = (pv.rows || []).map(pvField).filter(Boolean);
+    var colFs = (pv.cols || []).map(pvField).filter(Boolean);
+    if (!rowFs.length) rowFs = [pvField('Current_location')].filter(Boolean);
+    var val = pv.vals[0] || 'awb', money = val === 'value';
     var pick = function (c) {
       if (!c) return 0;
-      return pv.val === 'value' ? c.v : pv.val === 'hov' ? c.h : pv.val === 'mani' ? Object.keys(c.m).length : c.n;
+      return val === 'value' ? c.v : val === 'hov' ? c.h : val === 'mani' ? Object.keys(c.m).length : c.n;
     };
     var G = new Map(), colSet = {};
     rows.forEach(function (r) {
-      var k1 = pvVal(fRow, r), k2 = fRow2 ? pvVal(fRow2, r) : '';
-      var key = k1 + '\u001f' + k2;
-      var g = G.get(key);
-      if (!g) { g = { k1: k1, k2: k2, cells: {}, tot: { n: 0, v: 0, h: 0, m: {} } }; G.set(key, g); }
-      var ck = fCol ? pvVal(fCol, r) : '*';
+      var keys = rowFs.map(function (f) { return pvVal(f, r); });
+      var kk = keys.join('\u001f');
+      var g = G.get(kk);
+      if (!g) { g = { keys: keys, cells: {}, tot: { n: 0, v: 0, h: 0, m: {} } }; G.set(kk, g); }
+      var ck = colFs.length ? colFs.map(function (f) { return pvVal(f, r); }).join(' · ') : '*';
       colSet[ck] = 1;
-      add(g.cells, ck, r);
+      var c = g.cells[ck] || (g.cells[ck] = { n: 0, v: 0, h: 0, m: {} });
+      c.n++; c.v += r.value; if (r.hov) c.h++; c.m[r.mcode] = 1;
       g.tot.n++; g.tot.v += r.value; if (r.hov) g.tot.h++; g.tot.m[r.mcode] = 1;
     });
     var colKeys = Object.keys(colSet).sort(function (a, b) {
@@ -2216,31 +2403,36 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       return a.localeCompare(b);
     });
     var data = Array.from(G.values()).map(function (g) {
-      return { key: g.k1, sub: g.k2, cells: g.cells, total: pick(g.tot),
-               _rows: null, _dim: 'loc', _title: g.k1 + (g.k2 ? ' · ' + g.k2 : '') };
+      return { keys: g.keys, cells: g.cells, total: pick(g.tot) };
     }).sort(function (a, b) { return b.total - a.total; });
 
-    var cdefs = [{ h: pv.row, v: function (x) { return x.key; } }];
-    if (fRow2) cdefs.push({ h: pv.row2, v: function (x) { return x.sub; } });
-    cdefs.push({ h: pv.val === 'value' ? 'Product value ₹' : pv.val === 'hov' ? 'HOV' : pv.val === 'mani' ? 'Manifests' : 'Pendency (AWB)',
-                 num: true, pend: true, money: money, v: function (x) { return x.total; },
-                 f: function (x) { return money ? inr(x.total) : num(x.total); } });
-    if (fCol) {
+    var cdefs = rowFs.map(function (f, i) { return { h: f.name, v: function (x) { return x.keys[i]; } }; });
+    cdefs.push({ h: PV_VALS[val], num: true, pend: true, money: money,
+      v: function (x) { return x.total; }, f: function (x) { return money ? inr(x.total) : num(x.total); } });
+    if (colFs.length) {
       var maxOf = function (x) { var m = 0; colKeys.forEach(function (k) { var y = pick(x.cells[k]); if (y > m) m = y; }); return m; };
       colKeys.slice(0, 60).forEach(function (k) {
         cdefs.push({ h: k, num: true, money: money,
           v: function (x) { return pick(x.cells[k]); },
-          cls: function (x) { var m = maxOf(x), y = pick(x.cells[k]); if (!y || !m) return ''; var f = y / m;
-            return f >= 0.75 ? 'h4' : f >= 0.5 ? 'h3' : f >= 0.25 ? 'h2' : 'h1'; },
+          cls: function (x) { var m = maxOf(x), y = pick(x.cells[k]); if (!y || !m) return ''; var fr = y / m;
+            return fr >= 0.75 ? 'h4' : fr >= 0.5 ? 'h3' : fr >= 0.25 ? 'h2' : 'h1'; },
           f: function (x) { var y = pick(x.cells[k]); return y ? (money ? inr(y) : num(y)) : '<span class="zero">·</span>'; } });
       });
     }
-    var note = 'Pivoting ' + num(rows.length) + ' filtered AWBs from this tab. ' +
-      (fCol && colKeys.length > 60 ? 'Showing the first 60 of ' + num(colKeys.length) + ' column values. ' : '') +
-      'Use Copy table to paste it straight into Excel.';
-    return '<section class="card"><div class="ch"><h2>Pivot — build your own view</h2></div>' +
-      '<div class="meta">' + note + '</div>' + controls +
-      tbl('pivot', cdefs, data, { limit: 400, select: false, sortForce: { i: fRow2 ? 2 : 1, dir: -1 } }) + '</section>';
+    var fbar = (pv.filters || []).length ? '<div class="subbox"><span class="meta">Report filters:</span>' +
+      pv.filters.map(function (fn) {
+        var f = pvField(fn);
+        var vals = Array.from(new Set(src.filtered.map(function (r) { return pvVal(f, r); }))).sort().slice(0, 300);
+        return '<label class="subopt">' + esc(fn) + ' <select data-act="pvfsel" data-name="' + esc(fn) + '">' +
+          '<option value="">All</option>' + vals.map(function (v) { return '<option ' + (pv.fsel[fn] === v ? 'selected' : '') + ' value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('') +
+          '</select></label>';
+      }).join('') + '</div>' : '';
+    return '<section class="card"><div class="ch"><h2>' + esc(PV_VALS[val]) + ' · ' + rowFs.map(function (f) { return f.name; }).join(' × ') +
+      (colFs.length ? ' × ' + colFs.map(function (f) { return f.name; }).join(' × ') : '') + '</h2></div>' +
+      '<div class="meta">Pivoting ' + num(rows.length) + ' AWBs from ' + TAB_TITLE[pv.scope || state.tab] +
+      (colFs.length && colKeys.length > 60 ? ' · first 60 of ' + num(colKeys.length) + ' column values' : '') +
+      '. Use Copy table to paste into Excel.</div>' + fbar +
+      tbl('pivot', cdefs, data, { limit: 500, select: false, sortForce: { i: rowFs.length, dir: -1 } }) + '</section>';
   }
 
   function renderBody() {
@@ -2251,9 +2443,14 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     }
     var t = state.tab, view = computeView(t); state.view = view; secIdx = 0;
     var html = t === 'fwd' ? renderFwd(view) : t === 'mm' ? renderMM(view) : t === 'lh' ? renderLH(view) : renderLM(view);
-    body.innerHTML = (state.showFields ? renderPivot(view.filtered) : '') + html;
+    body.innerHTML = (state.showFields ? renderPivot() : '') + html;
   }
-  function renderAll() { renderHeader(); renderNav(); renderFilters(); renderBody(); if (state.popup) renderPopup(); }
+  function renderAll() {
+    renderHeader(); renderNav(); renderFilters(); renderBody();
+    document.body.classList.toggle('pvopen', !!state.showFields);
+    var sh = document.querySelector('.shell'); if (sh) sh.classList.toggle('pvopen', !!state.showFields);
+    if (state.popup) renderPopup();
+  }
 
   // ---------- exports ----------
   function csvSrc() {
@@ -2379,6 +2576,20 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
       else if (act === 'resetdef') { var d = C.tabs[state.tab]; Object.assign(state.tabs[state.tab], { manifestType: d.manifestType, ageMin: d.ageMin, ageMax: d.ageMax }); renderFilters(); renderBody(); }
       else if (act === 'clearall') { Object.assign(state.tabs[state.tab], { search: '', fields: {}, valueMin: null, valueMax: null }); renderFilters(); renderBody(); }
       else if (act === 'sort') { var id = el.dataset.table, i = +el.dataset.i, cur = state.sort[id] || { i: 0, dir: -1 }; state.sort[id] = { i: i, dir: cur.i === i ? -cur.dir : -1 }; renderBody(); }
+      else if (act === 'pvmove') {
+        var pv = state.pivot, ar = pv[el.dataset.area], i = ar.indexOf(el.dataset.name), j = i + (+el.dataset.dir);
+        if (i >= 0 && j >= 0 && j < ar.length) { ar.splice(j, 0, ar.splice(i, 1)[0]); renderAll(); }
+      }
+      else if (act === 'pvshift') {
+        var order = ['rows', 'cols', 'filters'], pv2 = state.pivot, from = el.dataset.area, nm2 = el.dataset.name;
+        var to = order[(order.indexOf(from) + 1) % order.length];
+        pvRemove(nm2); pv2[to].push(nm2); renderAll();
+      }
+      else if (act === 'pvdrop') { pvRemove(el.dataset.name); renderAll(); }
+      else if (act === 'pvreset') {
+        state.pivot.rows = ['Current_location']; state.pivot.cols = ['Ageing band (20+)'];
+        state.pivot.filters = []; state.pivot.fsel = {}; state.pivot.vals = ['awb']; renderAll();
+      }
       else if (act === 'podtog') { var pk = el.dataset.pod; state.podOpen[pk] = !state.podOpen[pk]; renderBody(); }
       else if (act === 'sel') { var tid = el.dataset.table, row = TCACHE[tid][+el.dataset.idx]; openPopup(tid, row); }
       else if (act === 'popclose') closePopup();
@@ -2434,10 +2645,21 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
         renderBody();
       }
       else if (act === 'subtoggle') { var m = state[el.dataset.group]; if (!m[state.tab]) m[state.tab] = new Set(); if (el.checked) m[state.tab].add(el.dataset.val); else m[state.tab].delete(el.dataset.val); renderBody(); }
-      else if (act === 'pvrow') { state.pivot.row = el.value; renderBody(); }
-      else if (act === 'pvrow2') { state.pivot.row2 = el.value; renderBody(); }
-      else if (act === 'pvcol') { state.pivot.col = el.value; renderBody(); }
-      else if (act === 'pvval') { state.pivot.val = el.value; renderBody(); }
+      else if (act === 'fwdregion') { state.fwdRegion = el.value; state.fwdLoc = null; renderBody(); }
+      else if (act === 'fwdloc') {
+        if (!state.fwdLoc) state.fwdLoc = new Set();
+        if (el.checked) state.fwdLoc.add(el.dataset.val); else state.fwdLoc.delete(el.dataset.val);
+        if (!state.fwdLoc.size) state.fwdLoc = null;
+        renderBody();
+      }
+      else if (act === 'pvscope') { state.pivot.scope = el.value; renderAll(); }
+      else if (act === 'pvval') { state.pivot.vals = [el.value]; renderAll(); }
+      else if (act === 'pvfsel') { state.pivot.fsel[el.dataset.name] = el.value; renderBody(); }
+      else if (act === 'pvpick') {
+        var nm = el.dataset.name;
+        if (el.checked) { if (!pvUsed(nm)) state.pivot.rows.push(nm); } else pvRemove(nm);
+        renderAll();
+      }
       else if (act === 'mt') { state.tabs[state.tab].manifestType = el.value; renderFilters(); renderBody(); }
       else if (act === 'age') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderFilters(); renderBody(); }
       else if (act === 'val') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderBody(); }
@@ -2446,6 +2668,14 @@ textarea.remark.rca{font-size:10px;width:150px;min-height:22px}
     document.addEventListener('input', function (ev) {
       var el = ev.target, act = el.getAttribute && el.getAttribute('data-act');
       if (act === 'search') { state.tabs[state.tab].search = el.value; renderBody(); }
+      else if (act === 'pvsearch') {
+        state.pivot.search = el.value; renderHeader();
+        var pi = document.querySelector('.pvsearch'); if (pi) { pi.focus(); pi.setSelectionRange(el.value.length, el.value.length); }
+      }
+      else if (act === 'laneq') {
+        state.laneQ = el.value; renderBody();
+        var li = document.querySelector('.lanesearch'); if (li) { li.focus(); li.setSelectionRange(el.value.length, el.value.length); }
+      }
       else if (act === 'fsearch') { state.filterSearch = el.value; renderFilters(); var inp = document.querySelector('.fsearch'); if (inp) { inp.focus(); inp.setSelectionRange(el.value.length, el.value.length); } }
     });
     document.addEventListener('focusout', function (ev) { var el = ev.target; if (el.getAttribute && el.getAttribute('data-act') === 'remark') saveRemark(el.dataset.key, el.value); });
