@@ -470,6 +470,31 @@ table.grid th.grp{text-align:center;background:var(--heat1);color:var(--deep);fo
 table.grid.tree th{position:static}
 .rcanote{background:var(--heat1);border-left:3px solid var(--green);border-radius:8px;
   padding:10px 13px;margin-bottom:12px;font-size:11.5px;line-height:1.55;color:var(--ink)}
+
+/* v17: compact chrome, frozen filters, collapsible rail */
+header.top{position:static}
+#filters{position:sticky;top:0;z-index:25;margin:0;padding-top:8px;background:var(--bg)}
+.filterbar{margin:0 0 12px;padding:10px 14px;box-shadow:0 4px 12px -8px rgba(0,0,0,.18)}
+.frow{margin-bottom:6px}
+.frow.chips{margin-bottom:0}
+.frow label.fopt{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;font-size:11px;font-weight:500;color:var(--ink);text-align:left;padding:4px 4px;border-radius:5px}
+.frow label.fopt:hover{background:var(--heat1)}
+.fopt input{margin:0;flex:0 0 auto;width:14px;height:14px;min-width:0;padding:0;accent-color:var(--green)}
+.fopt span{flex:1;text-align:left}
+.fopt em{flex:0 0 auto;font-size:10px}
+.fpanel{text-align:left}
+.tabhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 12px}
+.tabhead h1{margin:0}
+.tabhead .secbtns{display:flex;gap:6px;margin:0 0 0 auto}
+nav.side{transition:flex-basis .15s ease}
+nav.side .railtog{background:none;border:0;color:var(--muted);font:inherit;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-align:left;padding:4px 10px 10px;cursor:pointer}
+nav.side .railtog:hover{color:var(--green)}
+nav.side.mini{flex:0 0 64px;padding:16px 8px}
+nav.side.mini .railtog{text-align:center;font-size:16px;padding:2px 0 10px;letter-spacing:0}
+nav.side.mini .tab{padding:9px 0;text-align:center;font-size:11px;font-weight:700}
+nav.side .railhead{display:none}
+@media (max-width:900px){ nav.side.mini{flex:none} }
+select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-width:210px;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -482,8 +507,255 @@ table.grid.tree th{position:static}
   </main>
 </div>
 <div id="modal"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+// Fast .xlsx reader for the daily base. Streams the chosen sheet's XML straight out of the zip and
+// scans it row by row, instead of building SheetJS's full cell model (which takes 15-20 s on a
+// 39k x 183 base). Returns the same shape as sheet_to_json({header:1, raw:true, defval:null}).
+// Anything it can't handle (xls, csv, zip64, odd encodings) returns null and the caller falls back to SheetJS.
+(function (root) {
+  'use strict';
+  var td = new TextDecoder('utf-8');
+
+  function u16(b, o) { return b[o] | (b[o + 1] << 8); }
+  function u32(b, o) { return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0; }
+
+  function readDir(buf) {
+    var b = new Uint8Array(buf), eocd = -1;
+    for (var i = b.length - 22; i >= Math.max(0, b.length - 66000); i--) {
+      if (b[i] === 0x50 && b[i + 1] === 0x4b && b[i + 2] === 0x05 && b[i + 3] === 0x06) { eocd = i; break; }
+    }
+    if (eocd < 0) return null;
+    var n = u16(b, eocd + 10), off = u32(b, eocd + 16), out = {};
+    if (off === 0xffffffff) return null;   // zip64
+    for (var k = 0; k < n; k++) {
+      if (u32(b, off) !== 0x02014b50) return null;
+      var method = u16(b, off + 10), csize = u32(b, off + 20), nlen = u16(b, off + 28), xlen = u16(b, off + 30), clen = u16(b, off + 32), loff = u32(b, off + 42);
+      var name = td.decode(b.subarray(off + 46, off + 46 + nlen));
+      out[name] = { method: method, csize: csize, loff: loff };
+      off += 46 + nlen + xlen + clen;
+    }
+    return { bytes: b, files: out };
+  }
+  function entryStream(dir, name) {
+    var e = dir.files[name]; if (!e) return null;
+    var b = dir.bytes, lo = e.loff;
+    var start = lo + 30 + u16(b, lo + 26) + u16(b, lo + 28);
+    var data = b.subarray(start, start + e.csize);
+    var s = new Blob([data]).stream();
+    if (e.method === 8) return s.pipeThrough(new DecompressionStream('deflate-raw'));
+    if (e.method === 0) return s;
+    return null;
+  }
+  function entryText(dir, name) {
+    var s = entryStream(dir, name); if (!s) return Promise.resolve(null);
+    return new Response(s).text();
+  }
+
+  var ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+  function unesc(s) {
+    if (s.indexOf('&') < 0 && s.indexOf('_x') < 0) return s;
+    return s.replace(/&(#x[0-9a-fA-F]+|#\d+|amp|lt|gt|quot|apos);/g, function (m, g) {
+      if (g.charAt(0) === '#') { var cp = g.charAt(1) === 'x' ? parseInt(g.slice(2), 16) : parseInt(g.slice(1), 10); return String.fromCodePoint(cp); }
+      return ENT[g];
+    }).replace(/_x([0-9A-Fa-f]{4})_/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+  }
+  function textOf(xml) {   // concatenates every <t>…</t> run (rich text has several)
+    var out = '', re = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>|<t\s*\/>/g, m, rph = xml.indexOf('<rPh');
+    if (rph >= 0) xml = xml.replace(/<rPh[\s\S]*?<\/rPh>/g, '');
+    while ((m = re.exec(xml))) out += m[1] || '';
+    return unesc(out);
+  }
+  function sharedStrings(xml) {
+    var out = []; if (!xml) return out;
+    var re = /<si>([\s\S]*?)<\/si>|<si\s*\/>/g, m;
+    while ((m = re.exec(xml))) out.push(m[1] ? textOf(m[1]) : '');
+    // Regex captures are views into the 11 MB XML string; IndexedDB serialises those very slowly,
+    // so give every string its own storage once, here.
+    return JSON.parse(JSON.stringify(out));
+  }
+  function colIndex(ref) {
+    var n = 0;
+    for (var i = 0; i < ref.length; i++) { var c = ref.charCodeAt(i); if (c < 65 || c > 90) break; n = n * 26 + (c - 64); }
+    return n - 1;
+  }
+  function sheetTargets(wbXml, relXml) {
+    var rels = {}, m, re = /<Relationship\b([^>]*)\/?>/g;
+    while ((m = re.exec(relXml))) {
+      var id = /\bId="([^"]+)"/.exec(m[1]), tg = /\bTarget="([^"]+)"/.exec(m[1]);
+      if (id && tg) rels[id[1]] = tg[1];
+    }
+    var out = [], sre = /<sheet\b([^>]*)\/?>/g;
+    while ((m = sre.exec(wbXml))) {
+      var nm = /\bname="([^"]*)"/.exec(m[1]), rid = /\br:id="([^"]+)"/.exec(m[1]) || /\bid="([^"]+)"/.exec(m[1]);
+      if (!nm || !rid || !rels[rid[1]]) continue;
+      var t = rels[rid[1]].replace(/^\/?xl\//, '').replace(/^\//, '');
+      out.push({ name: unesc(nm[1]), path: 'xl/' + t });
+    }
+    return out;
+  }
+
+  var CELL = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+  function parseRow(rowXml, ss, width) {
+    var row = new Array(width), m, any = false;
+    for (var i = 0; i < width; i++) row[i] = null;
+    CELL.lastIndex = 0;
+    var next = 0;
+    while ((m = CELL.exec(rowXml))) {
+      var attrs = m[1], inner = m[2], ci;
+      var r = attrs.indexOf('r="');
+      if (r >= 0) ci = colIndex(attrs.slice(r + 3, r + 8)); else ci = next;
+      next = ci + 1;
+      if (!inner) continue;
+      var t = '', tp = attrs.indexOf('t="');
+      if (tp >= 0) t = attrs.slice(tp + 3, attrs.indexOf('"', tp + 3));
+      var v = null;
+      if (t === 'inlineStr') v = own(textOf(inner));
+      else {
+        var vs = inner.indexOf('<v'); if (vs < 0) continue;
+        var gt = inner.indexOf('>', vs); if (inner.charAt(gt - 1) === '/') continue;
+        var raw = inner.slice(gt + 1, inner.indexOf('</v>', gt));
+        if (t === 's') v = ss[+raw];
+        else if (t === 'e') v = null;
+        else if (t === 'str') v = own(unesc(raw));
+        else if (t === 'b') v = raw === '1';
+        else { var num = +raw; v = raw === '' || isNaN(num) ? own(unesc(raw)) : num; }
+      }
+      if (v === undefined || v === '') v = null;
+      if (ci >= row.length) { for (var k = row.length; k <= ci; k++) row[k] = null; }
+      row[ci] = v; if (v !== null) any = true;
+    }
+    return any ? row : null;
+  }
+
+  function own(v) { return JSON.parse(JSON.stringify(v)); }
+  // Streams one sheet; calls back with (aoa) where aoa[0] is the header row.
+  function readSheet(dir, path, ss) {
+    var stream = entryStream(dir, path); if (!stream) return Promise.resolve(null);
+    var reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+    var buf = '', rows = [], width = 0, started = false;
+    function eat(final) {
+      var pos = 0;
+      for (;;) {
+        var s = buf.indexOf('<row', pos); if (s < 0) break;
+        var selfClose = buf.indexOf('>', s);
+        if (selfClose < 0) break;
+        if (buf.charAt(selfClose - 1) === '/') { pos = selfClose + 1; continue; }
+        var e = buf.indexOf('</row>', selfClose); if (e < 0) break;
+        var rx = buf.slice(selfClose + 1, e);
+        if (!started) {
+          var hr = parseRow(rx, ss, 0); started = true;
+          if (hr) { width = hr.length; rows.push(hr); }
+        } else {
+          var r = parseRow(rx, ss, width); if (r) rows.push(r);
+        }
+        pos = e + 6;
+      }
+      buf = buf.slice(pos);
+      if (final) buf = '';
+    }
+    function pump() {
+      return reader.read().then(function (res) {
+        if (res.done) { eat(true); return rows; }
+        buf += res.value;
+        if (buf.length > 1 << 20) eat(false);
+        return pump();
+      });
+    }
+    return pump();
+  }
+
+  // Returns { sheets: [{name, rows}] } for sheets whose names match `want` (in order), or null to fall back.
+  function read(arrayBuffer, wantNames, onSheet) {
+    if (typeof DecompressionStream === 'undefined' || typeof TextDecoderStream === 'undefined') return Promise.resolve(null);
+    var dir; try { dir = readDir(arrayBuffer); } catch (e) { return Promise.resolve(null); }
+    if (!dir || !dir.files['xl/workbook.xml']) return Promise.resolve(null);
+    return Promise.all([entryText(dir, 'xl/workbook.xml'), entryText(dir, 'xl/_rels/workbook.xml.rels'), entryText(dir, 'xl/sharedStrings.xml')])
+      .then(function (t) {
+        var targets = sheetTargets(t[0] || '', t[1] || ''), ss = sharedStrings(t[2]);
+        var order = wantNames(targets.map(function (x) { return x.name; }));
+        var i = 0;
+        function next() {
+          if (i >= order.length) return null;
+          var nm = order[i++], tg = targets.filter(function (x) { return x.name === nm; })[0];
+          if (!tg || !dir.files[tg.path]) return next();
+          return readSheet(dir, tg.path, ss).then(function (aoa) {
+            if (aoa && aoa.length && onSheet(nm, aoa)) return { name: nm };
+            return next();
+          });
+        }
+        return next();
+      })
+      .catch(function () { return null; });
+  }
+
+  var api = { read: read };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.FASTXLSX = api;
+})(typeof window !== 'undefined' ? window : this);
+
+// AWB product categorizer — rules and pipeline ported from AWB_Categorizer.html (categorize.ps1 rule set).
+// Input per AWB: product description (product_names), seller category (product_categories), AWB number.
+(function (root) {
+  'use strict';
+  var R = {"LQ":"Liquid Items","OT":"Others","vague":["apparel","apparels","general","default","0","1","others","other","finished goods","na","n a","accessory","accessories","cmb","gp","wood","cosmic","electronic","electronics"],"order":["Apparel","Home & Kitchen","Beauty & Health","Footwear","Small Electronics","Electronics","Fashion Accessories","Food Items","Toys, Books & Hobbies","Automotive & Tools","Big Electronic Appliances","Others","Unidentified"],"rules":[["Small Electronic Appliances","Mobiles","\\b(smart ?phones?|mobile phones?|feature phones?|keypad (mobile|phone)s?|basic phones?|dual sim (mobile|phone)s?|5g phone|4g phone|landline phones?|cordless phones?)\\b|\\b(iphone|galaxy|redmi|xiaomi|realme|oppo|vivo|oneplus|one plus|poco|motorola|moto|iqoo|infinix|tecno|itel|lava|nokia|nothing phone|pixel|honor|kechaoda|ikall|snexian|jio ?phone|samsung)\\b.{0,80}\\b(\\d+ ?gb ram|\\d+ ?gb ?\\+ ?\\d+ ?gb|\\d+ ?gb (storage|rom)|ram\\b|\\d{3,4} ?mah|\\d+(\\.\\d+)? ?(inch|cm) display|keypad)|\\b(kechaoda|ikall|snexian|itel|lava|nokia|jio ?phone|easyfone|hmd)\\b.{0,60}\\b(\\d+ ?mb|dual sim|keypad|\\d{3,4} ?mah)\\b|\\biphone \\d+.{0,40}\\b\\d+ ?(gb|tb)\\b","\\b(earphones?|earbuds?|headphones?|headsets?|neckbands?|buds|tws|airpods?|airdopes|speakers?|smart ?watch\\w*|watch|memory card|micro ?sd|sd card|pen ?drive|power ?bank|tablet|laptop|router|dongle|wifi|ram (upgrade|module|stick)|ddr\\d|cables?|chargers?|compatible (with|for)|triggers?|controllers?|gamepad)\\b|\\b(covers?|cases? (for|compatible)|(back|flip|silicone|leather|bumper|transparent|hard|soft|shockproof|protective) (case|cover)s?|pouch(es)?|skins?|stickers?|decals?|tempered|glass|screen guard|guards?|protectors?|stands?|holders?|mounts?|tripods?|selfie|chargers?|charging (dock|stand|adapter)|adapters?|adaptors?|converters?|splitters?|extension|(replacement|spare) batter(y|ies)|batter(y|ies) for|replacement|spares?|parts?|display (combo|folder|assembly)|combo folder|lcd (combo|replacement|screen for)|touch ?screen (glass|replacement)|(usb|data|charging|aux|audio|otg|lightning|type ?c) (\\w+ )?cables?|cables? (for|compatible)|(?<!\\w)cords? (for|organi)|panel|housing|frame|camera lens|lens protector|sim (tray|adapter|ejector)|toys?|dummy|demo|showpiece|keychains?|organi[sz]ers?|cleaning|cleaner|grips?|rings? holder|pop ?sockets?|ear ?tips?|eartips|cushions?|ear ?pads?|hearing aids?|stethoscope|hangers?|wall mount|(?<!free )straps?|belts?|bands? for|watch bands?|lanyards?|glue|adhesive|repair|tool ?kit|headband|neck (warmer|gaiter)|hiking|module|component|woofer|driver unit)\\b|\\bfor (all )?(smart ?phones?|mobiles?|iphone|android)\\b","\\b((with |free |wireless |magnetic )?charging case|free (protective |silicone |transparent )?(case|cover|pouch)|with (free )?(case|pouch)|free (\\w+ ){0,3}cable|(type ?c|usb) (fast )?charging( cable)?|aux (input|in)|tf card|(battery|music|play) ?(life|backup|time)|compatible (with|for) (all )?(smart ?phones?|android|ios|mobiles?|devices|android (and|&) ios)|for (all )?(smart ?phones?|mobiles?|android|ios)( (and|&) (ios|android|tablets?))?|(with|and|&) (\\w+ ){0,2}protective (cover )?case|(with|dual|extra|free) (\\w+ )?straps?)\\b|\\bprotective (cover )?case\\b(?! (for|compatible))|\\(\\w+ straps?\\b"],["Small Electronic Appliances","Smart Watches","\\b(smart ?watch(es)?|smartwatch(es)?|smart ?bands?|(smart|bluetooth|amoled|heart rate) (\\w+ )?fitness (band|tracker)s?|fitness (band|tracker)s? (with|amoled|\\d)|activity tracker|(bt|bluetooth) calling (smart )?watch)\\b","(?<!(free|with|dual|extra) )\\bstraps?\\b|\\bbands? for\\b|\\bnot (a )?smart ?watch|\\b(belts?|chain strap|charger|charging (cable|dock)|cable|screen (guard|protector)|tempered|glass|bumper|case for|cover for|protective case|toy|dumbbells?|gym|yoga|resistance)\\b|\\b(covers?|cases? (for|compatible)|(back|flip|silicone|leather|bumper|transparent|hard|soft|shockproof|protective) (case|cover)s?|pouch(es)?|skins?|stickers?|decals?|tempered|glass|screen guard|guards?|protectors?|stands?|holders?|mounts?|tripods?|selfie|chargers?|charging (dock|stand|adapter)|adapters?|adaptors?|converters?|splitters?|extension|(replacement|spare) batter(y|ies)|batter(y|ies) for|replacement|spares?|parts?|display (combo|folder|assembly)|combo folder|lcd (combo|replacement|screen for)|touch ?screen (glass|replacement)|(usb|data|charging|aux|audio|otg|lightning|type ?c) (\\w+ )?cables?|cables? (for|compatible)|(?<!\\w)cords? (for|organi)|panel|housing|frame|camera lens|lens protector|sim (tray|adapter|ejector)|toys?|dummy|demo|showpiece|keychains?|organi[sz]ers?|cleaning|cleaner|grips?|rings? holder|pop ?sockets?|ear ?tips?|eartips|cushions?|ear ?pads?|hearing aids?|stethoscope|hangers?|wall mount|(?<!free )straps?|belts?|bands? for|watch bands?|lanyards?|glue|adhesive|repair|tool ?kit|headband|neck (warmer|gaiter)|hiking|module|component|woofer|driver unit)\\b|\\bfor (all )?(smart ?phones?|mobiles?|iphone|android)\\b","\\b((with |free |wireless |magnetic )?charging case|free (protective |silicone |transparent )?(case|cover|pouch)|with (free )?(case|pouch)|free (\\w+ ){0,3}cable|(type ?c|usb) (fast )?charging( cable)?|aux (input|in)|tf card|(battery|music|play) ?(life|backup|time)|compatible (with|for) (all )?(smart ?phones?|android|ios|mobiles?|devices|android (and|&) ios)|for (all )?(smart ?phones?|mobiles?|android|ios)( (and|&) (ios|android|tablets?))?|(with|and|&) (\\w+ ){0,2}protective (cover )?case|(with|dual|extra|free) (\\w+ )?straps?)\\b|\\bprotective (cover )?case\\b(?! (for|compatible))|\\(\\w+ straps?\\b"],["Small Electronic Appliances","Earphones & Headphones","\\b(earphones?|ear ?phones?|earbuds?|ear ?buds?|airpods?|airdopes|tws|true wireless|headphones?|head ?phones?|headsets?|neckbands?|neck ?band|in ?ear (wired|wireless|bluetooth)|wired earphones?|bluetooth (earphones?|headset|handsfree|hands free)|bone conduction)\\b","\\b(cases? for|cover for|covers? (for )?(airpods?|earbuds?|buds)|(airpods?|earbuds?|buds)( pro\\d?)? (case|cover|skin|strap|hook|holder|tips?)s?|ear ?tips?|eartips|cushions?|ear ?pads?|pad replacement|headphone (stand|hanger|holder|jack|adapter|splitter|extension|cable)|(earphone|headphone) (cable|wire|splitter|organi[sz]er|pouch|case)|splitter|aux cable|hearing aids?|stethoscope|toys?|dummy|sticker|keychain|wall mount|free (\\w+ )?(earphones?|earbuds?|headphones?))\\b|\\b(covers?|cases? (for|compatible)|(back|flip|silicone|leather|bumper|transparent|hard|soft|shockproof|protective) (case|cover)s?|pouch(es)?|skins?|stickers?|decals?|tempered|glass|screen guard|guards?|protectors?|stands?|holders?|mounts?|tripods?|selfie|chargers?|charging (dock|stand|adapter)|adapters?|adaptors?|converters?|splitters?|extension|(replacement|spare) batter(y|ies)|batter(y|ies) for|replacement|spares?|parts?|display (combo|folder|assembly)|combo folder|lcd (combo|replacement|screen for)|touch ?screen (glass|replacement)|(usb|data|charging|aux|audio|otg|lightning|type ?c) (\\w+ )?cables?|cables? (for|compatible)|(?<!\\w)cords? (for|organi)|panel|housing|frame|camera lens|lens protector|sim (tray|adapter|ejector)|toys?|dummy|demo|showpiece|keychains?|organi[sz]ers?|cleaning|cleaner|grips?|rings? holder|pop ?sockets?|ear ?tips?|eartips|cushions?|ear ?pads?|hearing aids?|stethoscope|hangers?|wall mount|(?<!free )straps?|belts?|bands? for|watch bands?|lanyards?|glue|adhesive|repair|tool ?kit|headband|neck (warmer|gaiter)|hiking|module|component|woofer|driver unit)\\b|\\bfor (all )?(smart ?phones?|mobiles?|iphone|android)\\b","\\b((with |free |wireless |magnetic )?charging case|free (protective |silicone |transparent )?(case|cover|pouch)|with (free )?(case|pouch)|free (\\w+ ){0,3}cable|(type ?c|usb) (fast )?charging( cable)?|aux (input|in)|tf card|(battery|music|play) ?(life|backup|time)|compatible (with|for) (all )?(smart ?phones?|android|ios|mobiles?|devices|android (and|&) ios)|for (all )?(smart ?phones?|mobiles?|android|ios)( (and|&) (ios|android|tablets?))?|(with|and|&) (\\w+ ){0,2}protective (cover )?case|(with|dual|extra|free) (\\w+ )?straps?)\\b|\\bprotective (cover )?case\\b(?! (for|compatible))|\\(\\w+ straps?\\b"],["Small Electronic Appliances","Bluetooth Speakers","\\b(bluetooth|wireless|portable|party|tower|smart|mini|outdoor|waterproof|rgb|karaoke|kareoke|trolley|boat|jbl|sony|marshall|zebronics|mivi|portronics|tribit|bose|philips) (\\w+ ){0,3}speakers?\\b|\\bspeakers?\\b.{0,40}\\b(bluetooth|wireless|tws|bt ?5)\\b|\\b(sound ?bar|soundbar|echo dot|alexa (speaker|smart))\\b","\\b(speaker (stand|mount|cover|grill|grille|cable|wire|box|driver|magnet|parts?|bracket)s?|car (audio|speaker|stereo)|(car|bike) speakers?|stereo for car|headphones?|earphones?|earbuds?|neckbands?|tws earbuds|toy|amplifier board|crossover|woofer driver)\\b|\\b(covers?|cases? (for|compatible)|(back|flip|silicone|leather|bumper|transparent|hard|soft|shockproof|protective) (case|cover)s?|pouch(es)?|skins?|stickers?|decals?|tempered|glass|screen guard|guards?|protectors?|stands?|holders?|mounts?|tripods?|selfie|chargers?|charging (dock|stand|adapter)|adapters?|adaptors?|converters?|splitters?|extension|(replacement|spare) batter(y|ies)|batter(y|ies) for|replacement|spares?|parts?|display (combo|folder|assembly)|combo folder|lcd (combo|replacement|screen for)|touch ?screen (glass|replacement)|(usb|data|charging|aux|audio|otg|lightning|type ?c) (\\w+ )?cables?|cables? (for|compatible)|(?<!\\w)cords? (for|organi)|panel|housing|frame|camera lens|lens protector|sim (tray|adapter|ejector)|toys?|dummy|demo|showpiece|keychains?|organi[sz]ers?|cleaning|cleaner|grips?|rings? holder|pop ?sockets?|ear ?tips?|eartips|cushions?|ear ?pads?|hearing aids?|stethoscope|hangers?|wall mount|(?<!free )straps?|belts?|bands? for|watch bands?|lanyards?|glue|adhesive|repair|tool ?kit|headband|neck (warmer|gaiter)|hiking|module|component|woofer|driver unit)\\b|\\bfor (all )?(smart ?phones?|mobiles?|iphone|android)\\b","\\b((with |free |wireless |magnetic )?charging case|free (protective |silicone |transparent )?(case|cover|pouch)|with (free )?(case|pouch)|free (\\w+ ){0,3}cable|(type ?c|usb) (fast )?charging( cable)?|aux (input|in)|tf card|(battery|music|play) ?(life|backup|time)|compatible (with|for) (all )?(smart ?phones?|android|ios|mobiles?|devices|android (and|&) ios)|for (all )?(smart ?phones?|mobiles?|android|ios)( (and|&) (ios|android|tablets?))?|(with|and|&) (\\w+ ){0,2}protective (cover )?case|(with|dual|extra|free) (\\w+ )?straps?)\\b|\\bprotective (cover )?case\\b(?! (for|compatible))|\\(\\w+ straps?\\b"],["Cosmetic","Bath & Body","\\bsandal( ?wood)?\\b.{0,40}\\bsoaps?\\b|\\bsoaps?\\b.{0,40}\\bsandal( ?wood)?\\b","\\b(soap (case|dish|dispenser|stand|holder|box|tray)|face ?wash)\\b",""],["Others","Food & Grocery","\\b(dr(y|ied) ?fruits?|makhana|foxnuts?|peanut butter|cookies|biscuits?)\\b","\\b(boxe?s?|containers?|jars?|cutters?|moulds?|molds?|slicers?|storage|trays?|stands?|holders?|toys?|dolls?|fridge magnets?|grinders?|machines?|mixers?|choppers?|paper|bottles?|bowls?|chains?|abaya|burqa|foundation|tint|concealer|dogs?|pets?|puppy|puppies|cats?)\\b|(?<!\\w)(creams?|lotions?|serums?|shampoos?|conditioners?|soaps?|face ?wash|body (wash|polish\\w*|oil|scrub)|hair (oil|spray|growth|serum|mask)|lip\\w*|liners?|eyeliners?|kajal|nail\\w*|perfumes?|attar\\w*|deo\\w*|feminine|intimate|vgine|foot (pads?|patch\\w*)|candles?|tea ?lights?|tea tree|threads?|dhaga|food (covers?|wrap\\w*)|wrapping|butter (paper|sheets?)|parchment|choppers?|cutters?|tumblers?|mugs?|skin|moisturi\\w*|cosmetics?|makeup|polish|contour|tooth ?brush\\w*|tables?|kettles?|ketli|hair)\\b",""],["Liquid Items","Edible Liquids","\\b((a2 |cow |desi |buffalo |pure )ghee|ghee \\d)","\\b(diyas?|lamps?|batti|wicks?|soan papdi|sweets?|laddoos?|mithai|hampers?|diapers?|biscuits?|cookies)\\b|(?<!\\w)(creams?|lotions?|serums?|shampoos?|conditioners?|soaps?|face ?wash|body (wash|polish\\w*|oil|scrub)|hair (oil|spray|growth|serum|mask)|lip\\w*|liners?|eyeliners?|kajal|nail\\w*|perfumes?|attar\\w*|deo\\w*|feminine|intimate|vgine|foot (pads?|patch\\w*)|candles?|tea ?lights?|tea tree|threads?|dhaga|food (covers?|wrap\\w*)|wrapping|butter (paper|sheets?)|parchment|choppers?|cutters?|tumblers?|mugs?|skin|moisturi\\w*|cosmetics?|makeup|polish|contour|tooth ?brush\\w*|tables?|kettles?|ketli|hair)\\b",""],["Home Decor and Accessories","Home Cleaning & Laundry","\\b(detergent|washing) powder\\b","\\b(liquid|gel)\\b",""],["Others","Mobile Accessories (non-electric)","\\bsim (card )?(tray|holder|adapter|ejector)s?\\b","",""],["Others","Sports & Fitness","\\b(tummy|ab|abdominal) (trimmers?|exercisers?|rollers?)\\b","",""],["Others","Books & Stationery","\\berasers?\\b","\\b(makeup|magic|megic|stain|scratch|nail|concealer|sponges?|scrub|hair|cleaning)\\b",""],["Fashion Accessories","Fashion Accessories","\\b(arm|hand) sleeves?\\b","",""],["Others","Health & Wellness","\\b(surgical (instruments?|kit|set)|suturing|needle holder|forceps|stethoscope|glucometer|glucose (monitor|monitoring|meter)|health ?care products?|lepam)\\b","\\b(toys?|costumes?)\\b",""],["Clothes","Innerwear & Nightwear","\\b(thongs?|cheekies|hipsters?)\\b","\\b(sandals?|slippers?|flip ?flops?|footwear|chappals?|wedges|heels|swim\\w*|bikini set)\\b",""],["Clothes","Dresses & Gowns","\\bfrocks?\\b","\\b(toys?|dolls?|hangers?|covers?)\\b",""],["Clothes","Sets & Other Apparel","\\bco ?ords?\\b","",""],["Home Decor and Accessories","Religious & Pooja Items","\\b(rudraksh(a)?|\\d ?mukhi)\\b","",""],["Others","Home Storage & Organisers","\\b(drawer|desk) (organi[sz]ers?|dividers?)\\b","",""],["Home Decor and Accessories","Home Decor","\\burli\\b","\\b(handi|cookware|with lid)\\b",""],["Small Electronic Appliances","Home & Other Appliances","\\b(dry|steam|electric) iron\\b|\\biron (box|press)\\b","\\b(iron (stand|board|cover)|ironing board|tawa|tava|kadai|kadhai)\\b",""],["Small Electronic Appliances","Audio","\\b(ear ?tips?|ear cushions?|ear ?pads?)\\b","",""],["Kitchen Items","Kitchen Tools & Gadgets","\\b(puri|roti|chapati|papad) (press|maker)\\b","",""],["Kitchen Items","Kitchen Racks & Linen","\\broti covers?\\b","",""],["Kitchen Items","Cookware","\\b(tawa|tava)\\b","\\b(electric|stand|cover)\\b",""],["Liquid Items","Hair Care Liquids","\\b(water |hair )?(spray|serum|oil|tonic) for hair\\b","",""],["Others","Electronics Accessories (non-electric)","\\bcable (protectors?|organi[sz]ers?|clips?|ties?|managers?)\\b","",""],["Others","Toys & Baby Products","\\b(toys?|dolls?|puzzles?|teddy|stuffed|soft toy|rc car|remote control (car|helicopter|truck)|building blocks|lego|board games?|rattles?|baby walker|diapers?|baby wipes|feeding bottle|baby care|learning toy|outdoor toy|pull along|play ?set|playsets?|slime|fidget|beyblade|kids? games?|baby carrier|baby bather|teether|pram|stroller|tricycle|ride on|money bank|piggy bank|coin bank|baby feeding|feeding (nipple|bottle)|langot|nappy|nappies)\\b","\\badult\\b",""],["Others","Mobile Accessories (non-electric)","\\b(back (cover|case)|mobile (cover|case|stand|holder|skin|grip)|phone (cover|case|stand|holder|grip|skin)|flip cover|cases covers|screen (guard|protector)|tempered glass|camera lens protector|lens protector|pop ?sockets?|selfie stick|silicone case|bumper case|(airpods?|earbuds?|buds)( pro\\d?)? (case|cover)s?|(case|cover) for (airpods?|earbuds?|buds)|cover for (iphone|samsung|galaxy|motorola|moto|redmi|xiaomi|vivo|oppo|realme|oneplus|poco|mi|nokia|iqoo|nothing|infinix|tecno|lava|google pixel|pixel|apple))\\b","",""],["Liquid Items","Cleaning & Household Liquids","\\b(degreaser|cleaner spray|cleaning spray|cleaning liquid|cleaner liquid|liquid cleaner|floor cleaner|toilet cleaner|glass cleaner|surface cleaner|bathroom (floor )?cleaner|tile cleaner|drain cleaner|kitchen cleaner|phenyl|phenyle|harpic|lizol|colin|disinfectant|stain remover|rust remover|limescale|descaler|dish ?wash(ing)? (liquid|gel|concentrate)|washing (liquid )?concentrate|liquid detergent|detergent liquid|fabric softener|fabric conditioner|(hand ?wash|handwash)(?! (basin|detergent|paper|soap))|sanitizer|sanitiser|mouth ?wash|toilet bowl cleaner|multi ?purpose cleaner|air freshener spray|room freshener spray|mosquito repellent liquid|vaporizer refill|liquid refill|remover liquid|glycerin|glycerine|repellent spray|bug spray|insect spray|mosquito spray|cockroach spray|insecticide)\\b","\\b(dispensers?|empty|refillable|spray bottle|paper soaps?|soap strips|bath(ing)? bar|soap bar|body ?wash|shower gel)\\b",""],["Liquid Items","Automotive Liquids","\\b(engine oil|gear oil|lubricant|lubricating oil|coolant|brake (oil|fluid)|chain (lube|lubricant|cleaner)|car (wash )?shampoo|car polish|bike polish|vehicle washing liquid|washing liquid|wax polish|dashboard polish|tyre polish|tire polish|wd ?40|rust (spray|remover))\\b","\\b(polishing (cloth|pad)|microfiber)\\b",""],["Others","Home Storage & Organisers","\\b(shoe (rack|stand|cabinet|organi[sz]er|box)|jewell?ery (box|organi[sz]er|stand|holder|case)|earring (holder|stand|organi[sz]er)|saree cover|garment cover|watch (box|organi[sz]er|case)|vanity box|makeup (organi[sz]er|box|kit box|storage))\\b","",""],["Fashion Accessories","Fashion Accessories","\\b(shoe (polish|cleaner|brush|horn|bag|cover|laces?|shiner|deodori[sz]er|insoles?|cream)|shoelaces?|insoles?)\\b","\\b(sneakers?|shoes? for (men|women|boys|girls|kids)|running shoes?|casual shoes?|sports shoes?)\\b",""],["Others","Home Furnishing","\\b(washing machine|fridge|refrigerator|tv|television|ac|split ac|air conditioner|cooler|microwave|oven|mixer|printer|purifier|ro|geyser|inverter|appliance)\\b.{0,40}\\bcovers?\\b|\\bcovers?\\b.{0,30}\\b(washing machine|fridge|refrigerator|tv|television|ac|cooler|microwave|oven|mixer|purifier|geyser)\\b|\\b(appliance covers?|(washing machine|fridge|refrigerator|tv|led|television|ac|cooler|microwave|oven|mixer|printer|laptop|keyboard|sofa|chair) (top )?covers?|fridge (mat|mats|top cover)|covers? for (washing machine|fridge|refrigerator|tv|microwave|mixer|ac|cooler))\\b","",""],["Others","Electronics Accessories (non-electric)","\\b(tv (wall )?(mount|stand|unit|bracket|trolley|cabinet)|tv wall mount|laptop (stand|table|sleeve|skin)|monitor stand|ac (stand|bracket)|washing machine (stand|trolley)|fridge (stand|trolley)|appliance stand|cooler (stand|trolley)|headphone stand|mouse ?pad)\\b","",""],["Home Decor and Accessories","Appliance Spares & Filters","(\\b(washing machine|fridge|refrigerator|ac|air cooler|cooler|geyser|microwave|chimney|water purifier|purifier|ro|inverter)\\b.{0,40}\\b(pipe|hose|inlet|outlet|gasket|motor|pump|filters?|cartridges?|spares?|parts?|valve|blade|belt|knob|pcb|capacitor|thermostat|membrane|pads?|grass|descaler|tablets?)\\b)|\\b(filter cartridge|ro membrane|candle filter|sediment filter|water filter|cooler pads?|honeycomb pads?)\\b","",""],["Home Decor and Accessories","Electrical & Hardware","\\b((electrical|copper|pvc|house|flexible|multi ?strand) wires?|electrical wire|wire roll|switch ?boards?|modular switch|mcb|electrical tape|insulation tape|wall socket|plug top|bulb holder|junction box)\\b","\\b(lights?|lamps?|led|eraser|sponge|stickers?)\\b",""],["Small Electronic Appliances","Wearables","\\b(smart ?watch(es)?|smartwatch|fitness (band|tracker)|smart ?band|smart ?ring)\\b","",""],["Small Electronic Appliances","Watches","\\b(watch(es)?|wrist ?watch|analog watch|chronograph)\\b","",""],["Others","Eyewear","\\b(sunglass(es)?|sunglass|goggles?|eyewear|spectacles?|eye ?glasses|reading glasses|computer glasses|blue (light|ray) (cut )?glasses|optical frames?|eyeglass)\\b","",""],["Clothes","Socks","\\bsocks?\\b","",""],["Shoes","Slippers & Flip Flops","\\b(slippers?|flip ?flops?|chappals?|sliders?|slides|crocs|clogs|floaters?|slipper flip flop)\\b","",""],["Shoes","Sandals & Ethnic Footwear","\\b(sandals?|kolhapuri|mojari|juttis?|jutti|heels|wedges|bellies|ballerinas?|stilettos?|peep toes?)\\b","\\b(sandal ?wood|soaps?|face ?wash|body ?wash|shower gel|chandan)\\b",""],["Shoes","Shoes","\\b(shoes?|sneakers?|loafers?|boots?|footwear|moccasins?|derby|brogues?|oxfords?|sports shoe|running shoe|kids shoe|shopsy shoe|casual shoes|sports shoes)\\b","",""],["Bedroom Utilities","Mattress","\\bmattress(es)?(\\b|(king|queen|single|double))","\\bbed ?sheets?\\b",""],["Bedroom Utilities","Bedsheets & Bedding","\\b(bed ?sheets?|bedsheets?|bed covers?|bedding|bed ?spreads?|fitted sheets?|duvets?|comforters?|quilts?|blankets?|razai|rajai|dohar|coverlet|bed linen)\\b","",""],["Bedroom Utilities","Pillows & Cushions","\\b(pillows?|cushions?|bolsters?|cushion pillow cover)\\b","\\b(concealer|foundation|compact|makeup|blush)\\b",""],["Bedroom Utilities","Curtains","\\b(curtains?|parda|pardas|blinds)\\b","",""],["Fashion Accessories","Earrings","\\b(earrings?|ear ?rings?|jhumk[ai]s?|jhumka|ear ?studs?|ear ?cuffs?|chandbali|danglers?)\\b","",""],["Fashion Accessories","Anklets & Toe Rings","\\b(anklets?|payal|payals|toe rings?|bichiya|bichhiya)\\b","",""],["Fashion Accessories","Necklaces, Chains & Pendants","\\b(necklaces?|necklace chain|chokers?|pendants?|lockets?|pendant locket|pendal|mangalsutras?|tanmaniya|mangalsutra tanmaniya)\\b|(?<!(key|bike|cycle|door|bicycle|saw|metal|plastic|safety) )\\bchains?\\b(?! (lock|sprocket|kit|lube|saw|link|cover|guard|spray|cleaner))","\\b(pendant (light|lamp)|ceiling|lamp|chandelier|sling|handbags?|bags?|purse)\\b",""],["Fashion Accessories","Bangles & Bracelets","\\b(bangles?|bracelets?|kadas?|kada|armlets?|kangan|bangle bracelet armlet|bajuband|chooda|choora|chuda|sankha|shakha|pola)\\b","",""],["Fashion Accessories","Rings","\\b(finger rings?|adjustable rings?|couple rings?|engagement rings?|wedding rings?|cocktail rings?|statement rings?|promise rings?|knuckle rings?|silver rings?|gold rings?|diamond rings?|stone rings?|rings? for (men|women|girls|boys|him|her|couple))\\b|\\|\\s*ring\\s*$","\\b(counter|tally|key ?chains?|key ?rings?|key holder)\\b",""],["Fashion Accessories","Nose & Head Jewellery","\\b(nose (pins?|rings?|studs?)|nosepins?|nathiya|nose ring stud|nath|maang ?tikka|tikka|matha patti|passa|hair jewell?ery)\\b","\\b(masks?|dry fruits?|nuts)\\b",""],["Fashion Accessories","Jewellery Sets & Others","\\b(jewell?ery|jewelry|jewell?ery set|jewels?|brooch(es)?|hath ?phool|kamarband|waist chain|kundan|polki|oxidi[sz]ed|american diamond)\\b","\\b(organi[sz]ers?|storage|containers?|jewell?ery making|diy)\\b",""],["Clothes","Innerwear & Nightwear","\\b(bras?|sports bra|panty|panties|briefs?|boxers?|lingerie|camisoles?|innerwear|shapewear|night ?suits?|night ?dress(es)?|nighty|nighties|nightwear|sleepwear|sleep ?suit|pyjamas?|pajamas?|pajma|payjama|night gown|thermals?|vests?|bloomers|underwear|trunks for men)\\b","",""],["Clothes","Ethnic Wear","\\b(sarees?|saris?|kurtas?|kurtis?|kurta set|lehengas?|lehenga choli|cholis?|dupattas?|salwar|salwar suits?|churidar|anarkali|sherwani|dhoti|lungi|ethnic|angrakha|suit set|dress material|blouses?|patiala|kaftan|ghagra|nehru jacket|kurta pyjama|salwar kurta dupatta|abaya|hijab|burqa|burkha|niqab|mekhela|mekhla|chador|sador|petticoats?)\\b","",""],["Clothes","Winterwear & Jackets","\\b(jackets?|hoodies?|hooded|sweatshirts?|sweaters?|cardigans?|blazers?|raincoats?|shrugs?|pullovers?|mufflers?|scarf|scarves|stoles?|shawls?|balaclava|monkey cap|woolen|woollen|windcheater|puffer)\\b|(?<!(top|base|wall|rust|clear|gel) )\\bcoats?\\b","",""],["Clothes","Dresses & Gowns","\\b(dress|dresses|gowns?|frocks?|jumpsuits?|rompers?|co ?ord|playsuit|kids dress)\\b","",""],["Clothes","Topwear","\\b(t ?shirts?|tshirts?|tees?|shirts?|crop tops?|tank tops?|tops? for (women|girls)|women tops?|ladies tops?|tunics?|tops|polo (t ?shirts?|neck|collar)|polos|shopsy t shirt|shopsy shirt|kids t shirt|topwear|\\bpolo\\b|(sleeves?|neck|ribbon|printed|stylish|casual|women.?s|womens|girls?|ladies|cotton|blend|rayon) tops?)\\b|\\|\\s*top\\s*$","",""],["Clothes","Bottomwear","\\b(jeans?|trousers?|pants?|chinos|cargos?|joggers?|track ?pants?|leggings?|jeggings?|palazzos?|palazos|shorts|skirts?|capris?|tights|pant|kids track pant)\\b|\\|\\s*short\\s*$","",""],["Clothes","Sets & Other Apparel","\\b(track ?suits?|tracksuits?|co ?ords?|apparel|apparel set|clothing|swimwear|swim ?suits?|bikini|uniforms?|unstitched|top (&|and) bottom|kids apparel|suits?|rompers?|dungarees?|bodysuits?|onesies?|waistcoats?|men.?s wear|women.?s wear|kids wear|garments?|clothes|party wear|jumspuit|arm sleeves?|outfits?|compression|apparels)\\b(?!\\s?(dry|drying|stand|hangers?|clips?|pegs?|line|rope|brush|organi|storage|cover|basket|steamer))|\\|\\s*fabric\\s*$","\\b(wax|waxing)\\b",""],["Big Electronic Appliances","Televisions","\\b(led tv|smart tv|android tv|google tv|qled|oled|television|\\d{2} ?(inch|inches|cm) (led|smart|hd|full hd|4k|ultra hd))\\b|\\btv\\b(?!\\s?(stand|mount|unit|cover|box|remote|trolley|cabinet|table|wall|stick))","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Big Electronic Appliances","Refrigerators & Freezers","\\b(refrigerators?|deep freezer|freezer|mini fridge)\\b|\\bfridge\\b(?!\\s?(magnets?|bottles?|containers?|storage|organi[sz]er|box|tray|mats?|cover|stand|top|egg))","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Big Electronic Appliances","Washing Machines & Dishwashers","\\b(washing machine|washer dryer|dish ?washer)\\b","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Big Electronic Appliances","Air Conditioners & Coolers","\\b(air conditioner|split ac|window ac|inverter ac|\\d(\\.\\d)? ton ac|air cooler|desert cooler|room cooler|tower cooler|personal cooler)\\b|\\bcooler\\b(?!\\s?(bags?|box|stand|cover|pads?|grass|motor|pump|jar|trolley|fan blade))","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Big Electronic Appliances","Microwaves, Ovens & Chimneys","\\botg\\b(?!\\s?(adapter|cable|connector|pen ?drive|support))|\\b(chimney|kitchen chimney|dishwasher)\\b|\\bmicrowave\\b(?!\\s?(safe|proof|oven safe|cover|stand|bowl|containers?|friendly))|\\boven\\b(?!\\s?(safe|proof|gloves?|mitts?|tray|cover|friendly))","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Big Electronic Appliances","Water Heaters & Purifiers","\\b(geyser|water heater|water purifier|ro purifier|ro water purifier|ro \\+ uv|uv purifier)\\b","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Big Electronic Appliances","Inverters, Treadmills & Others","\\b(inverter|inverter battery|treadmill|printer|home theat(er|re)|desktop computer|desktop pc|all in one pc|cpu cabinet)\\b(?!\\s?(cable|ink|cartridge|cover|paper|toner|trolley|stand))|(?<!(pressure|baby|bp|rate|glucose|sugar|heart|blood) )\\bmonitor\\b(?!\\s?(stand|arm|mount))","\\b(covers?|bottles?|bowls?|safe|remote|controller|compatible|stickers?|wallpaper|decals?|liners?|organi[sz]ers?|storage|stands?|trolley|pads?|hose|pipe|inlet|lock|interlock|detergent|salt|soap|dispenser|lunch|tiffin|bags?|ice box|pen ?drive|pendrive|otg|soundbar|speakers?|adapters?|cables?|hdmi|converter|switch|label(er)?|stick|containers?|dish|plates?|mats?|magnets?|cleaner|spray|tablets?|filters?|brush|gloves?|mitts?|parts?|spare|stabili[sz]er|cpu|car|welding|strips?|pen|distilled|whiteboard|towels?|tray|ice|knob|door|hinge|wipes?|cabinet|cabinate|holder|projector|kit|ring light|tripod|set ?top|decoration|beading|biscuits?|baked|foil|papad|fryums|diyas?|spikes|card|bulbs?|led|tap|material|combos?|immersion|neck fan|mini fan|table ?top|headphones?|usb|rechargeable)\\b|\\bfor (your )?(smart |led )?(tv|ac|fridge|refrigerator|washing machine|cooler|microwave|oven|geyser|purifier|inverter|printer)\\b",""],["Small Electronic Appliances","Audio","\\b(earphones?|earbuds?|ear ?buds|airpods?|tws|headphones?|headsets?|neckbands?|bluetooth|speakers?|soundbar|sound bar|soundbox|sound box|subwoofer|amplifier|microphones?|mic|mp3|radio|collar mic|lavalier)\\b","",""],["Small Electronic Appliances","Mobile & Computer Accessories","\\b(chargers?|charging (cable|adapter|dock|stand)|adapters?|adaptors?|data cable|usb|type ?c|lightning cable|hdmi|aux cable|otg|power ?banks?|powerbank|extension (board|cord)|spike guard|keyboards?|mouse|webcam|pen ?drive|pendrive|memory card|sd card|hard ?disk|hdd|ssd|router|wifi|wi fi|dongle|modem|card reader|cooling pad|laptop|tablet pc|ipad|kindle|smart ?phones?|mobile phones?|feature phone|keypad phone|\\bphones?\\b|battery charger)\\b","\\b(trolley|bags?|backpacks?|sleeve|rat|pinjr[aie]|pinjara|trap)\\b",""],["Small Electronic Appliances","Personal Care Appliances","\\b(trimmers?|shavers?|epilators?|hair dryers?|dryer|straighteners?|hair straightener|curlers?|crimpers?|massagers?|h b massager|electric toothbrush|sonic toothbrush|rechargeable toothbrush|hair clipper|facial steamer|lint remover)\\b","",""],["Small Electronic Appliances","Kitchen Appliances","\\b(mixer|grinders?|mixer grinder|juicer|blenders?|hand blender|kettle|induction|toaster|sandwich maker|air fryer|rice cooker|coffee (maker|machine)|egg boiler|electric lunch box|electric (chopper|kettle|cooker|stove)|food processor|beater|hand mixer)\\b","\\b(shaker|spray bottle|kitchen tool set)\\b",""],["Small Electronic Appliances","Lighting","\\b(led|bulbs?|tube ?lights?|night lamps?|lamps?|lights|string lights?|fairy lights?|rice lights?|rice light|ring light|torch(es)?|flashlights?|emergency light|solar lights?|serial lights?|strip lights?|disco lights?|lamps lighting|night light|led light)\\b","\\b(diyas?|diya)\\b",""],["Small Electronic Appliances","Home & Other Appliances","\\b(fans?|steam iron|dry iron|electric iron|iron box|garment steamer|vacuum cleaner|air purifier|humidifier|room heater|heater|blower|projector|sewing machine|mosquito (racket|bat|killer|machine)|insect killer|doorbell|calling bell|smart plug|walkie talkie|stabili[sz]er|ups|immersion (rod|water heater|heater)|water heater rod|cameras?|cctv|dash ?cam|remote|remote controller|set top box|tv box|streaming stick|fire stick|gaming|console|joystick|gamepads?|controllers?|calculators?|weighing scale|digital scale|thermometer|bp monitor|blood pressure monitor|glucometer|oximeter|nebuli[sz]er|drill( machine)?|cordless|screwdriver (electric|cordless)|electric screwdriver|angle grinder|soldering|multimeter|batter(y|ies)|electric|electronics?|electronic hobby kit|drone)\\b","\\b(gaming chair|drill bits?|mouse trap|tummy trimmer)\\b",""],["Kitchen Items","Cookware","\\b(kadai|kadhai|karahi|tawa|tava|frying pan|fry ?pan|pans?|cookware|pressure cooker|cookers?|handi|patila|tope|sauce ?pan|wok|tadka pan|appam|idli (maker|stand)|dosa tawa|paniyaram|steamer|gas stove|gas burner|gas regulator|low pressure regulator|cylinder regulator|stove|gas lighter|kitchen lighter|tea ?pot|cookware set|dutch oven)\\b","\\bdust ?pan\\b",""],["Kitchen Items","Storage & Containers","\\b(containers?|storage jars?|jars? set|glass jars?|airtight|lunch ?box(es)?|tiffin|bread box|masala box|spice box|masala dabba|oil dispensers?|dispensers?|oil pump|bottles?|water bottles?|flasks?|thermos|sippers?|jugs?|kitchen storage|casserole|hot ?pot|ration box|rice bin|kitchen containers)\\b","\\b(perfume|shampoo|attar|deo|deodorant|lotion|serum|face ?wash|hair oil|body wash|toner|conditioner|baby feeding|planters?|flower pots?|plants?|shaker)\\b",""],["Kitchen Items","Kitchen Tools & Gadgets","\\b(utensils?|ladles?|spatulas?|tongs|whisk|strainers?|colanders?|sieve|grater|peelers?|slicers?|choppers?|vegetable cutter|knife|knives|cutting boards?|chopping boards?|rolling pin|belan|chakla|masher|kitchen tools?|kitchen tool set|kitchen gadgets?|mortar|pestle|can opener|bottle opener|measuring (cups?|spoons?)|kitchen scissors?|dough maker|garlic press|egg beater|manual juicer|citrus (juicer|squeezer|press|peeler|zester))\\b","",""],["Kitchen Items","Dinnerware & Drinkware","\\b(plates?|dinner set|dinner ?ware|bowls?|mugs?|cups?|glass(es)? set|drinking glass(es)?|water glass|juice glass|wine glass(es)?|beer (mug|glass)|shot glass|tumblers?|coasters?|drinking straws?|straws?|cutlery|spoons?|forks?|serving (tray|bowl|set|spoon)|trays?|tea set|coffee set|thali|katori|chopsticks|condiment set|salt (and |& )?pepper|saucer)\\b","\\b(number plate|name plate|license plate|switch plate|hot plate|bra cups?|menstrual cup|suction cup|pet|dog|cat|toilet|dumbbells?|gym|weight plates?|wallpaper|stickers?|ladder|decoration|basket|rack)\\b",""],["Kitchen Items","Kitchen Racks & Linen","\\b(kitchen racks?|dish rack|dish drainer|spice rack|kitchen organi[sz]er|cutlery holder|kitchen shelf|plate stand|kitchen stand|aprons?|kitchen towels?|scrub ?pads?|scrubbers?|sponges?|steel wool|dish brush|kitchen cloth|fruit (and |& )?vegetable basket|fruit basket|vegetable basket|roti box|casserole set|table and kitchen linen)\\b","",""],["Liquid Items","Perfumes & Deodorants","\\b(perfumes?|parfum|eau de|edp|edt|attars?|ittar|itra|deodorants?|deo|body sprays?|body mist|colognes?|fragrances?|car perfume)\\b","\\b(fragrance free|agarbatti|incense|dhoop|candles?|scented)\\b",""],["Liquid Items","Hair Care Liquids","\\b(shampoos?|conditioners?|hair oils?|hair serum|hair tonic|onion oil|bhringraj|amla oil|hair spray|hair mist|anti hair fall oil|hair growth oil)\\b","\\bshampoo bar\\b",""],["Liquid Items","Skin & Body Liquids","\\b(face ?wash|cleanser|body ?wash|shower gel|toner|serums?|lotions?|body lotion|micellar|rose ?water|aloe ?vera gel|face mist|liquid soap|bath oil|massage oil|essential oils?|baby oil|nabhi oil|navel oil|pain relief oil|nail (polish|paint|enamel)|nail polish remover|polish remover|liquid (lipstick|foundation|eyeliner|highlighter|blush)|setting spray|makeup remover|sunscreen (lotion|spray)|body oil|face oil|beard oil|hair removal spray|shaving (foam|gel)|after ?shave|gel)\\b","\\b(gel pen|silicone gel|gel case|gel insole|nail polish (rack|stand|organi[sz]er))\\b",""],["Liquid Items","Edible Liquids","\\b(cooking oil|mustard oil|olive oil|coconut oil|sesame oil|groundnut oil|sunflower oil|ghee|honey|vinegar|sauces?|juices?|sharbat|squash|beverages?|soft drink|drinks?|ketchup|soy sauce)\\b","\\b(honeycomb|juicer|sauce ?pan|drinking glass|diyas?|powder|stickers?|\\d+\\s?(g|gm|gms|gram|grams))\\b|\\bmilk (powder|frother|pan|can)\\b|(?<!\\w)(creams?|lotions?|serums?|shampoos?|conditioners?|soaps?|face ?wash|body (wash|polish\\w*|oil|scrub)|hair (oil|spray|growth|serum|mask)|lip\\w*|liners?|eyeliners?|kajal|nail\\w*|perfumes?|attar\\w*|deo\\w*|feminine|intimate|vgine|foot (pads?|patch\\w*)|candles?|tea ?lights?|tea tree|threads?|dhaga|food (covers?|wrap\\w*)|wrapping|butter (paper|sheets?)|parchment|choppers?|cutters?|tumblers?|mugs?|skin|moisturi\\w*|cosmetics?|makeup|polish|contour|tooth ?brush\\w*|tables?|kettles?|ketli|hair)\\b",""],["Liquid Items","Medicinal Liquids","\\b(syrup|tonic|eye drops?|ear drops?|nasal drops?|drops|liquid medicine|homeopathic dilution|dilution|mother tincture|arishta|asava)\\b","",""],["Liquid Items","Other Liquids","\\b(liquid|liquids|inks?|refill ink|paints?|wall paint|acrylic paint|fabric paint|glue|fevicol|resin|epoxy|spray|cleaners?|oils?|lubricant|polish|repellent liquid|aerosol|\\d+(\\.\\d+)?\\s?ml|\\d+(\\.\\d+)?\\s?(ltr|litre|liter|litres|liters))\\b","\\b(spray (bottle|gun|pump|nozzle)|sprayer|glue (gun|stick)s?|oil (painting|paintings|paint|canvas|pastel|free|control|filter|seal|dispenser|pump|absorbing)|oil free|oil control|vacuum cleaner|cleaner brush|cleaning (brush|cloth|kit)|detergent (powder|cake|bar)|polishing cloth|nail polish (rack|stand)|paint ?brush(es)?|painting|paint by number|moulds?|molds?|ink pad|printer|(pen|gel|ball) refills?|creams?|moisturi[sz]ers?|paste|balm|butter|wax|ointment|lipstick|kajal|gut cleaner|powder|baskets?|bags?|buckets?|tubs?|backpacks?|containers?|dustbins?|bottles?|jars?)\\b",""],["Home Decor and Accessories","Home Cleaning & Laundry","\\b(mops?|brooms?|jhadu|jharu|dustbins?|garbage bags?|trash (can|bags?)|dust ?pan|toilet brush|cleaning (brush|cloth|kit|gloves)|microfiber cloth|wipes?|washing powder|detergent (powder|cake|bar)|laundry|laundry basket|drying stand|cloth dryer|clothes? (stand|clips?|pegs?|line|dryer)|insect repellent|mosquitos? (coils?|repellent|nets?)|mosquito nets?|cockroach|rat (trap|kill|glue)|naphthalene|odonil|air fresheners?|home cleaning|wiper|squeegee|tissues?|tissue roll|napkins?|descaling|drum cleaning|cleaner (paste|powder)|cleaning (powder|paste)|bleaching powder|dusters?|bathroom floor cleaner)\\b","",""],["Cosmetic","Makeup","\\b(lipsticks?|lip ?gloss|lip ?balm|lip liner|lip tint|lip care|kajal|kohl|eyeliners?|mascara|eye ?shadow|eyeshadow|foundation|concealers?|compact|primer|blush|blusher|bronzer|contour|makeup|make up|nail art|false (eyelashes|nails)|eyelash(es)?|lashes|makeup brush(es)?|beauty blender|sindoor|sindhoor|sindur|bindi|setting powder|translucent powder|eyebrow|brow|palette|mehndi|henna|cosmetics?|vanity kit|makeup kit|highlighter)\\b","\\b(highlighter (pens?|markers?)|makeup (organi[sz]er|storage|pouch|bag)|cosmetic (pouch|bag|box|case|organi[sz]er))\\b",""],["Cosmetic","Skin Care","\\b(creams?|moisturi[sz]ers?|moisturizer cream|face ?pack|sheet mask|peel off|clay mask|face mask (cream|peel|clay|charcoal)|scrubs?|sunscreen|sunblock|spf|skin ?care|face cream|night cream|day cream|fairness|whitening|brightening|anti ?aging|wrinkle|pimple|acne|ubtan|face gel|kumkumadi|dark spot|pigmentation|under ?eye|face powder|multani mitti|facial kit|facial)\\b","\\b(ice cream|shoe cream|cream colou?r|handbags?|sling|wallet|purse|clutch|sterili[sz]er)\\b",""],["Cosmetic","Hair Care (non-liquid)","\\b(hair (colou?r|dye|mask|wax|cream|treatment|styling|spa|removal|pomade|clay)|hair removal|wax strips|waxing|body wax|hot wax|mehendi powder|henna powder)\\b","",""],["Cosmetic","Bath & Body","\\b(soaps?|bath(ing)? bar|body butter|talc|talcum|dusting powder|prickly heat|bath salts?|bath bombs?|bath and body|bath (&|and) body|body scrub|loofah|bath essential)\\b","\\b(soap (case|dish|dispenser|stand|holder|box|tray))\\b",""],["Cosmetic","Oral Care","\\b(tooth ?paste|tooth ?brush(es)?|toothpaste|toothbrush|tooth powder|dental floss|teeth whitening|tongue cleaner)\\b","\\b(holder|stand)\\b",""],["Cosmetic","Grooming & Personal Care","\\b(combs?|hair ?brush(es)?|tweezers?|nail (cutter|clipper|filer|file|kit)|nail clipper cutter|razors?|shaving|beard|grooming|personal care|beauty|makeup mirror|manicure|pedicure|personal care beauty|beauty and personal care)\\b","\\b(face ?mask|n95|surgical)\\b",""],["Others","Car & Bike Accessories","\\b(cars?|bikes?|motorcycles?|scooty|scooters?|two wheeler|vehicles?|helmets?|steering|dashboard|wiper blades?|bumper|number plate|mud ?guard|crash guard|bike crash guard|handle grips?|seat covers?|tyres?|tires|side mirror|rear ?view|car utilities|automobile|automotive|activa|splendor|pulsar|royal enfield|bullet|car and bike|car mat|car cover)\\b","",""],["Home Decor and Accessories","Home Decor","\\b(wall (paintings?|art|decor|hangings?|stickers?|clock|frames?)|paintings?|posters?|stickers?|decals?|wallpapers?|showpieces?|show piece|figurines?|statues?|sculptures?|artificial (flowers?|plants?|grass)|flower vase|vases?|photo frames?|normal photo frame|frames?|clocks?|candles?|candle stand|home decor|decor|decoration|decorative|dream catcher|wind chimes?|torans?|bandhanwar|wall hanging|lifestyle decor|mirrors?|fridge magnets?|showpiece figurine|wall decoration|lamps lighting)\\b","\\btable (covers?|cloths?|runners?)\\b",""],["Home Decor and Accessories","Religious & Pooja Items","\\b(pooja|puja|god|goddess|idols?|murti|bhagwan|ganesh|ganesha|ganpati|laxmi|lakshmi|krishna|shiva|shiv|hanuman|sai baba|jesus|islamic|quran|allah|bible|agarbatti|incense|dhoop|diyas?|kalash|aarti|rudraksha|japa mala|tulsi mala|religio(n|us)|spiritual|jaa?p (mala|counter)|spirituality|yantra|kumkum|chandan|havan|camphor|kapoor)\\b","",""],["Home Decor and Accessories","Garden & Plants","\\b(plants?|planters?|flower pots?|pots?|gardening|garden|plant seeds?|seeds? for (garden|planting|sowing|kitchen garden)|vegetable seeds?|flower seeds?|\\d+ seeds|seeds in a pack|hybrid seeds?|saplings?|plant sapling|fertili[sz]ers?|manure|compost|vermicompost|cocopeat|coco peat|potting (mix|soil)|soil|mulch|garden mulch|grow ?bags?|pesticides?|watering can|hose pipe|bonsai|succulents?|lawn|npk)\\b","\\b(cooking pot|pot set|plant (based )?protein)\\b",""],["Others","Pet Supplies","\\b(pets?|dogs?|puppy|puppies|kitten|pet food|dog food|leash|aquarium|fish (tank|food)|bird (cage|feeder|food)|cage|cat litter|litter|pet health supplement)\\b|\\bcats?\\b(?! eye)","",""],["Others","Health & Wellness","\\b(medicines?|tablets?|capsules?|ayurved(a|ic)|allopathy|homeopath(y|ic)|supplements?|protein|whey|vitamins?|multivitamin|pain relief|body pain relief|balm|ointment|detox|foot pads?|condoms?|sanitary (pads?|napkins?)|menstrual|period (panty|cup)|bandages?|(knee|back|ankle|wrist|lumbar|waist|neck|posture|elbow|abdominal|belly|maternity) (support|belt|brace)|posture corrector|orthopa?edic|slimming belt|back support|masks?|n95|first aid|health|wellness|herbal|churna|kadha|immunity|weight (loss|gain)|slimming|hearing aid|pregnancy test|gut|adult diapers?|gummies|stayfree|whisper|softpads|panty liners?|corn (removal|cap|plaster)|callus|heating pad|hot water bag|sexual|stamina|ayurveda (&|and) organic products)\\b|\\|\\s*support\\s*$","",""],["Others","Food & Grocery","\\b(dry ?fruits?|almonds?|badam|cashews?|kaju|pistas?|pistachios?|walnuts?|akhrot|raisins?|kishmish|anjeer|figs|dates|khajur|makhana|foxnuts?|spices?|masala|tea|green tea|coffee|chocolates?|candy|candies|snacks?|namkeen|biscuits?|cookies|rice|basmati|atta|flour|dal|pulses|sugar|jaggery|gur|salt|pickles?|achar|papad|noodles|pasta|food|grocery|chia seeds?|flax ?seeds?|pumpkin seeds?|sunflower seeds?|mixed seeds|mukhwas|mouth freshener|elaichi|cardamom|saffron|kesar|dry fruits nuts|jams?|peanut butter)\\b","\\b(food (containers?|storage|grade)|coffee (table|mug))\\b|(?<!\\w)(creams?|lotions?|serums?|shampoos?|conditioners?|soaps?|face ?wash|body (wash|polish\\w*|oil|scrub)|hair (oil|spray|growth|serum|mask)|lip\\w*|liners?|eyeliners?|kajal|nail\\w*|perfumes?|attar\\w*|deo\\w*|feminine|intimate|vgine|foot (pads?|patch\\w*)|candles?|tea ?lights?|tea tree|threads?|dhaga|food (covers?|wrap\\w*)|wrapping|butter (paper|sheets?)|parchment|choppers?|cutters?|tumblers?|mugs?|skin|moisturi\\w*|cosmetics?|makeup|polish|contour|tooth ?brush\\w*|tables?|kettles?|ketli|hair)\\b",""],["Others","Books & Stationery","\\b(books?|novels?|regionalbooks|regional books|diar(y|ies)|notebooks?|note books?|diary notebook|registers?|pens?|pencils?|erasers?|sharpeners?|stationery|geometry box|markers?|highlighter pens?|crayons?|colou?r pencils?|sketch(es| pens?)?|art (and |& )?craft|art craft kit|craft kits?|drawing|calendars?|folders?|sticky notes|papers?|envelopes?|greeting cards?|stamp pad|whiteboard|chalk|slate)\\b","",""],["Others","Sports & Fitness","\\b(gym|dumbbells?|kettlebells?|yoga|yoga mat|skipping rope|jump rope|resistance bands?|fitness|fitness grip|exercise|workout|push ?up|pull ?up bar|ab roller|hand grip|gripper|sport(s)? gloves?|sport glove|gym gloves?|cycling gloves?|riding gloves?|cricket|bats?|football|basketball|volleyball|badminton|rackets?|racquets?|shuttlecocks?|tennis|balls?|carrom|chess|cycles?|bicycles?|skates?|skating|skateboard|swimming|punching bag|boxing|shaker|sports|trampoline|fishing|fish(ing)? (lure|bait|hook|rod|reel)|groundbait|baits?|lures?|angler|weight plates?|tummy trimmer)\\b","",""],["Home Decor and Accessories","Furniture","\\b(chairs?|stools?|sofas?|study table|dining table|coffee table|side table|computer table|laptop table|folding table|bean ?bags?|cabinets?|almirah|wardrobes?|bookshel(f|ves)|furniture|tables?|beds?|cots?|diwan|recliner|gaming chair)\\b","\\b(table (cover|cloth|runner|mat|lamp|fan|clock)|covers?|liners?|organi[sz]ers?|hangers?)\\b",""],["Home Decor and Accessories","Tools & Hardware","\\b(tools?|tool ?kits?|screwdrivers?|screwdriver set|spanners?|wrench(es)?|pliers?|hammers?|drill bits?|socket set|allen keys?|measuring tape|tape measure|tapes?|nails|screws?|nuts?|bolts?|sealant|m ?seal|padlocks?|locks?|door (lock|handle|stopper|closer)|hinges?|taps?|faucets?|shower( head)?|health faucet|bathroom (fittings|accessories|set)|towel (rod|rail|ring|hanger)|soap (case|dish|stand|holder)|pipes?|plumbing|ladders?|cable ties?|zip ties?|sandpaper|welding|hardware|magnifying glass|wire|wires|plug|switch|socket)\\b","",""],["Others","Sewing & Craft Supplies","\\b(threads?|threat|sewing|needles?|embroidery|lace|laces|buttons?|zippers?|tailoring|knitting|wool|yarn|crochet|beads|craft|tubes?)\\b","",""],["Others","Home Furnishing","\\b(towels?|bath towel|hand towel|door ?mats?|doormats?|rugs?|carpets?|runners?|table (covers?|cloths?|runners?|mats?)|place ?mats?|sofa covers?|slip ?covers?|slipcover|chair covers?|mats?|table cover|bath mat|floor mat)\\b","",""],["Others","Home Storage & Organisers","\\b(storage|storage box|organi[sz]ers?|desk organi[sz]er|racks?|shel(f|ves)|hooks?|key holders?|key holder|hangers?|drawers?|baskets?|boxes|box|stands?|holders?)\\b","",""],["Others","Bags & Luggage","\\b(bags?|handbags?|hand bags?|sling( bag)?|backpacks?|bag ?pack|rucksacks?|duffel|duffle|luggage|trolley|suitcases?|wallets?|purses?|pouch(es)?|clutch(es)?|totes?|laptop bag|school bag|travel bag|cross ?body|waist bag|card holder|card wallet|wallet card wallet|duffel bag|sling bag)\\b","",""],["Fashion Accessories","Fashion Accessories","\\b(belts?|caps?|hats?|beanies?|key ?chains?|key ?rings?|hair (clips?|bands?|accessor(y|ies)|pins?|claws?|clutchers?|rubber bands?|ties?|bows?)|hair accessory|scrunchies?|hairbands?|headbands?|umbrellas?|handkerchiefs?|handkercheifs?|hanky|bandana|gloves?|bow tie|ties|cufflinks|suspenders|wigs?|hair extensions?|accessory|accessories|eyewear|key chain)\\b","",""],["Others","Gifts, Festive & Party","\\b(rakhis?|gifts?|gift (hamper|set|box)|greeting|balloons?|party|birthday|anniversary|festive|diwali|holi|gulal|fireworks?|crackers?|kites?|manjha|valentine|wedding)\\b","",""],["Others","Packaging Material","\\b(carry bags?|polythene|courier bags?|bubble wrap|cartons?|corrugated|packing|packaging)\\b","",""],["Kitchen Items","Other Kitchen Items","\\b(kitchen|home and kitchen)\\b","",""],["Cosmetic","Grooming & Personal Care","\\b(beauty|personal care|cosmetic|skin|makeup|grooming)\\b","",""],["Clothes","Sets & Other Apparel","\\b(men|women|girls|boys|kids|ladies|gents|unisex|apparel children|women clothing|innerwear sleepwear)\\b","",""],["Home Decor and Accessories","Home Utility","\\b(home utility|home|utility|household)\\b","",""]],"nonLiqMains":["Clothes","Shoes","Fashion Accessories","Bedroom Utilities","Big Electronic Appliances","Small Electronic Appliances"],"nonLiqSubs":["Home Decor","Furniture","Home Storage & Organisers","Storage & Containers","Dinnerware & Drinkware","Kitchen Tools & Gadgets","Kitchen Racks & Linen","Cookware","Eyewear"],"ss":{"Topwear":[["T-Shirts & Polos","t ?shirts?|tshirts?|tees?|polos?"],["Shirts","shirts?"],["Tops & Tunics","tops?|tunics?|crop|tank|topwear"]],"Bottomwear":[["Jeans","jeans?"],["Track Pants & Joggers","track ?pants?|trackpants?|joggers?|lowers?"],["Cargo Pants","cargos?"],["Trousers & Chinos","trousers?|chinos|formal pants?"],["Shorts & Capris","shorts?|capris?"],["Leggings & Jeggings","leggings?|jeggings?|tights"],["Palazzos","palazzos?|palazos"],["Skirts","skirts?"],["Pants","pants?|pant|bottom\\w*"]],"Ethnic Wear":[["Sarees","sarees?|saris?"],["Men & Boys Ethnic","sherwani|dhoti|lungi|nehru jacket|kurta pyjama|kurta payjama"],["Lehengas & Ghagras","lehengas?|cholis?|ghagra"],["Regional Wear","mekhela|mekhla|chador|sador"],["Modest Wear","abaya|hijab|burqa|burkha|niqab"],["Blouses & Petticoats","blouses?|petticoats?"],["Dress Material","dress material|unstitched"],["Kurta Sets & Suits","sets?|suits?|salwar|sharara|anarkali|dupatta|palazzo|pant|pants"],["Kurtas & Kurtis","kurtas?|kurtis?"],["Dupattas","dupattas?|stoles?"]],"Innerwear & Nightwear":[["Bras","bras?"],["Nightwear","night ?suits?|night ?dress\\w*|nighty|nighties|nightwear|sleepwear|sleep ?suits?|pyjamas?|pajamas?|pajma|payjama|night gown|loungewear"],["Thermals","thermals?"],["Shapewear & Lingerie","shapewear|lingerie|camisoles?|shapers?"],["Panties & Briefs","panty|panties|briefs?|boxers?|bloomers|underwear|trunks?|hipsters?"],["Vests","vests?|sando|sndo|innerwear"]],"Winterwear & Jackets":[["Sweatshirts & Hoodies","sweatshirts?|hoodies?|hooded"],["Jackets & Coats","jackets?|windcheater|puffer|blazers?|coats?|raincoats?"],["Sweaters & Cardigans","sweaters?|cardigans?|pullovers?|shrugs?|woolen|woollen|high ?neck"],["Scarves, Stoles & Shawls","mufflers?|scarf|scarves|stoles?|shawls?"],["Caps & Balaclavas","balaclava|monkey cap|caps?|face mask"]],"Dresses & Gowns":[["Co-ord Sets","co ?ords?|cord sets?"],["Jumpsuits","jumpsuits?|rompers?|playsuits?|jumspuit"],["Gowns","gowns?|gwon"],["Kids Frocks & Dresses","frocks?|kids|girls?|baby"],["Dresses","dress|dresses"]],"Sets & Other Apparel":[["Tracksuits","track ?suits?|tracksuits?"],["Swimwear","swim\\w*|bikini"],["Uniforms","uniforms?"],["Fabric","fabric|unstitched"],["Compression & Sportswear","compression|sports ?wear|gym wear"],["Kids Clothing Sets","kids?|baby|boys?|girls?|infants?|newborn|children"]],"Socks":[["Ankle Socks","ankle|low cut|no show|loafer"],["Crew & Calf Socks","crew|mid ?calf|calf|knee"]],"Shoes":[["Kids Shoes","kids?|boys?|girls?|baby|school shoes?"],["Sports & Running Shoes","sports?|running|walking|training|gym|badminton\\w*"],["Formal Shoes","formal|derby|oxfords?|brogues?|loafers?|moccasins?"],["Boots","boots?"],["Sneakers & Casual Shoes","sneakers?|casual|canvas|slip ?ons?"],["Women Shoes","women\\w*|ladies|girls?"],["Men Shoes","men|mens"]],"Sandals & Ethnic Footwear":[["Ethnic Footwear","kolhapuri|mojari|juttis?"],["Heels & Wedges","heels?|wedges|stilettos?"],["Flats & Bellies","flats?|bellies|ballerinas?"],["Sandals","sandals?"]],"Slippers & Flip Flops":[["Slides","sliders?|slides"],["Flip Flops","flip ?flops?|thongs?"],["Crocs & Clogs","crocs|clogs"],["Slippers","slippers?|chappals?"]],"Earrings":[["Jhumkas","jhumk\\w*"],["Drops & Danglers","drops?|danglers?|chandbali|hoops?"],["Studs","studs?"],["Ear Cuffs","ear ?cuffs?|cuff earrings?|kaanphool"],["Huggies","huggies?|huggie"],["Earring Combos","combo|pack|set"]],"Necklaces, Chains & Pendants":[["Mangalsutras","mangalsutras?|tanmaniya"],["Pendants & Lockets","pendants?|pendent|lockets?|pendal"],["Necklaces & Chokers","necklaces?|chokers?|mala|haar"],["Chains","chains?"]],"Bangles & Bracelets":[["Kadas","kadas?"],["Bracelets","bracelets?"],["Bangles & Chooda","bangles?|chooda|choora|chuda|sankha|shakha|pola|kangan"],["Armlets","armlets?|bajuband"]],"Anklets & Toe Rings":[["Toe Rings","toe rings?|bichiya|bichhiya"],["Anklets & Payal","anklets?|payals?"]],"Nose & Head Jewellery":[["Nose Pins & Rings","nose\\w*|nath\\w*"],["Maang Tikka & Head Jewellery","tikka|matha patti|passa|borla|hair jewell?ery"]],"Jewellery Sets & Others":[["Waist Jewellery","kamarband|waist|vaddanam"],["Brooches","brooch\\w*"],["Jewellery Sets","sets?|combo"]],"Fashion Accessories":[["Shoe Care","shoe\\w*|insoles?|laces?"],["Hair Accessories","hair|scrunch\\w*|head ?bands?|hair ?bands?|clutchers?|juda"],["Belts","belts?"],["Caps & Hats","caps?|hats?|beanies?"],["Keychains","key ?chains?|key ?rings?|keychains?"],["Umbrellas","umbrellas?"],["Handkerchiefs & Bandanas","handkerchiefs?|handkercheifs?|hanky|bandanas?"],["Ties & Cufflinks","ties?|bow tie|cufflinks|suspenders"],["Gloves","gloves?"],["Wigs & Extensions","wigs?|extensions?"]],"Storage & Containers":[["Lunch Boxes","lunch ?box\\w*|tiffin"],["Oil Dispensers","dispensers?|oil pump"],["Casseroles","casseroles?|hot ?pot"],["Water Bottles & Flasks","bottles?|flasks?|sippers?|thermos"],["Jugs","jugs?"],["Containers & Jars","containers?|jars?|airtight|masala|dabba|spice box|boxes|box"]],"Dinnerware & Drinkware":[["Mugs & Cups","mugs?|cups?"],["Glasses & Tumblers","glass\\w*|tumblers?"],["Plates & Dinner Sets","plates?|dinner\\w*|thali"],["Bowls","bowls?|katori"],["Cutlery & Spoons","cutlery|spoons?|forks?|chopsticks"],["Trays, Coasters & Serving","trays?|serving|coasters?|straws?"]],"Kitchen Tools & Gadgets":[["Knives & Cutting Boards","knife|knives|cutting boards?|chopping boards?|cleaver"],["Choppers, Slicers & Graters","choppers?|slicers?|cutters?|graters?|peelers?"],["Ladles & Spatulas","ladles?|spatulas?|spoon sets?|tongs|whisk|turner|tool sets?"],["Strainers","strainers?|colanders?|sieve"],["Rolling Pins & Boards","rolling|belan|chakla"]],"Cookware":[["Pressure Cookers","pressure cookers?|cookers?"],["Pans, Tawas & Kadais","pans?|tawa|tava|kadai|kadhai|karahi|wok"],["Idli Makers & Steamers","idli|steamers?|appam"],["Gas Stoves & Accessories","gas|stoves?|burners?|lighters?|regulators?"]],"Kitchen Racks & Linen":[["Scrubbers & Sponges","scrub\\w*|sponges?|steel wool|eraser"],["Kitchen Towels & Cloths","towels?|cloths?|napkins?|tissues?|rolls?"],["Aprons","aprons?|bibs?"],["Racks & Stands","racks?|stands?|holders?|drainers?|shelf|baskets?"]],"Audio":[["Neckbands","neck ?bands?"],["Earbuds & TWS","ear ?buds?|tws|airpods?|buds"],["Headphones & Headsets","headphones?|headsets?|monitor"],["Speakers & Soundbars","speakers?|sound ?bars?|sound ?box|home theat\\w*|subwoofer"],["Microphones","mic|microphones?|lavalier"],["Earphones","earphones?"]],"Mobile & Computer Accessories":[["Power Banks","power ?banks?|powerbank"],["Storage Devices","pen ?drives?|pendrives?|memory cards?|sd cards?|hard ?disks?|ssd|hdd"],["Chargers & Adapters","chargers?|adapters?|adaptors?|charging"],["Cables","cables?|hdmi|otg"],["Keyboards & Mice","keyboards?|mouse"],["Networking","router|wifi|wi fi|dongle|modem"],["Other Phone & Laptop Accessories","phones?|smart ?phones?|tablets?|ipad|laptops?|stylus"]],"Personal Care Appliances":[["Trimmers & Shavers","trimmers?|shavers?|clippers?|grooming kit"],["Hair Dryers & Stylers","dryers?|straighteners?|curlers?|crimpers?|stylers?"],["Massagers","massag\\w*"],["Epilators & Hair Removal","epilators?|hair removal"],["Electric Toothbrushes","toothbrush\\w*"]],"Kitchen Appliances":[["Mixers & Grinders","mixers?|grinders?"],["Blenders & Juicers","blenders?|juicers?"],["Kettles","kettles?"],["Induction Cooktops","induction"],["Air Fryers","air fryers?"],["Electric Choppers","choppers?"],["Egg Boilers & Toasters","egg boilers?|toasters?|sandwich"]],"Lighting":[["Ring Lights","ring lights?|selfie"],["Decorative & String Lights","string|fairy|rice|serial|strip|rope|diwali|decorative|disco|candles?"],["Torches & Emergency Lights","torch\\w*|flashlights?|emergency|rechargeable|solar"],["LED Bulbs & Tubes","bulbs?|tube ?lights?"],["Lamps","lamps?"]],"Home & Other Appliances":[["Fans","fans?"],["Irons & Garment Steamers","irons?|steamers?"],["Remotes","remotes?"],["Cameras & CCTV","cameras?|cctv|dash ?cam"],["Gaming","gaming|console|joysticks?|gamepads?|controllers?"],["Power Tools","drills?|screwdrivers?|grinders?|soldering|welding|cordless"],["Health Devices","thermometers?|oximeters?|glucometers?|bp monitor|blood pressure|nebuli\\w*|weighing|scales?"],["Mosquito Bats & Killers","mosquito|insect killer"],["Vacuum Cleaners","vacuum"],["Water Heater Rods","immersion|water heater"],["Batteries","batter\\w*"],["Doorbells & Smart Locks","doorbells?|locks?"],["Calculators","calculators?"],["Projectors","projectors?"],["Sewing Machines","sewing"],["Electric Diffusers & Heaters","diffusers?|heaters?"]],"Wearables":[["Watch Straps","(?<!free )straps?|bands? for|loop"],["Smartwatches","smart ?watch\\w*|smartwatch\\w*|fitness"]],"Watches":[["Couple & Unisex Watches","couple|unisex|men (&|and) women"],["Kids Watches","kids?|boys?|girls?|child\\w*"],["Women Watches","women\\w*|ladies|womens"],["Men Watches","men|mens|gents"]],"Makeup":[["Lip Makeup","lip\\w*"],["Eye Makeup","kajal|kohl|eyeliners?|mascara|eye\\w*|brow\\w*|lash\\w*"],["Nail Makeup","nail\\w*"],["Sindoor, Bindi & Mehndi","sindoor|sindhoor|sindur|bindi|mehndi|henna"],["Makeup Brushes & Tools","brush\\w*|blender|sponges?|applicators?"],["Face Makeup","foundation|concealers?|compact|primer|blush\\w*|highlighter|bronzer|contour|powder|bb|cc cream|palette"],["Makeup Kits & Combos","kits?|combo|vanity"]],"Skin Care":[["Sunscreens","sunscreen|sunblock|spf"],["Face Packs & Masks","face ?packs?|masks?|peel|multani|ubtan|clay"],["Scrubs","scrubs?"],["Facial Kits","facial"],["Moisturisers & Creams","moisturi\\w*|creams?|lotions?"],["Skin Care Soaps","soaps?|bars?"],["Skin Care Combos","combo|kits?"]],"Hair Care (non-liquid)":[["Hair Removal","removal|wax strips|waxing"],["Hair Colour","colou?r|dye|henna|mehendi"],["Hair Styling","wax|styling|pomade|clay|gel|styler"],["Hair Masks & Treatments","masks?|treatment|spa|packs?|powder"],["Hair Brushes & Combs","brush\\w*|combs?"]],"Bath & Body":[["Talc & Body Powder","talc\\w*|powder"],["Loofahs & Scrubbers","loofahs?|scrubbers?"],["Bath Salts & Bombs","salts?|bombs?"],["Soaps","soaps?|bathing bar|bars?"]],"Oral Care":[["Toothpaste & Powder","paste|toothpaste|powder"],["Toothbrushes","brush\\w*|toothbrush\\w*"]],"Grooming & Personal Care":[["Nail Care Tools","nail\\w*|manicure|pedicure"],["Combs & Hair Brushes","combs?|brush\\w*"],["Shaving & Beard","razors?|shav\\w*|beard"]],"Perfumes & Deodorants":[["Car Perfumes","car"],["Attars","attars?|ittar|itra"],["Deodorants & Body Sprays","deo|deodorants?|body sprays?|roll ?ons?|body mist"],["Perfumes","perfumes?|parfum|eau de|edp|edt|colognes?|fragrances?"]],"Hair Care Liquids":[["Shampoos","shampoos?"],["Conditioners","conditioners?"],["Hair Oils","oils?"],["Hair Serums & Sprays","serums?|sprays?|tonic|mist|water"]],"Skin & Body Liquids":[["Nail Polish & Removers","nail\\w*"],["Face Wash & Cleansers","face ?wash|facewash|cleansers?|micellar"],["Body Wash & Hand Wash","body ?wash|shower gel|liquid soap|hand ?wash"],["Sunscreens","sunscreen|sunblock|spf"],["Body Lotions","lotions?|body milk"],["Serums & Toners","serums?|toners?|essence|booster|ampoule|drops"],["Liquid Makeup & Removers","liquid|foundation|setting spray|makeup remover"],["Rose Water & Mists","rose ?water|mists?"],["Gels","gels?"],["Body & Massage Oils","oils?"]],"Cleaning & Household Liquids":[["Toilet Cleaners","toilet|harpic"],["Hand Wash & Sanitizers","hand ?wash|handwash|sanitizer|sanitiser"],["Dishwash Liquids","dish\\w*"],["Detergents & Softeners","detergent|softener|fabric conditioner|laundry"],["Insect Repellents","repellent|insect\\w*|mosquito|bug|cockroach"],["Air Fresheners","freshener"],["Stain & Rust Removers","remover|rust|stain"],["Floor & Surface Cleaners","floor|surface|tile|multi ?purpose|phenyle?|lizol|bathroom|kitchen|degreaser|glass|cleaner\\w*"]],"Automotive Liquids":[["Coolants","coolants?"],["Car & Bike Wash","shampoo|wash\\w*"],["Polishes","polish|wax"],["Engine Oils & Lubricants","engine|gear|lubricant|lube|oil"]],"Edible Liquids":[["Ghee","ghee"],["Honey","honey"],["Juices","juices?"],["Vinegar","vinegar"],["Sauces & Ketchup","sauces?|ketchup"],["Cooking Oils","oils?"],["Beverages","drinks?|beverages?|sharbat|squash"]],"Medicinal Liquids":[["Health Tonics & Syrups","tonics?|syrups?"],["Drops","drops?"]],"Other Liquids":[["Laundry Liquids","laundry|fabric whiter|whitener"],["Liquid Lip & Makeup","lip\\w*|matte|kajal|eyeliner"],["Animal Health Liquids","cows?|buffalo|cattle|veterinary|calcium"],["Liquid Skin Care","sunscreen|spf|peel|niacinamide|serum|toner"],["Polishes","polish|shiner"],["Paints & Colours","paints?|colou?rs?"],["Glue & Resin","glue|fevicol|resin|epoxy"],["Inks","inks?"],["Sprays","sprays?"],["Cleaners","cleaners?"],["Oils","oils?"]],"Mattress":[["Mattress Protectors","protectors?"],["Baby Mattresses","baby|new ?born"],["Floor & Foldable Mattresses","floor|gadda|foldable|folding"],["Mattresses","mattress\\w*"]],"Bedsheets & Bedding":[["Baby Bedding","baby|kids"],["Blankets & Dohars","blankets?|dohar|razai|rajai|fleece"],["Comforters & Quilts","comforters?|quilts?|duvets?"],["Bed Covers & Spreads","bed covers?|bed ?spreads?|bedcover"],["Bedsheets","bed ?sheets?|bedsheets?|fitted|flat|bed linen|sheets?"]],"Pillows & Cushions":[["Pillow & Cushion Covers","covers?"],["Cushions","cushions?"],["Pillows","pillows?|bolsters?"]],"Curtains":[["Curtain Rods & Accessories","rods?|hooks?|holders?|rings?|tie ?backs?"],["Door Curtains","door"],["Window Curtains","window"]],"Home Decor":[["Wall Stickers & Wallpapers","stickers?|wallpapers?|decals?"],["Wall Paintings & Art","paintings?|wall art|canvas|posters?"],["Wall Hangings & Torans","hangings?|torans?|bandhanwar|dream catchers?|wind chimes?"],["Clocks","clocks?"],["Photo Frames","frames?"],["Artificial Flowers & Plants","artificial|flowers?|garlands?"],["Showpieces & Figurines","showpieces?|show piece|figurines?|statues?|sculptures?|idols?"],["Candles & Holders","candles?"],["Vases","vases?"],["Mirrors","mirrors?"],["Party & Festive Decorations","birthday|balloons?|party|bridal|valentine\\w*|wedding|festival|diwali"],["Fountains","fountains?"],["Decorative Stones & Pebbles","stones?|pebbles"],["Key Holders & Wall Hangers","key holders?|wall hangers?"]],"Home Cleaning & Laundry":[["Mops & Brooms","mops?|brooms?|jhadu|jharu|wiper|squeegee"],["Laundry Baskets & Bags","laundry"],["Garbage Bags & Dustbins","garbage|dustbins?|trash"],["Wipes & Tissues","wipes?|tissues?|napkins?"],["Mosquito & Pest Control","mosquito\\w*|insect|cockroach|rat|naphthalene|repellent|nets?"],["Air Fresheners","freshener|odonil"],["Clothes Drying","drying|dryer|clips?|pegs?|clothesline"],["Detergent & Cleaning Powders","detergent|washing powder|bleaching|descal\\w*|drum|powder|paste|tablets?"],["Cleaning Cloths & Brushes","cloths?|brush\\w*|dusters?|sponges?"]],"Garden & Plants":[["Seeds","seeds?"],["Fertilizers & Soil","fertili\\w*|manure|compost|vermicompost|cocopeat|coco peat|soil|potting|mulch|npk"],["Pots & Planters","pots?|planters?|grow ?bags?"],["Garden Tools & Watering","tools?|watering|hose|sprayers?|netting|irrigation"],["Plants & Saplings","saplings?|plants?|bonsai|succulents?"]],"Tools & Hardware":[["Bathroom Fittings","taps?|faucets?|shower\\w*|bathroom|soap (dish|case|stand|holder)|towel (rod|rail|ring)|toothbrush holder|brush holder"],["Locks & Door Fittings","locks?|padlocks?|hinges?|door|handles?"],["Measuring Tapes","measur\\w*"],["Plumbing & Pipes","pipes?|plumbing|hose"],["Adhesive & Packing Tapes","tapes?"],["Fasteners & Sealants","nails|screws?|nuts?|bolts?|sealant|m ?seal|cable ties?|zip ties?"],["Ladders","ladders?"],["Hand Tools & Kits","screwdrivers?|spanners?|wrench\\w*|pliers?|hammers?|allen|socket|tool ?kits?|tools?"]],"Religious & Pooja Items":[["Agarbatti & Dhoop","agarbatti|incense|dhoop|dhup|loban|camphor|kapoor|havan|cones?"],["Diyas & Lamps","diyas?|deepak|akhand"],["Malas & Rudraksha","mala|rudraksha|jaa?p"],["Idols & Murtis","idols?|murti|god|ganesh\\w*|ganpati|laxmi|lakshmi|krishna|shiva?|hanuman|gopal|radha|sai baba|jesus"],["Pooja Accessories","pooja|puja|kalash|aarti|kumkum|chandan|thali|temple"]],"Furniture":[["Tables & Desks","tables?|desks?"],["Chairs & Stools","chairs?|stools?"],["Sofas & Bean Bags","sofas?|bean ?bags?|recliner|diwan"],["Cabinets & Wardrobes","cabinets?|almirah|wardrobes?|bookshel\\w*"],["Beds & Cots","beds?|cots?"]],"Appliance Spares & Filters":[["Water Filters & Cartridges","filters?|cartridges?|membrane|candle"],["Washing Machine Spares","washing machine"],["Cooler & AC Spares","cooler|ac"]],"Electrical & Hardware":[["Wires & Cables","wires?|cables?"],["Switches & Sockets","switch\\w*|sockets?|plugs?|mcb|holders?|boards?"],["Electrical Tapes","tapes?"]],"Toys & Baby Products":[["Diapers","diapers?|nappy|nappies|langot|baby pants"],["Baby Wipes","wipes?"],["Baby Care & Feeding","baby care|feeding|bottles?|nipples?|teethers?|bibs?|baby (lotion|oil|shampoo|powder|soap)|combo"],["Soft Toys","soft toys?|teddy|stuffed|plush"],["Slime & Clay","slime|clay|putty"],["Learning & Educational Toys","learning|educational|puzzles?|building blocks|lego|board games?|activity"],["Role Play Toys","doctor|kitchen set|role play|pretend"],["Toy Guns & Blasters","guns?|blasters?|darts"],["Fidget & Spinning Toys","fidget|squishy|spinning|beyblade|spinners?"],["Vehicle & RC Toys","rc|remote control|cars?|vehicles?|pull along|trucks?|planes?|helicopters?|trains?|bikes?|motorcycles?|diecast|die cast"],["Outdoor Toys & Ride-ons","outdoor|ride on|tricycles?|walkers?|strollers?|prams?|swings?"],["Dolls","dolls?"],["Money Banks","money bank|piggy bank|coin bank"]],"Health & Wellness":[["Foot Care & Detox","foot|feet|detox|corn|callus"],["Sanitary & Period Care","sanitary|period|menstrual|pads|stayfree|whisper|panty liners?"],["Sexual Wellness","condoms?|sexual|stamina|delay"],["Supports & Braces","supports?|belts?|braces?|posture|orthop\\w*|knee"],["Pain Relief","pain|balm|ointment|relief"],["Foot Care & Detox","foot|feet|detox|corn|callus"],["Weight Management","weight|slimming"],["Masks & First Aid","masks?|n95|first aid|bandages?"],["Adult Diapers","adult diapers?|adult"],["Supplements & Vitamins","supplements?|vitamins?|multivitamin|protein|whey|gummies|capsules?|tablets?"],["Ayurvedic & Herbal","ayurved\\w*|herbal|churna|kadha|powder|ras|allopathy|homeopath\\w*"],["Medicines & Patches","medicines?|patch\\w*"]],"Mobile Accessories (non-electric)":[["Screen Guards & Glass","screen|glass|protectors?"],["Back Covers & Cases","covers?|cases?|skins?"],["Stands & Holders","stands?|holders?|grips?|selfie stick|tripod|straps?"]],"Bags & Luggage":[["Trolleys & Suitcases","trolley|suitcases?|luggage"],["Backpacks","back ?packs?|bag ?packs?|rucksacks?|school bags?|laptop bags?"],["Duffel & Travel Bags","duffel|duffle|travel"],["Handbags & Sling Bags","handbags?|hand bags?|sling|totes?|satchel|clutch\\w*|cross ?body|shoulder bags?"],["Wallets & Purses","wallets?|purses?|card holders?"],["Pouches","pouch\\w*"]],"Home Storage & Organisers":[["Shoe Racks & Organisers","shoe\\w*"],["Jewellery & Makeup Organisers","jewell?\\w*|makeup|vanity|cosmetics?"],["Hooks & Hangers","hooks?|hangers?"],["Storage Bags & Covers","bags?|covers?|vacuum"],["Storage Boxes & Drawers","box\\w*|bins?|containers?|drawers?|chest"],["Racks & Shelves","racks?|shel(f|ves)|stands?"],["Baskets","baskets?"]],"Car & Bike Accessories":[["Helmets","helmets?"],["Vehicle Covers","covers?"],["Vehicle Tool Kits","tools?|kits?"],["Car Interior","seat|car mat|steering|dashboard|interior|cushions?|neck rest|organi\\w*"],["Car Exterior & Care","wipers?|bumper|mud ?guard|wash\\w*|polish|tyres?|tires|stickers?|beading|exterior|car"],["Bike Accessories","bikes?|motorcycles?|scooty|scooters?|two wheeler|activa|splendor|pulsar|bullet|royal enfield|crash guard"]],"Books & Stationery":[["Notebooks & Diaries","notebooks?|diar\\w*|registers?|note books?"],["Pens & Pencils","pens?|pencils?|markers?|highlighter|crayons?|sketch\\w*"],["Art & Craft","art|craft|drawing|colou?rs?|paint\\w*"],["Office & School Supplies","sticky|files?|folders?|erasers?|sharpeners?|geometry|calendars?|envelopes?|stamp|whiteboard|chalk|slate|papers?"],["Books","books?|novels?|regionalbooks|guide|edition|collection|story|stories"]],"Sports & Fitness":[["Fishing","fish\\w*|baits?|lures?|angler|groundbait|hooks?|rods?|reels?"],["Yoga","yoga"],["Cricket","cricket|bats?"],["Racket Sports","badminton|tennis|rackets?|racquets?|shuttle\\w*"],["Ball Sports","football|basketball|volleyball|balls?"],["Indoor Games","carrom|chess|ludo|board"],["Cycling & Skating","cycles?|bicycles?|skates?|skating|skateboard|cycling"],["Swimming","swim\\w*"],["Boxing","boxing|punching"],["Gym & Fitness Equipment","dumbbells?|kettlebells?|weights?|plates?|resistance|tubes?|bands?|push ?up|pull ?up|ab roller|hand grip|grippers?|fitness|exercise|gym|workout|skipping|jump rope|shakers?|gloves?"]],"Home Furnishing":[["Table Covers & Linen","table (covers?|cloths?|runners?|linen)|place ?mats?|tblcl"],["Sofa & Chair Covers","sofa|chairs?|slip ?covers?|slipcover"],["Appliance Covers","washing machine|fridge|refrigerator|tv|ac|cooler|microwave|appliance|purifier|ro|geyser|mixer|printer|covers?"],["Towels","towels?"],["Doormats & Floor Mats","door ?mats?|doormats?|floor mats?|bath mats?"],["Rugs & Carpets","rugs?|carpets?|runners?"],["Other Mats","mats?"]],"Food & Grocery":[["Pickles, Jams & Spreads","peanut butter"],["Snacks & Sweets","cookies|biscuits?"],["Dry Fruits & Nuts","dry ?fruits?|almonds?|badam|cashews?|kaju|pistas?|pistachios?|walnuts?|akhrot|raisins?|kishmish|anjeer|figs|dates|khajur|makhana|foxnuts?|nuts?"],["Seeds","seeds?"],["Spices & Masala","spices?|masala|pepper|elaichi|cardamom|saffron|kesar|haldi|jeera"],["Tea & Coffee","tea(?! time)|coffee"],["Snacks & Sweets","snacks?|namkeen|biscuits?|cookies|chocolates?|candy|candies|chikki|katli|sweets?|papad|fryums"],["Pickles, Jams & Spreads","pickles?|achar|jams?|peanut butter|spreads?"],["Staples","rice|atta|flour|dal|pulses|sugar|jaggery|gur|salt|basmati|noodles|pasta"],["Mouth Fresheners","mukhwas|mouth freshener|mints?"]],"Eyewear":[["Sunglasses","sunglass\\w*|goggles?"],["Spectacles & Frames","spectacles?|frames?|eye ?glasses|eyeglass\\w*|optical|reading|computer|blue"]],"Sewing & Craft Supplies":[["Sewing Kits & Tools","sewing|needles?|tailoring|scissors?|kits?"],["Embroidery & Lace","embroidery|lace|laces"],["Buttons & Zippers","buttons?|zippers?|zips?"],["Beads & Craft","beads|craft|crochet|knitting"],["Threads & Yarn","threads?|threat|yarn|wool|tubes?"]],"Electronics Accessories (non-electric)":[["Mouse Pads & Desk Mats","mouse ?pads?|mousepad|desk ?mats?|deskpad"],["Laptop Tables & Stands","laptop|tables?"],["TV Mounts & Stands","tv|mounts?|brackets?"],["Appliance Stands & Trolleys","stands?|trolley"]],"Pet Supplies":[["Collars, Leashes & Harnesses","collars?|leash\\w*|harness\\w*"],["Pet Toys","toys?|balls?|teasing"],["Pet Health & Grooming","health|supplements?|shampoo|grooming|tick|flea"],["Aquarium & Bird Supplies","aquarium|bird\\w*|cages?"],["Pet Food & Treats","food|biscuits?|treats?|gravy|millet|seeds?"]],"Gifts, Festive & Party":[["Rakhi","rakhis?"],["Party & Birthday Decor","birthday|party|balloons?|banners?|confetti|anniversary"],["Festive & Kites","diwali|holi|gulal|festive|crackers?|fireworks?|kites?|manjha"],["Gift Sets & Hampers","gifts?|hampers?"]],"Packaging Material":[["Bubble Wrap","bubble"],["Poly & Courier Bags","poly\\w*|courier|carry"]]},"remap":{"Oral Care":"Beauty & Health|","Winterwear & Jackets":"Apparel|","Televisions":"Big Electronic Appliances|","Wearables":"Electronics|Watch Straps & Accessories","Hair Care (non-liquid)":"Beauty & Health|Hair Care","Books & Stationery":"Toys, Books & Hobbies|","Mobile & Computer Accessories":"Electronics|","Electrical & Hardware":"Automotive & Tools|Electrical Supplies","Socks":"Apparel|","Curtains":"Home & Kitchen|Curtains & Furnishing","Other Kitchen Items":"Home & Kitchen|Kitchen Tools & Gadgets","Eyewear":"Fashion Accessories|","Makeup":"Beauty & Health|","Topwear":"Apparel|","Storage & Containers":"Home & Kitchen|Kitchen Storage & Containers","Inverters, Treadmills & Others":"Big Electronic Appliances|","Personal Care Appliances":"Electronics|","Kitchen Tools & Gadgets":"Home & Kitchen|","Bags & Luggage":"Fashion Accessories|","Bedsheets & Bedding":"Home & Kitchen|","Furniture":"Home & Kitchen|","Microwaves, Ovens & Chimneys":"Big Electronic Appliances|","Gifts, Festive & Party":"Toys, Books & Hobbies|","Hair Care Liquids":"Beauty & Health|Hair Care","Electronics Accessories (non-electric)":"Electronics|","Packaging Material":"Others|","Kitchen Appliances":"Electronics|","Religious & Pooja Items":"Home & Kitchen|","Pet Supplies":"Others|Pet & Animal Supplies","Earrings":"Fashion Accessories|","Appliance Spares & Filters":"Electronics|","Rings":"Fashion Accessories|","Home Furnishing":"Home & Kitchen|Curtains & Furnishing","Anklets & Toe Rings":"Fashion Accessories|","Skin Care":"Beauty & Health|","Automotive Liquids":"Automotive & Tools|Vehicle Fluids & Care","Car & Bike Accessories":"Automotive & Tools|","Edible Liquids":"Food Items|Other Food","Skin & Body Liquids":"Beauty & Health|Skin Care","Bluetooth Speakers":"Small Electronics|","Innerwear & Nightwear":"Apparel|","Medicinal Liquids":"Beauty & Health|Health & Wellness","Home Cleaning & Laundry":"Home & Kitchen|Cleaning & Laundry","Home Storage & Organisers":"Home & Kitchen|Storage & Organisers","Slippers & Flip Flops":"Footwear|","Shoes":"Footwear|","Mobile Accessories (non-electric)":"Electronics|Mobile & Computer Accessories","Ethnic Wear":"Apparel|","Bottomwear":"Apparel|","Perfumes & Deodorants":"Beauty & Health|Fragrances","Lighting":"Electronics|","Air Conditioners & Coolers":"Big Electronic Appliances|","Grooming & Personal Care":"Beauty & Health|","Unclassified":"Unidentified|Unidentified","Home & Other Appliances":"Electronics|","Tools & Hardware":"Automotive & Tools|","Washing Machines & Dishwashers":"Big Electronic Appliances|","Food & Grocery":"Food Items|Other Food","Fashion Accessories":"Fashion Accessories|Belts, Caps & Other Accessories","Earphones & Headphones":"Small Electronics|","Cookware":"Home & Kitchen|","Mobiles":"Small Electronics|","Sets & Other Apparel":"Apparel|","Sandals & Ethnic Footwear":"Footwear|","Dinnerware & Drinkware":"Home & Kitchen|","Water Heaters & Purifiers":"Big Electronic Appliances|","Audio":"Electronics|Audio Accessories & Others","Smart Watches":"Small Electronics|","Home Utility":"Home & Kitchen|Storage & Organisers","Home Decor":"Home & Kitchen|","Dresses & Gowns":"Apparel|","Watches":"Fashion Accessories|","Bath & Body":"Beauty & Health|","Necklaces, Chains & Pendants":"Fashion Accessories|","Jewellery Sets & Others":"Fashion Accessories|","Pillows & Cushions":"Home & Kitchen|Mattresses & Pillows","Nose & Head Jewellery":"Fashion Accessories|","Sewing & Craft Supplies":"Toys, Books & Hobbies|Art, Craft & Sewing","Sports & Fitness":"Toys, Books & Hobbies|","Toys & Baby Products":"Toys, Books & Hobbies|","Refrigerators & Freezers":"Big Electronic Appliances|","Cleaning & Household Liquids":"Home & Kitchen|Cleaning & Laundry","Mattress":"Home & Kitchen|Mattresses & Pillows","Health & Wellness":"Beauty & Health|","Bangles & Bracelets":"Fashion Accessories|","Kitchen Racks & Linen":"Home & Kitchen|","Garden & Plants":"Home & Kitchen|"},"remapSS":{"Food & Grocery|Spices & Masala":"Food Items|Spices & Masala","Edible Liquids|Juices":"Food Items|Juices & Beverages","Food & Grocery|Tea & Coffee":"Food Items|Tea & Coffee","Skin & Body Liquids|Body & Massage Oils":"Beauty & Health|Bath & Body","Other Liquids|Liquid Skin Care":"Beauty & Health|Skin Care","Other Liquids|Inks":"Toys, Books & Hobbies|Books & Stationery","Edible Liquids|Cooking Oils":"Food Items|Edible Oils & Ghee","Other Liquids|Animal Health Liquids":"Others|Pet & Animal Supplies","Food & Grocery|Staples":"Food Items|Staples (Atta, Rice, Dal)","Food & Grocery|Seeds":"Food Items|Dry Fruits, Nuts & Seeds","Other Liquids|Other":"Beauty & Health|Skin Care","Skin & Body Liquids|Liquid Makeup & Removers":"Beauty & Health|Makeup","Food & Grocery|Dry Fruits & Nuts":"Food Items|Dry Fruits, Nuts & Seeds","Perfumes & Deodorants|Car Perfumes":"Automotive & Tools|Car & Bike Accessories","Edible Liquids|Honey":"Food Items|Honey","Other Liquids|Glue & Resin":"Automotive & Tools|Paints & Adhesives","Edible Liquids|Sauces & Ketchup":"Food Items|Pickles, Jams & Sauces","Edible Liquids|Ghee":"Food Items|Edible Oils & Ghee","Skin & Body Liquids|Nail Polish & Removers":"Beauty & Health|Makeup","Edible Liquids|Beverages":"Food Items|Juices & Beverages","Food & Grocery|Pickles, Jams & Spreads":"Food Items|Pickles, Jams & Sauces","Skin & Body Liquids|Body Wash & Hand Wash":"Beauty & Health|Bath & Body","Edible Liquids|Vinegar":"Food Items|Pickles, Jams & Sauces","Other Liquids|Liquid Lip & Makeup":"Beauty & Health|Makeup","Other Liquids|Polishes":"Automotive & Tools|Vehicle Fluids & Care","Other Liquids|Oils":"Beauty & Health|Bath & Body","Other Liquids|Paints & Colours":"Automotive & Tools|Paints & Adhesives","Other Liquids|Laundry Liquids":"Home & Kitchen|Cleaning & Laundry","Other Liquids|Cleaners":"Home & Kitchen|Cleaning & Laundry","Food & Grocery|Snacks & Sweets":"Food Items|Snacks & Sweets","Food & Grocery|Mouth Fresheners":"Food Items|Snacks & Sweets","Other Liquids|Sprays":"Beauty & Health|Skin Care"},"overrides":[]};
+  function norm(s) { return String(s).toLowerCase().replace(/[_\-\/\\]/g, ' ').replace(/'/g, '').replace(/\s+/g, ' ').trim(); }
+  function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  var RULES = R.rules.map(function (x) { return { m: x[0], s: x[1], rx: new RegExp(x[2], 'i'), not: x[3] ? new RegExp(x[3], 'i') : null, feat: x[4] ? new RegExp(x[4], 'gi') : null }; });
+  var NONLIQ_MAINS = new Set(R.nonLiqMains), NONLIQ_SUBS = new Set(R.nonLiqSubs), VAGUE = new Set(R.vague);
+  var SS = {}; Object.keys(R.ss).forEach(function (k) { SS[k] = R.ss[k].map(function (e) { return { n: e[0], rx: new RegExp('\\b(?:' + e[1] + ')\\b', 'i') }; }); });
+  var cut = RULES.findIndex(function (r) { return r.s === 'Other Kitchen Items'; });
+  var PRODUCT_RULES = RULES.slice(0, cut < 0 ? RULES.length : cut).filter(function (r) { return r.m !== R.LQ; });
+  var OVERRIDES = R.overrides.map(function (o) { return { type: o[1], m: o[2], s: o[3], liq: o[4] === 'Yes' ? 'Yes' : 'No', key: norm(o[0]),
+    rx: o[1] === 'regex' ? new RegExp(o[0], 'i') : o[1] === 'contains' ? new RegExp('\\b' + esc(norm(o[0])) + '\\b', 'i') : null }; });
+  var UN = 'Unidentified';
+  function firstRule(text, list) { list = list || RULES; for (var i = 0; i < list.length; i++) { var r = list[i]; if (r.rx.test(text) && !(r.not && r.not.test(r.feat ? text.replace(r.feat, ' ') : text))) return r; } return null; }
+  function subSub(sub, text) { var l = SS[sub]; if (!l) return sub; for (var i = 0; i < l.length; i++) if (l[i].rx.test(text)) return l[i].n; return 'Other'; }
+  function finalCat(sub, ss) { var v = R.remapSS[sub + '|' + ss] || R.remap[sub]; if (!v) return ['Others', sub]; var p = v.split('|'); return [p[0], p[1] || sub]; }
+  function matchOverride(desc, text) {
+    if (!OVERRIDES.length) return null; var nd = norm(desc);
+    for (var i = 0; i < OVERRIDES.length; i++) { var o = OVERRIDES[i]; if (o.type === 'exact' ? o.key === nd : o.rx && o.rx.test(text)) return o; }
+    return null;
+  }
+  // rows: [[awb, desc, cat], ...] -> [{m, s, ss, liq}]
+  function categorize(rows) {
+    var n = rows.length, sub = new Array(n), main = new Array(n), texts = new Array(n), votes = new Map(), memo = new Map();
+    for (var i = 0; i < n; i++) {
+      var awb = String(rows[i][0] || ''), desc = String(rows[i][1] || ''), cat = String(rows[i][2] || '');
+      var clean = desc;
+      if (/(FPL|MEO|MEL)$/i.test(awb)) { var t = desc.split(' '); if (t.length >= 3 && /^[A-Z0-9]{2}$/.test(t[1])) clean = t[0] + ' ' + t.slice(2).join(' '); }
+      var text = norm(clean), nc = norm(cat);
+      if (cat && cat.toLowerCase() !== desc.toLowerCase() && !VAGUE.has(nc)) text += ' | ' + nc;
+      texts[i] = text;
+      var r;
+      if (memo.has(text)) r = memo.get(text); else { r = firstRule(text); memo.set(text, r); }
+      main[i] = r ? r.m : R.OT; sub[i] = r ? r.s : 'Unclassified';
+      if (/^\d{5,}$/.test(cat) && sub[i] !== 'Unclassified') { var v = votes.get(cat) || new Map(), k = main[i] + '|' + sub[i]; v.set(k, (v.get(k) || 0) + 1); votes.set(cat, v); }
+    }
+    for (i = 0; i < n; i++) {
+      if (sub[i] !== 'Unclassified') continue;
+      var nc2 = norm(rows[i][2] || ''); if (!VAGUE.has(nc2)) continue;
+      var r2 = firstRule(norm(rows[i][1] || '') + ' | ' + nc2); if (r2) { main[i] = r2.m; sub[i] = r2.s; }
+    }
+    for (i = 0; i < n; i++) {
+      if (sub[i] !== 'Unclassified' || !votes.has(String(rows[i][2]))) continue;
+      var best = null, bc = -1; votes.get(String(rows[i][2])).forEach(function (c, k) { if (c > bc) { best = k; bc = c; } });
+      var bp = best.split('|'); main[i] = bp[0]; sub[i] = bp[1];
+    }
+    var out = new Array(n);
+    for (i = 0; i < n; i++) {
+      var ov = matchOverride(rows[i][1] || '', texts[i]);
+      if (ov) { out[i] = { m: ov.m, s: ov.s, ss: ov.s, liq: ov.liq }; continue; }
+      var s = sub[i], liq = main[i] === R.LQ ? 'Yes' : 'No';
+      if (s === 'Other Liquids') { var r3 = firstRule(texts[i], PRODUCT_RULES); if (r3) { s = r3.s; if (NONLIQ_MAINS.has(r3.m) || NONLIQ_SUBS.has(s)) liq = 'No'; } }
+      var ssv = subSub(s, texts[i]), fc = finalCat(s, ssv), m = fc[0];
+      out[i] = { m: m, s: m === UN ? UN : fc[1], ss: m === UN ? UN : ssv, liq: liq };
+    }
+    return out;
+  }
+  var api = { categorize: categorize, order: R.order };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.CATZ = api;
+})(typeof window !== 'undefined' ? window : this);
+
 /* Shadowfax Visibility Dashboard - classification and analytics engine (pure logic, no DOM). */
 (function (root, factory) {
   var api = factory();
@@ -496,12 +768,12 @@ table.grid.tree th{position:static}
   var CONFIG = {
     sheetPriority: ['Base', 'Short_Dispatched'],
     tabs: {
-      overall: { label: 'DCH Overall Pendency', manifestType: 'DCH2',  ageMin: null, ageMax: null },
-      fwd:  { label: 'Forward Short Shipment Pendency', manifestType: 'ALL', ageMin: null, ageMax: null },
-      mm:   { label: 'MM Liability',        manifestType: 'DCH2',  ageMin: null, ageMax: null },
-      lh:   { label: 'LH Liability',        manifestType: 'DCH2',  ageMin: null, ageMax: null },
-      lm:   { label: 'LM Liability',        manifestType: 'DCH2',  ageMin: null, ageMax: null },
-      dcdc: { label: 'DC-DC Short',         manifestType: 'DC-DC', ageMin: null, ageMax: null }
+      overall: { label: 'DCH Overall Pendency', manifestType: 'DCH2',  ageMin: 3, ageMax: 15 },
+      fwd:  { label: 'Forward Short Shipment Pendency', manifestType: 'ALL', ageMin: 3, ageMax: 15 },
+      mm:   { label: 'MM Liability',        manifestType: 'DCH2',  ageMin: 3, ageMax: 15 },
+      lh:   { label: 'LH Liability',        manifestType: 'DCH2',  ageMin: 3, ageMax: 30 },
+      lm:   { label: 'LM Liability',        manifestType: 'DCH2',  ageMin: 3, ageMax: 15 },
+      dcdc: { label: 'DC-DC Short',         manifestType: 'DC-DC', ageMin: 3, ageMax: 15 }
     },
     laneValueThreshold: 30000,   // lane exposure strictly greater than this is flagged
     hovValueThreshold: 5000,     // HOV list threshold, strictly greater than
@@ -773,6 +1045,15 @@ table.grid.tree th{position:static}
   }
 
   // ---------- Dataset build ----------
+  // Main / Sub category from the AWB Categorizer rules (product_names + product_categories + AWB).
+  // Run once over the whole day, because a numeric seller category borrows the majority category of its code.
+  function ensureCategories(records) {
+    var CZ = (typeof window !== 'undefined' && window.CATZ) || (typeof require === 'function' ? (function () { try { return require('./categorizer.js'); } catch (e) { return null; } })() : null);
+    if (!CZ || !records.length || records.every(function (r) { return r.mainCat; })) return records;
+    var out = CZ.categorize(records.map(function (r) { return [r.awb, r.pname, r.pcat]; }));
+    records.forEach(function (r, i) { r.mainCat = out[i].m; r.subCat = out[i].s; r.subSubCat = out[i].ss; r.liquid = out[i].liq; });
+    return records;
+  }
   function buildDataset(headers, aoaRows, sheetName) {
     var res = resolveHeaders(headers, aoaRows);
     if (!res.ok) return { ok: false, missing: res.missing, errors: ['Missing required column(s): ' + res.missing.join(', ')] };
@@ -785,6 +1066,7 @@ table.grid.tree th{position:static}
       records.push(rec);
       awbCount.set(rec.awb, (awbCount.get(rec.awb) || 0) + 1);
     });
+    ensureCategories(records);
     var dupAwbs = []; awbCount.forEach(function (n, k) { if (n > 1) dupAwbs.push([k, n]); });
     var diag = {
       sheetName: sheetName, sourceRows: aoaRows.length, records: records.length, blankAwbRowsSkipped: blankAwb,
@@ -802,8 +1084,9 @@ table.grid.tree th{position:static}
   function population(records, tab, f) {
     var cfg = CONFIG.tabs[tab];
     var mt = (f && f.manifestType) ? f.manifestType : cfg.manifestType;
-    var lo = (f && f.ageMin !== undefined && f.ageMin !== null) ? f.ageMin : cfg.ageMin;
-    var hi = (f && f.ageMax !== undefined && f.ageMax !== null) ? f.ageMax : cfg.ageMax;
+    // An empty ageing box means every ageing day, even though the tab presets a window.
+    var lo = (f && f.ageMin !== undefined) ? f.ageMin : cfg.ageMin;
+    var hi = (f && f.ageMax !== undefined) ? f.ageMax : cfg.ageMax;
     return records.filter(function (r) {
       if (!(mt === 'ALL' || r.mt === mt)) return false;
       if (r.age === null) return lo === null && hi === null;   // unaged rows show only when no bound is set
@@ -882,6 +1165,8 @@ table.grid.tree th{position:static}
     hov:      { label: 'HOV status',             get: function (r) { return r.hov ? 'HOV' : 'NON HOV'; } },
     pname:    { label: 'Product Name',           get: function (r) { return r.pname || '(blank)'; } },
     pcat:     { label: 'Product Category',       get: function (r) { return r.pcat || '(blank)'; } },
+    mainCat:  { label: 'Main Category',          get: function (r) { return r.mainCat || 'Unidentified'; } },
+    subCat:   { label: 'Sub Category',           get: function (r) { return r.subCat || 'Unidentified'; } },
     wrongDest:{ label: 'Wrongly connected destination', get: function (r) { return r.wrongDest || 'NA'; } },
     bucket:   { label: 'MM liability bucket',    get: function (r) { return mmBucketOf(r); } },
     mmColl:   { label: 'MM collated bucket',     get: function (r) { return r.mmColl; } },
@@ -1000,7 +1285,7 @@ table.grid.tree th{position:static}
   }
 
   // ---------- Filters ----------
-  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser', 'ageBand', 'mmColl', 'lmColl', 'region'];
+  var FILTER_FIELDS = ['loc', 'mmReason', 'bucket', 'ageBucket', 'mmRemarks', 'lmRemarks', 'landroval', 'hov', 'hov2', 'lmClass', 'lane', 'tert', 'bag', 'origin', 'dest', 'mcode', 'amid', 'pname', 'pcat', 'category', 'pod', 'podZone', 'seller', 'wrongDest', 'actionUser', 'ageBand', 'mmColl', 'lmColl', 'region', 'mainCat', 'subCat'];
   function filterValue(r, field, ctx) {
     if (field === 'ageBucket') return ageBucket(r.age);
     if (field === 'category') return ctx && ctx.laneCat ? (ctx.laneCat[r.lane] || '(none)') : '(none)';
@@ -1060,6 +1345,9 @@ table.grid.tree th{position:static}
   function derivedColumns() {
     return [
       { h: 'Action_User', get: function (r) { return r.actionUser || ''; } },
+      { h: 'Main_Category', get: function (r) { return r.mainCat || ''; } },
+      { h: 'Sub_Category', get: function (r) { return r.subCat || ''; } },
+      { h: 'Liquid', get: function (r) { return r.liquid || ''; } },
       { h: 'Ageing_Bucket', get: function (r) { return ageBucket(r.age); } },
       { h: 'MM_Classification', get: function (r) { return r.mmCls; } },
       { h: 'MM_Liability_Reason', get: function (r) { return r.mmReason || ''; } },
@@ -1084,7 +1372,7 @@ table.grid.tree th{position:static}
     resolveHeaders: resolveHeaders, buildRecord: buildRecord, classifyRecord: classifyRecord, classifyMM: classifyMM,
     buildDataset: buildDataset, population: population, tabRows: tabRows, reviewRows: reviewRows, reviewReason: reviewReason,
     pivot: pivot, summary: summary, analyzeLanes: analyzeLanes, applyFilters: applyFilters, filterValue: filterValue,
-    criticality: criticality, countBy: countBy, lmBucket: lmBucket, mmBucketOf: mmBucketOf, mmCollated: mmCollated, lmCollated: lmCollated, ageBand: ageBand, AGE_BAND_MAX: AGE_BAND_MAX, toCsv: toCsv, baseColumns: baseColumns, derivedColumns: derivedColumns
+    criticality: criticality, countBy: countBy, lmBucket: lmBucket, mmBucketOf: mmBucketOf, mmCollated: mmCollated, lmCollated: lmCollated, ageBand: ageBand, AGE_BAND_MAX: AGE_BAND_MAX, toCsv: toCsv, baseColumns: baseColumns, derivedColumns: derivedColumns, ensureCategories: ensureCategories
   };
 });
 
@@ -1236,6 +1524,87 @@ table.grid.tree th{position:static}
     });
   }
 
+  /* ---------- daily Drive snapshots ---------- */
+  // One gzipped JSON file per reporting day in Drive. Loading a day is one or two calls instead of
+  // paging 39k rows out of the sheet, so the dashboard opens in seconds on any machine.
+  var SNAP_PART = 5000000;   // base64 characters per upload call
+
+  function dayKey(ds) {
+    var m = /(\d{2})-(\d{2})-(\d{4})/.exec(ds.reportingDate || ds.fileName || '');
+    if (m) return m[3] + '-' + m[2] + '-' + m[1];
+    var d = new Date(ds.uploadedAt || Date.now());
+    var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  }
+  function gzipB64(text) {
+    var s = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
+    return new Response(s).blob().then(function (b) {
+      return new Promise(function (ok, bad) {
+        var fr = new FileReader();
+        fr.onload = function () { ok(String(fr.result).split(',')[1] || ''); };
+        fr.onerror = function () { bad(fr.error); };
+        fr.readAsDataURL(b);
+      });
+    });
+  }
+  function gunzipB64(b64) {
+    return fetch('data:application/octet-stream;base64,' + b64).then(function (r) { return r.blob(); }).then(function (b) {
+      return new Response(b.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    });
+  }
+  function pushSnapshot(ds, onProgress) {
+    if (!configured()) return Promise.resolve({ skipped: true });
+    onProgress = onProgress || function () {};
+    var pack = sheetRows(ds), day = dayKey(ds), uploadId = 'S' + Date.now();
+    var doc = { v: 1, day: day, fileName: ds.fileName, sheetName: ds.sheetName, reportingDate: ds.reportingDate || '', uploadedAt: ds.uploadedAt, headers: pack.headers, rows: pack.rows };
+    onProgress('Saving ' + day + ' to Drive — compressing …');
+    return gzipB64(JSON.stringify(doc)).then(function (b64) {
+      var parts = Math.max(1, Math.ceil(b64.length / SNAP_PART)), i = 0;
+      function next() {
+        if (i >= parts) return Promise.resolve();
+        var k = i++;
+        onProgress('Saving ' + day + ' to Drive — part ' + (k + 1) + ' of ' + parts + ' …');
+        return post({ action: 'snapPart', day: day, uploadId: uploadId, part: k, data: b64.slice(k * SNAP_PART, (k + 1) * SNAP_PART) }).then(next);
+      }
+      return next().then(function () {
+        return post({ action: 'snapCommit', day: day, uploadId: uploadId, parts: parts, rows: pack.rows.length, fileName: ds.fileName });
+      }).then(function (r) { return { day: day, bytes: r.bytes, rows: pack.rows.length }; });
+    });
+  }
+  function listSnaps() {
+    if (!configured()) return Promise.resolve([]);
+    return get({ action: 'snaps' }).then(function (d) { return d.snaps || []; });
+  }
+  // day = 'YYYY-MM-DD' or '' for the latest saved day. Resolves to a dataset, or null when nothing is saved.
+  function pullSnapshot(day, onProgress) {
+    if (!configured()) return Promise.resolve(null);
+    onProgress = onProgress || function () {};
+    onProgress('Loading ' + (day || 'latest day') + ' from Drive …');
+    return get({ action: 'snap', day: day || '', part: 0 }).then(function (first) {
+      if (!first.parts) return null;
+      var pieces = [first.data], i = 1;
+      function more() {
+        if (i >= first.parts) return Promise.resolve();
+        var k = i++;
+        onProgress('Loading ' + first.day + ' from Drive — part ' + (k + 1) + ' of ' + first.parts + ' …');
+        return get({ action: 'snap', day: first.day, part: k }).then(function (d) { pieces.push(d.data); return more(); });
+      }
+      return more().then(function () { return gunzipB64(pieces.join('')); }).then(function (text) {
+        onProgress('Building the ' + first.day + ' dashboard …');
+        var doc = JSON.parse(text), res = V.buildDataset(doc.headers, doc.rows, doc.sheetName || 'Drive');
+        if (!res.ok) throw new Error('The saved file is missing required columns: ' + res.missing.join(', '));
+        var now = Date.now(), at = doc.uploadedAt || now;
+        return {
+          id: 'SNAP-' + first.day + '-' + at, schema: window.DASH.schema, uploadedAt: at,
+          expiresAt: now + V.CONFIG.retentionHours * 3600 * 1000,
+          fileName: doc.fileName || ('Saved ' + first.day), sheetName: doc.sheetName || 'Base',
+          reportingDate: doc.reportingDate || first.day.split('-').reverse().join('-'), day: first.day, source: 'drive',
+          diagnostics: res.diagnostics, warnings: res.warnings, headers: doc.headers, records: res.records
+        };
+      });
+    });
+  }
+
   /* ---------- RCA notes ---------- */
   function loadRca() {
     if (!configured()) return Promise.resolve({});
@@ -1263,6 +1632,7 @@ table.grid.tree th{position:static}
     ping: function () { return get({ action: 'ping' }); },
     meta: function () { return get({ action: 'meta' }); },
     pushDataset: pushDataset, pullDataset: pullDataset,
+    pushSnapshot: pushSnapshot, pullSnapshot: pullSnapshot, listSnaps: listSnaps, dayKey: dayKey,
     loadRca: loadRca, saveRca: saveRca
   };
 })();
@@ -1272,9 +1642,10 @@ table.grid.tree th{position:static}
   'use strict';
   var V = window.VIS, C = V.CONFIG;
   var TABS = ['fwd', 'mm', 'lh', 'lm'];
+  var TAB_SHORT = { fwd: 'FWD', mm: 'MM', lh: 'LH', lm: 'LM' };
   var TAB_TITLE = { fwd: 'Forward Short Shipment Pendency View', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability' };
   var TAB_FIELDS = {
-    fwd: ['loc', 'region', 'origin', 'dest', 'lane', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'hov2', 'mcode'],
+    fwd: ['loc', 'region', 'origin', 'dest', 'lane', 'pod', 'podZone', 'seller', 'mainCat', 'mmColl', 'lmColl', 'hov2', 'mcode'],
     mm: ['loc', 'region', 'dest', 'mcode', 'wrongDest', 'landroval', 'mmColl', 'lmColl', 'seller', 'hov2', 'actionUser'],
     lh: ['loc', 'region', 'lane', 'tert', 'bag', 'category', 'dest', 'mmColl', 'lmColl', 'pod', 'podZone'],
     lm: ['loc', 'region', 'dest', 'pod', 'podZone', 'seller', 'mmColl', 'lmColl', 'landroval', 'hov2', 'mcode'],
@@ -1305,8 +1676,8 @@ table.grid.tree th{position:static}
 
   var state = {
     tab: 'fwd', ds: null, records: [], expiredAt: null, lastUploadAt: null,
-    remarks: new Map(), sort: {}, colW: {}, openFilter: null, filterSearch: '',
-    mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', openSec: {}, tblMT: {}, tblMetric: {}, showFields: false, podOpen: {}, podPick: null,
+    remarks: new Map(), snaps: [], navMini: (function () { try { return localStorage.getItem('dclm-navmini') !== '0'; } catch (e) { return true; } })(), sort: {}, colW: {}, openFilter: null, filterSearch: '',
+    mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', openSec: {}, tblMT: {}, tblMetric: {}, showFields: false, podOpen: {}, catOpen: {}, podPick: null,
     pivot: { scope: 'fwd', rows: ['Current_location'], cols: ['Ageing band (20+)'], filters: [], vals: ['awb'], fsel: {}, search: '' },
     fwdRegion: '', fwdLoc: null, backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
     tabs: {}
@@ -1387,7 +1758,7 @@ table.grid.tree th{position:static}
       if (ds && ds.schema !== DS_SCHEMA) {
         state.expiredAt = ds.uploadedAt; kvDel('active').catch(function () {});
         state.notice = 'The dashboard was updated since your last upload. Re-upload the base to get the full base-column drill-downs.';
-      } else if (ds && Date.now() < ds.expiresAt) { state.ds = ds; state.records = ds.records.map(function (x) { return V.classifyRecord(x); }); }
+      } else if (ds && Date.now() < ds.expiresAt) { state.ds = ds; state.records = V.ensureCategories(ds.records.map(function (x) { return V.classifyRecord(x); })); }
       else if (ds) { state.expiredAt = ds.uploadedAt; kvDel('active').catch(function () {}); }
     }).catch(function (e) { state.storageWarning = state.storageWarning || 'Could not read saved dataset: ' + e.message; });
   }
@@ -1395,16 +1766,28 @@ table.grid.tree th{position:static}
   function parseDateFromName(name) { var m = /(\d{2})-(\d{2})-(\d{4})/.exec(name || ''); return m ? m[1] + '-' + m[2] + '-' + m[3] : ''; }
   function onUpload(file) {
     state.error = ''; state.notice = ''; state.busy = 'Reading ' + file.name + ' …'; renderAll();
-    return file.arrayBuffer().then(function (buf) {
-      var wb = XLSX.read(buf, { type: 'array', cellDates: false }), chosen = null, res = null, tried = [];
-      sheetOrder(wb).some(function (name) {
-        var aoa = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: null, raw: true, blankrows: false });
-        if (!aoa.length) return false;
-        var r = V.buildDataset(aoa[0].map(V.txt), aoa.slice(1), name);
-        tried.push(name + (r.ok ? ' (ok)' : ' (missing: ' + r.missing.join(', ') + ')'));
-        if (r.ok) { res = r; chosen = name; return true; }
-        return false;
+    var chosen = null, res = null, tried = [];
+    var tryAoa = function (name, aoa) {
+      if (!aoa || !aoa.length) return false;
+      var r = V.buildDataset(aoa[0].map(V.txt), aoa.slice(1), name);
+      tried.push(name + (r.ok ? ' (ok)' : ' (missing: ' + r.missing.join(', ') + ')'));
+      if (r.ok) { res = r; chosen = name; return true; }
+      return false;
+    };
+    // Let the "Reading…" banner paint before the heavy work starts.
+    return new Promise(function (ok) { setTimeout(ok, 30); }).then(function () { return file.arrayBuffer(); }).then(function (buf) {
+      var fast = /\.xlsx$/i.test(file.name) && window.FASTXLSX
+        ? window.FASTXLSX.read(buf, function (names) { return sheetOrder({ SheetNames: names }); }, tryAoa)
+        : Promise.resolve(null);
+      return fast.then(function (hit) {
+        if (hit) return buf;
+        // Fallback: SheetJS for .xls / .csv or anything the fast reader can't open.
+        tried = [];
+        var wb = XLSX.read(buf, { type: 'array', cellDates: false, dense: true });
+        sheetOrder(wb).some(function (name) { return tryAoa(name, XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: null, raw: true, blankrows: false })); });
+        return buf;
       });
+    }).then(function () {
       if (!res) throw new Error('No sheet has the required schema. Checked: ' + tried.join('; ') + '.');
       var now = Date.now();
       var dataset = { id: 'DS-' + now, schema: DS_SCHEMA, uploadedAt: now, expiresAt: now + C.retentionHours * 3600 * 1000, fileName: file.name, sheetName: chosen, reportingDate: parseDateFromName(file.name), diagnostics: res.diagnostics, warnings: res.warnings, headers: res.headers, records: res.records };
@@ -1417,14 +1800,21 @@ table.grid.tree th{position:static}
       }).then(function () {
         state.busy = ''; state.notice = 'Uploaded ' + num(dataset.records.length) + ' records from "' + chosen + '". All tabs recalculated.'; renderAll();
         // The sheet is the shared copy; the local dataset keeps every base column for this session.
+        // Drive snapshot first (one compressed file per day, what everyone loads), then the sheet copy.
         if (window.SYNC && window.SYNC.configured()) {
-          return window.SYNC.pushDataset(dataset, function (msg) { state.backend = msg; renderHeader(); })
+          var prog = function (msg) { state.backend = msg; renderHeader(); };
+          return window.SYNC.pushSnapshot(dataset, prog)
             .then(function (r) {
-              state.backend = ''; state.backendErr = '';
-              state.notice = 'Uploaded ' + num(dataset.records.length) + ' records and saved ' + num(r.rows) + ' rows to the Google Sheet.';
+              state.notice = 'Uploaded ' + num(dataset.records.length) + ' records · saved ' + r.day + ' to Drive (' + (r.bytes / 1048576).toFixed(1) + ' MB).';
+              refreshSnaps();
+            }, function (e) { state.backendErr = 'Drive save failed: ' + e.message; })
+            .then(function () { return window.SYNC.pushDataset(dataset, prog); })
+            .then(function (r) {
+              state.backend = '';
+              state.notice = (state.notice || '') + ' Google Sheet updated (' + num(r.rows) + ' rows).';
               renderAll();
             })
-            .catch(function (e) { state.backend = ''; state.backendErr = 'Saved locally, but the Google Sheet was not updated: ' + e.message; renderAll(); });
+            .catch(function (e) { state.backend = ''; state.backendErr = (state.backendErr ? state.backendErr + ' ' : '') + 'Google Sheet not updated: ' + e.message; renderAll(); });
         }
       });
     }).catch(function (e) { state.busy = ''; state.error = 'Upload rejected: ' + e.message + ' The previously active dataset (if still valid) is unchanged.'; renderAll(); });
@@ -1476,14 +1866,20 @@ table.grid.tree th{position:static}
     if (state.expiredAt) return '<span class="pill warn">EXPIRED</span> <span class="meta">Last upload ' + dt(state.expiredAt) + ' — older than 24 hours. Upload a fresh base.</span>';
     return '<span class="pill warn">NO DATA</span> <span class="meta">No base uploaded yet.</span>';
   }
+  var noticeTimer = null, noticeShown = '';
   function renderHeader() {
     var ds = activeDs();
-    $('#hdr').innerHTML = '<div class="hdr-main"><div class="brand"><div class="logo">S</div><div><div class="title">DC-LM Dashboard</div><div class="sub">Shadowfax · Middle Mile Audit &amp; Compliance · Daily pendency</div></div></div>' +
+    // Success notes fade after a few seconds so the header stays compact.
+    if (state.notice && state.notice !== noticeShown && !state.backend) {
+      noticeShown = state.notice; clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(function () { if (state.notice === noticeShown) { state.notice = ''; renderHeader(); } }, 7000);
+    }
+    $('#hdr').innerHTML = '<div class="hdr-main"><div class="brand"><div class="logo">S</div><div><div class="title">DC-LM Dashboard</div><div class="sub">Shadowfax · Middle Mile Audit &amp; Compliance' + (ds ? ' · <b>' + esc(ds.reportingDate || '') + '</b> · ' + num(ds.records.length) + ' rows' : '') + '</div></div></div>' +
       '<div class="hdr-right"><label class="btn primary" for="upload">Upload Daily Base</label><input id="upload" type="file" accept=".xlsx,.xls,.csv" hidden />' +
       '<button class="btn" data-act="fields">Field list</button>' +
-      (window.SYNC ? '<button class="btn" data-act="pull">Load from Sheet</button><button class="btn ghost" data-act="backend">Backend</button>' : '') +
+      (window.SYNC ? daySelect() + '<button class="btn ghost" data-act="backend">Backend</button>' : '') +
       (ds ? '<button class="btn" data-act="recalc">Refresh</button>' : '') + '</div></div>' +
-      '<div class="statusbar">' + statusBlock() + (ds && ds.reportingDate ? ' <span class="meta">· Reporting date <b>' + esc(ds.reportingDate) + '</b></span>' : '') + '</div>' +
+      (ds ? '' : '<div class="statusbar">' + statusBlock() + '</div>') +
       (state.busy ? '<div class="banner info">' + esc(state.busy) + '</div>' : '') + (state.error ? '<div class="banner err">' + esc(state.error) + '</div>' : '') +
       (state.notice ? '<div class="banner ok">' + esc(state.notice) + '</div>' : '') + (state.storageWarning ? '<div class="banner warn">' + esc(state.storageWarning) + '</div>' : '') +
       (state.backend ? '<div class="banner info">' + esc(state.backend) + '</div>' : '') +
@@ -1491,6 +1887,19 @@ table.grid.tree th{position:static}
       backendBox() + fieldsPanel();
   }
 
+  function daySelect() {
+    var cur = state.ds && state.ds.day ? state.ds.day : '';
+    return '<select class="btn dayselect" data-act="loadday" title="Every upload is saved as one file per day in Drive">' +
+      '<option value="">' + (state.snaps.length ? 'Saved days (' + state.snaps.length + ')' : 'Load saved day') + '</option>' +
+      '<option value="__latest">Latest saved day</option>' +
+      state.snaps.map(function (x) {
+        return '<option value="' + esc(x.day) + '"' + (x.day === cur ? ' selected' : '') + '>' + esc(x.day.split('-').reverse().join('-')) + ' · ' + num(x.rows) + ' rows</option>';
+      }).join('') + '</select>';
+  }
+  function refreshSnaps() {
+    if (!window.SYNC || !window.SYNC.configured() || !window.SYNC.listSnaps) return Promise.resolve();
+    return window.SYNC.listSnaps().then(function (l) { state.snaps = l || []; renderHeader(); }).catch(function () {});
+  }
   function backendBox() {
     if (!window.SYNC) return '';
     if (!state.showBackend) {
@@ -1505,8 +1914,9 @@ table.grid.tree th{position:static}
   }
 
   function renderNav() {
-    $('#nav').innerHTML = '<div class="railhead">Views</div>' + TABS.map(function (t) {
-      return '<button class="tab ' + (state.tab === t ? 'on' : '') + '" data-act="tab" data-tab="' + t + '">' + TAB_TITLE[t] + '</button>';
+    var nav = $('#nav'); nav.classList.toggle('mini', !!state.navMini);
+    nav.innerHTML = '<button class="railtog" data-act="navtog" title="' + (state.navMini ? 'Expand' : 'Collapse') + ' views">' + (state.navMini ? '&#9776;' : '&#10094; Views') + '</button>' + TABS.map(function (t) {
+      return '<button class="tab ' + (state.tab === t ? 'on' : '') + '" data-act="tab" data-tab="' + t + '" title="' + esc(TAB_TITLE[t]) + '">' + (state.navMini ? TAB_SHORT[t] : TAB_TITLE[t]) + '</button>';
     }).join('');
   }
 
@@ -1537,9 +1947,9 @@ table.grid.tree th{position:static}
       '<label class="grow">Search AWB / manifest / lane / destination / location <input type="search" data-act="search" value="' + esc(s.search) + '" placeholder="Type to search…" /></label>' +
 
 
-      '<button class="btn ghost" data-act="clearall">Clear all</button></div>' +
-      '<div class="frow chips">' + chips + '</div>' +
-      '<div class="meta">Ageing from <b>Ageing_from_Bag_Rec</b> — leave both boxes empty for every ageing day, or set your own window. Multi-select per field; fields combine with AND. Click any row for its underlying data, Esc to close.</div></div>';
+      '<button class="btn ghost" data-act="clearall">Clear all</button>' +
+      '<button class="btn" data-act="basecsv" title="Every base column for the rows the filters above select">Download pendency base · ' + num(view.filtered.length) + '</button></div>' +
+      '<div class="frow chips">' + chips + '</div></div>';
   }
 
   // ---------- tables ----------
@@ -1664,9 +2074,9 @@ table.grid.tree th{position:static}
       seen[r.age] = 1;
     });
     var keys = Object.keys(seen).map(Number).sort(function (a, b) { return a - b; });
-    var cols = keys.map(function (a) { return { key: String(a), label: 'Age ' + a }; });
-    if (over) cols.push({ key: cap + '+', label: 'Age ' + cap + '+' });
-    if (!cols.length) cols = [{ key: '0', label: 'Age 0' }];
+    var cols = keys.map(function (a) { return { key: String(a), label: String(a) }; });
+    if (over) cols.push({ key: cap + '+', label: cap + '+' });
+    if (!cols.length) cols = [{ key: '0', label: '0' }];
     return cols;
   }
   function metricPicker(id) {
@@ -1815,7 +2225,9 @@ table.grid.tree th{position:static}
     if (!ds || !ds.headers) return awbCols();
     var cols = visibleBase(ds).map(function (c) { return { h: c.h, v: c.get }; });
     var buckets = [{ h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
-                   { h: 'LM collated bucket', v: function (r) { return r.lmColl; } }];
+                   { h: 'LM collated bucket', v: function (r) { return r.lmColl; } },
+                   { h: 'Main Category', v: function (r) { return r.mainCat || ''; } },
+                   { h: 'Sub Category', v: function (r) { return r.subCat || ''; } }];
     var at = cols.findIndex(function (c) { return String(c.h).toLowerCase().trim() === 'awb_number'; });
     if (at < 0) return cols.concat(buckets);
     return cols.slice(0, at + 1).concat(buckets, cols.slice(at + 1));
@@ -1908,7 +2320,7 @@ table.grid.tree th{position:static}
     return '<section class="card ' + (open ? '' : 'closed') + '" data-sec="' + esc(id) + '">' +
       '<div class="ch" data-act="sec" data-sec="' + esc(id) + '"><span class="caret">' + (open ? '&#9662;' : '&#9656;') + '</span>' +
       '<h2>' + esc(title) + '</h2></div>' +
-      '<div class="cbody">' + (note ? '<div class="meta">' + note + '</div>' : '') + inner + '</div></section>';
+      '<div class="cbody">' + inner + '</div></section>';
   }
   // The classification signals stay visible even though the category now reads Confirm / Possible.
   function laneNature(l) {
@@ -1944,10 +2356,9 @@ table.grid.tree th{position:static}
     var win = (s2.ageMin === null && s2.ageMax === null) ? 'all ageing days'
       : 'ageing ' + (s2.ageMin === null ? 'min' : s2.ageMin) + '–' + (s2.ageMax === null ? 'max' : s2.ageMax);
     var band = banded(t) ? 'ageing banded to ' + V.AGE_BAND_MAX + '+' : 'every ageing day';
-    return '<div class="tabhead"><h1>' + TAB_TITLE[t] + '</h1><div class="meta">Manifest_Type ' + c.manifestType + ' · ' + win + ' · ' + band +
-      '. Click a section heading to open or collapse it.</div></div>' +
-      '<div class="secbtns"><button class="btn small" data-act="openall">Expand all</button>' +
-      '<button class="btn small ghost" data-act="closeall">Collapse all</button></div>';
+    return '<div class="tabhead"><h1>' + TAB_TITLE[t] + '</h1>' +
+      '<button class="btn small" data-act="openall">Expand all</button>' +
+      '<button class="btn small ghost" data-act="closeall">Collapse all</button></div></div>';
   }
   // Some tables are pinned to one Manifest_Type; others let the viewer pick under the heading.
   function mtScope(rows, mt) { return mt ? rows.filter(function (r) { return r.mt === mt; }) : rows; }
@@ -1990,46 +2401,39 @@ table.grid.tree th{position:static}
     out.push(section('DC-DC Manifest Destination × ageing wise pendency', 'Manifest_Type DC-DC.',
       crossTable('fwd-dest', top(r2, 'dest', 100), 'dest', ageCols(t, r2), ag, {})));
 
-    // 4 — HOV detail, viewer picks the manifest type
-    var r4 = mtScope(all, state.tblMT['fwd-hov2k'] || '');
-    var hov2k = r4.filter(function (r) { return r.hov && r.value > C.hov2ValueThreshold; });
-    var hvCols = [
-      { h: 'Flag', v: function (r) { return r.age !== null && r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value'; },
-        f: function (r) { return '<span class="cat possible">' + (r.age !== null && r.age >= C.sellerAgedDays ? 'High value + aged' : 'High value') + '</span>'; } },
-      { h: 'AWB', v: function (r) { return r.awb; } },
-      { h: 'Current location', v: function (r) { return r.loc; } },
-      { h: 'Manifest Destination', v: function (r) { return r.dest; } },
-      { h: 'Manifest Code', v: function (r) { return r.mcode; } },
-      { h: 'Product name', v: function (r) { return r.pname || 'NA'; } },
-      { h: 'Product category', v: function (r) { return r.pcat || 'NA'; } },
-      { h: 'Seller', v: function (r) { return r.seller; } },
-      { h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
-      { h: 'LM collated bucket', v: function (r) { return r.lmColl; } },
-      { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
-      { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } }
-    ];
-    out.push(section('HOV above ₹' + num(C.hov2ValueThreshold) + ' — shipment detail (Overall)',
-      'Write findings straight into the RCA column. Click a row for the full base data.',
-      mtPicker('fwd-hov2k') + tbl('fwd-hov2k', hvCols, hov2k, { select: true, pop: hov2k, dim: 'awb', limit: 300, sort: { i: 11, dir: -1 }, rcaDim: 'awb', rcaForce: true, rcaVal: function (r) { return r.awb; } })));
-
-    // 5 — product trend, viewer picks the manifest type
+    // 5 — product trend: Main Category > Sub Category from the AWB Categorizer rules
     var r5 = mtScope(all, state.tblMT['fwd-prod'] || '');
-    var pdim = state.prodDim === 'pname' ? 'pname' : 'pcat';
-    var pdimLabel = pdim === 'pcat' ? 'Product category' : 'Product name';
-    var pRows = r5.filter(function (r) { return pdim === 'pcat' ? r.pcat : r.pname; });
-    var pg = V.pivot(pRows, [pdim]).sort(function (a, b) { return b.pendency - a.pendency; }).slice(0, 150).map(function (g) {
-      return { key: g.keys[0], n: g.pendency, hov: g.hovCount, value: g.value, _dim: pdim, _rows: g.rows, _title: pdimLabel + ': ' + g.keys[0] };
+    var mg = new Map();
+    r5.forEach(function (r) {
+      var m = r.mainCat || 'Unidentified', sc = r.subCat || 'Unidentified';
+      if (!mg.has(m)) mg.set(m, { rows: [], subs: new Map() });
+      var x = mg.get(m); x.rows.push(r);
+      if (!x.subs.has(sc)) x.subs.set(sc, []); x.subs.get(sc).push(r);
     });
-    var toggle = '<div class="subbox"><span class="meta">Trend by:</span>' +
-      ['pcat', 'pname'].map(function (d) { return '<label class="subopt"><input type="radio" name="pdim" data-act="pdim" data-val="' + d + '" ' + (pdim === d ? 'checked' : '') + ' /> ' + (d === 'pcat' ? 'Product category' : 'Product name') + '</label>'; }).join('') +
-      '<span class="meta">Blank / 0 values excluded.</span></div>';
-    out.push(section('Product trend — Category (Overall)', 'Click a row for the full base data behind it.',
-      mtPicker('fwd-prod') + toggle + tbl('fwd-prod', [
-        { h: pdimLabel, v: function (p) { return p.key; } },
-        { h: 'Pendency (AWB)', num: true, pend: true, v: function (p) { return p.n; } },
-        { h: 'HOV', num: true, v: function (p) { return p.hov; } },
+    var stat = function (rs) { var v = 0, h = 0, l = 0; rs.forEach(function (r) { v += r.value; if (r.hov) h++; if (r.liquid === 'Yes') l++; }); return { n: rs.length, value: v, hov: h, liq: l }; };
+    var prodRows = [];
+    Array.from(mg.keys()).forEach(function (m) {
+      var x = mg.get(m), st = stat(x.rows), open = !!state.catOpen[m];
+      prodRows.push(Object.assign({ key: m, cat: m, isMain: true, open: open, _dim: 'mainCat', _rows: x.rows, _title: 'Main Category: ' + m }, st));
+      if (!open) return;
+      x.subs.forEach(function (rs, sc) {
+        prodRows.push(Object.assign({ key: sc, cat: m, isMain: false, _dim: 'subCat', _rows: rs, _title: m + ' › ' + sc }, stat(rs)));
+      });
+    });
+    out.push(section('Product trend — Category (Overall)', '',
+      mtPicker('fwd-prod') + tbl('fwd-prod', [
+        { h: 'Main Category / Sub Category', v: function (p) { return p.key; },
+          f: function (p) { return p.isMain ? '<b>' + (p.open ? '&#9662;' : '&#9656;') + ' ' + esc(p.key) + '</b>' : '<span class="ind2">' + esc(p.key) + '</span>'; } },
+        { h: 'Pendency (AWB)', num: true, pend: true, v: function (p) { return p.n; }, f: function (p) { return num(p.n); } },
+        { h: 'Share', num: true, noTotal: true, v: function (p) { return r5.length ? p.n / r5.length : 0; }, f: function (p) { return r5.length ? (p.n / r5.length * 100).toFixed(1) + '%' : '—'; } },
+        { h: 'HOV', num: true, v: function (p) { return p.hov; }, f: function (p) { return num(p.hov); } },
+        { h: 'Liquid', num: true, v: function (p) { return p.liq; }, f: function (p) { return num(p.liq); } },
         { h: 'Product value ₹', num: true, money: true, v: function (p) { return p.value; }, f: function (p) { return inr(p.value); } }
-      ], pg, { select: true, pop: pRows, dim: pdim, limit: 150 })));
+      ], prodRows, { select: true, pop: r5, dim: 'mainCat', limit: 400,
+        rowAttrs: function (p, ri) { return p.isMain ? ' data-act="cattog" data-cat="' + esc(p.cat) + '"' : ' data-act="sel" data-table="fwd-prod" data-idx="' + ri + '"'; },
+        totalFilter: function (p) { return p.isMain; },
+        treeParent: function (p) { return p.isMain; }, treeGroup: function (p) { return p.cat; },
+        rowClass: function (p) { return p.isMain ? 'lane-row' : ''; } })));
 
     // 6 — seller trend, viewer picks the manifest type
     var r6 = mtScope(all, state.tblMT['fwd-seller'] || '');
@@ -2045,8 +2449,7 @@ table.grid.tree th{position:static}
       ], sellers, { select: true, pop: r6, dim: 'seller', mode: 'seller', limit: 300, rowClass: function (x) { return x.cls === 'possible' ? 'flagrow' : ''; } })));
 
     out.push(exportBtns([{ kind: 'fwd_filtered', label: 'Forward short pendency (filtered)', n: all.length },
-      { kind: 'dc_sellers', label: 'Seller trend and flags', n: sellers.length },
-      { kind: 'dc_hov2k', label: 'HOV above ₹' + num(C.hov2ValueThreshold), n: hov2k.length }]));
+      { kind: 'dc_sellers', label: 'Seller trend and flags', n: sellers.length }]));
     return out.join('');
   }
 
@@ -2117,7 +2520,7 @@ table.grid.tree th{position:static}
     var rows = view.filtered, allLanes = view.lanes || [];
     var lanes = allLanes.filter(function (l) { return l.confirmRank > 0 && l.confirmRank <= C.confirmShowMax; });
     // Default: only confirm/possible lanes. Searching a lane code (box below or the Lane chip) shows any lane, flagged or not.
-    var q = (state.laneQ || '').trim().toLowerCase(), chip = state.tabs.lh.fields.lane;
+    var q = (state.tabs.lh.search || '').trim().toLowerCase(), chip = state.tabs.lh.fields.lane;
     var searching = !!q || !!(chip && chip.size);
     var laneList = (searching ? allLanes.filter(function (l) {
         return (!q || String(l.lane).toLowerCase().indexOf(q) >= 0) && (!chip || !chip.size || chip.has(l.lane));
@@ -2134,11 +2537,8 @@ table.grid.tree th{position:static}
       kpi('AWB pendency', num(new Set(rows.map(function (r) { return r.awb; })).size), inr(rows.reduce(function (a, r) { return a + r.value; }, 0))) + '</div>'];
 
     var lt = laneList.map(function (l) { return Object.assign({}, l, { key: l.lane, _dim: 'lane', _mode: 'lane' }); });
-    var searchBox = '<div class="subbox"><span class="meta">Search lane code:</span>' +
-      '<input class="fsearch lanesearch" data-act="laneq" placeholder="Type any lane code…" value="' + esc(state.laneQ || '') + '" style="max-width:260px" />' +
-      '<span class="meta">' + (searching ? num(laneList.length) + ' matching lane' + (laneList.length === 1 ? '' : 's') + ' (lanes outside the top ' + C.confirmShowMax + ' read “Not flagged for Lane”)' : 'Blank = confirm / possible lanes only.') + '</span></div>';
     out.push(section('Lane table', 'Click a lane for its tree: tertiary lanes, manifest destinations, short validations and ageing. Click any column header to sort.',
-      searchBox + tbl('lh-lanes', [
+      tbl('lh-lanes', [
         { h: '#', num: true, noTotal: true, v: function (l) { return l.category === 'Not flagged for Lane' ? 1e9 : l.confirmRank; },
           f: function (l) { return l.category === 'Not flagged for Lane' ? '—' : String(l.confirmRank); } },
         { h: 'Lane Code', v: function (l) { return l.lane; } },
@@ -2174,13 +2574,6 @@ table.grid.tree th{position:static}
     var podAll = {};
     focusRows.forEach(function (r) { (podAll[r.pod] = podAll[r.pod] || []).push(r); });
     var podNames = Object.keys(podAll).sort(function (a, b) { return podAll[b].length - podAll[a].length; });
-    var picked = state.podPick;
-    var checks = '<div class="subbox"><span class="meta">Show POD Mapping:</span>' +
-      podNames.map(function (pn) {
-        return '<label class="subopt"><input type="checkbox" data-act="podpick" data-val="' + esc(pn) + '" ' +
-          (picked && picked.has(pn) ? 'checked' : '') + ' /> ' + esc(pn) + ' <span class="meta">(' + num(podAll[pn].length) + ')</span></label>';
-      }).join('') + '<span class="meta">None ticked = all PODs.</span></div>';
-
     function hubStats(rs, label, pod) {
       var high = rs.filter(function (r) { return r.age !== null && r.age >= LM_HIGH_AGE; });
       var byAge = {}; rs.forEach(function (r) { if (r.age !== null) byAge[r.age] = (byAge[r.age] || 0) + 1; });
@@ -2204,7 +2597,7 @@ table.grid.tree th{position:static}
     }
 
     var treeRows = [];
-    podNames.filter(function (pn) { return !picked || picked.has(pn); }).forEach(function (pn) {
+    podNames.forEach(function (pn) {
       var pr = podAll[pn], open = !!state.podOpen[pn];
       var head = hubStats(pr, pn, pn);
       head.isPod = true; head.open = open; head._title = 'POD Mapping: ' + pn;
@@ -2222,7 +2615,7 @@ table.grid.tree th{position:static}
 
     out.push(section('POD-wise top hubs to focus on',
       'Short found removed · ' + num(focusRows.length) + ' AWBs. PODs ranked by pendency; click a POD row to open its top 10 hubs (hub = Manifest_Destination). High = ageing ' + LM_HIGH_AGE + '+. Highlighted rows have a high-ageing spike, thin manifests or HOV2.',
-      checks + tbl('lm-pod', [
+      tbl('lm-pod', [
         { h: 'POD Mapping / Hub (Manifest Destination)', v: function (x) { return x.key; },
           f: function (x) { return x.isPod
             ? '<b>' + (x.open ? '&#9662;' : '&#9656;') + ' ' + esc(x.key) + '</b>'
@@ -2241,19 +2634,6 @@ table.grid.tree th{position:static}
         totalFilter: function (x) { return x.isPod; },
         treeParent: function (x) { return x.isPod; }, treeGroup: function (x) { return x.pod; },
         rowClass: function (x) { return x.isPod ? 'lane-row' : (x.focus ? 'flagrow' : ''); } })));
-
-    // HOV2 cut, ageing as a row value rather than a column
-    var hovRows = rows.filter(function (r) { return r.hov2; });
-    out.push(section('HOV2 cut — shipment detail', 'Ageing shown per row. Write findings into the RCA column.',
-      tbl('lm-hov2', [
-        { h: 'Manifest Destination', v: function (r) { return r.dest; } },
-        { h: 'HOV', v: function (r) { return r.hov ? 'HOV' : 'NON'; } },
-        { h: 'Ageing (days)', num: true, v: function (r) { return r.age === null ? -1 : r.age; } },
-        { h: 'Product value ₹', num: true, money: true, v: function (r) { return r.value; }, f: function (r) { return inr(r.value); } },
-        { h: 'MM collated bucket', v: function (r) { return r.mmColl; } },
-        { h: 'LM collated bucket', v: function (r) { return r.lmColl; } }
-      ], hovRows, { select: true, pop: hovRows, dim: 'awb', limit: 400, sort: { i: 2, dir: -1 },
-                    rcaDim: 'awb', rcaForce: true, rcaVal: function (r) { return r.awb; } })));
 
     var big = rows.filter(function (r) { return r.value > C.hovValueThreshold; });
     var crit = function (r) { return r.age !== null && r.age >= C.criticalAgeDays ? 'Critical (>5k and aged)' : 'High value (>5k)'; };
@@ -2305,6 +2685,8 @@ table.grid.tree th{position:static}
     out.push({ name: 'Ageing band (20+)', get: function (r) { return V.ageBand(r.age); } });
     out.push({ name: 'Current location region', get: function (r) { return r.region; } });
     out.push({ name: 'HOV flag', get: function (r) { return r.hov ? 'HOV' : 'NON'; } });
+    out.push({ name: 'Main Category', get: function (r) { return r.mainCat; } });
+    out.push({ name: 'Sub Category', get: function (r) { return r.subCat; } });
     return out;
   }
   function pvField(name) { return pivotFields().filter(function (x) { return x.name === name; })[0] || null; }
@@ -2457,6 +2839,14 @@ table.grid.tree th{position:static}
     var ds = activeDs(), base = (ds && ds.headers) ? visibleBase(ds) : [];
     return base.concat(V.derivedColumns(), [{ h: 'RCA', get: function (r) { return rcaText(rcaKey('awb', r.awb)); } }]);
   }
+  // The pendency base for whatever the top filters select (region, location, ageing, chips), all base columns.
+  function exportBase() {
+    var t = state.tab, f = state.tabs[t].fields, rows = computeView(t).filtered;
+    var cols = baseCols().map(function (c) { return { h: c.h, get: c.v }; });
+    var pick = function (k) { return f[k] && f[k].size ? Array.from(f[k]).slice(0, 3).join('+').replace(/[^\w+-]+/g, '_') : ''; };
+    var tag = [TAB_SHORT[t], pick('region'), pick('loc')].filter(Boolean).join('_');
+    download('Pendency_Base_' + tag + '_' + stamp() + '.csv', V.toCsv(rows, cols));
+  }
   function exportLanes(lanes, name) {
     var cols = [{ h: 'Lane Code', get: function (l) { return l.lane; } }, { h: 'Scope', get: function (l) { return l.scope; } }, { h: 'Classification_category', get: function (l) { return l.category; } },
       { h: 'Pendency', get: function (l) { return l.pendency; } }, { h: 'Unique_AWB', get: function (l) { return l.uniqueAwb; } }, { h: 'Product_Value2', get: function (l) { return l.value; } },
@@ -2574,6 +2964,8 @@ table.grid.tree th{position:static}
         renderFilters(); renderBody();
       }
       else if (act === 'resetdef') { var d = C.tabs[state.tab]; Object.assign(state.tabs[state.tab], { manifestType: d.manifestType, ageMin: d.ageMin, ageMax: d.ageMax }); renderFilters(); renderBody(); }
+      else if (act === 'navtog') { state.navMini = !state.navMini; try { localStorage.setItem('dclm-navmini', state.navMini ? '1' : '0'); } catch (e) {} renderNav(); }
+      else if (act === 'basecsv') { exportBase(); }
       else if (act === 'clearall') { Object.assign(state.tabs[state.tab], { search: '', fields: {}, valueMin: null, valueMax: null }); renderFilters(); renderBody(); }
       else if (act === 'sort') { var id = el.dataset.table, i = +el.dataset.i, cur = state.sort[id] || { i: 0, dir: -1 }; state.sort[id] = { i: i, dir: cur.i === i ? -cur.dir : -1 }; renderBody(); }
       else if (act === 'pvmove') {
@@ -2590,6 +2982,7 @@ table.grid.tree th{position:static}
         state.pivot.rows = ['Current_location']; state.pivot.cols = ['Ageing band (20+)'];
         state.pivot.filters = []; state.pivot.fsel = {}; state.pivot.vals = ['awb']; renderAll();
       }
+      else if (act === 'cattog') { var ck = el.dataset.cat; state.catOpen[ck] = !state.catOpen[ck]; renderBody(); }
       else if (act === 'podtog') { var pk = el.dataset.pod; state.podOpen[pk] = !state.podOpen[pk]; renderBody(); }
       else if (act === 'sel') { var tid = el.dataset.table, row = TCACHE[tid][+el.dataset.idx]; openPopup(tid, row); }
       else if (act === 'popclose') closePopup();
@@ -2614,7 +3007,7 @@ table.grid.tree th{position:static}
       else if (act === 'metric') { state.tblMetric[el.dataset.table] = el.dataset.val; renderBody(); }
       else if (act === 'fields') { state.showFields = !state.showFields; renderAll(); }
       else if (act === 'backend') { state.showBackend = !state.showBackend; renderHeader(); }
-      else if (act === 'pull') { if (window.SYNC && window.SYNC.configured()) pullFromSheet(); else { state.showBackend = true; renderHeader(); } }
+      else if (act === 'pull') { if (window.SYNC && window.SYNC.configured()) loadSaved(''); else { state.showBackend = true; renderHeader(); } }
       else if (act === 'apisave') {
         var inp = document.getElementById('apiurl');
         window.SYNC.setUrl(inp ? inp.value : '');
@@ -2622,7 +3015,7 @@ table.grid.tree th{position:static}
         window.SYNC.ping().then(function (r) {
           state.backend = ''; state.showBackend = false;
           state.notice = 'Backend connected. Writing to tab "' + r.sheet + '".'; renderAll();
-          return pullFromSheet();
+          refreshSnaps(); return loadSaved('');
         }).catch(function (e) { state.backend = ''; state.backendErr = 'Backend test failed: ' + e.message; renderHeader(); });
       }
     });
@@ -2635,6 +3028,7 @@ table.grid.tree th{position:static}
         if (!s.fields[f].size) delete s.fields[f];
         renderFilters(); renderBody();
       }
+      else if (act === 'loadday') { var dv = el.value; if (dv) loadSaved(dv === '__latest' ? '' : dv); }
       else if (act === 'pdim') { state.prodDim = el.dataset.val; renderBody(); }
       else if (act === 'tblmt') { state.tblMT[el.dataset.table] = el.dataset.val; renderBody(); }
       else if (act === 'missdim') { state.missDim = el.dataset.val; renderBody(); }
@@ -2698,11 +3092,31 @@ table.grid.tree th{position:static}
           Object.keys(notes).forEach(function (k) { state.remarks.set(k, { key: k, entity: 'rca', ref: k.slice(2), text: notes[k], history: [], matched: true }); });
           renderBody();
         }).catch(function () {});
-        if (!activeDs()) return pullFromSheet();
+        refreshSnaps();
+        if (!activeDs()) return loadSaved('');
       }
     });
   }
 
+  // Load a saved day from Drive ('' = latest). Falls back to reading the sheet when no day is saved yet
+  // or the backend is still the older version without Drive snapshots.
+  function loadSaved(day) {
+    state.backendErr = ''; state.backend = 'Loading ' + (day || 'the latest saved day') + ' …'; renderHeader();
+    var prog = function (msg) { state.backend = msg; renderHeader(); };
+    return window.SYNC.pullSnapshot(day, prog).then(function (ds) {
+      if (!ds) return pullFromSheet();
+      useLoaded(ds, 'Loaded ' + ds.reportingDate + ' from Drive · ' + num(ds.records.length) + ' records.');
+    }).catch(function (e) {
+      if (day) { state.backend = ''; state.backendErr = 'Could not load ' + day + ': ' + e.message; renderAll(); return; }
+      return pullFromSheet();
+    });
+  }
+  function useLoaded(ds, msg) {
+    state.backend = '';
+    state.ds = ds; state.records = V.ensureCategories(ds.records); state.expiredAt = null;
+    kvPut('active', ds).catch(function () {});
+    state.notice = msg; renderAll();
+  }
   // Load the base that is already in the Google Sheet (what teammates and other devices see).
   function pullFromSheet() {
     state.backendErr = ''; state.backend = 'Checking the Google Sheet …'; renderHeader();
@@ -2710,7 +3124,7 @@ table.grid.tree th{position:static}
       .then(function (ds) {
         state.backend = '';
         if (!ds) { state.notice = 'The Google Sheet has no base yet. Upload a file to fill it.'; renderAll(); return; }
-        state.ds = ds; state.records = ds.records; state.expiredAt = null;
+        state.ds = ds; state.records = V.ensureCategories(ds.records); state.expiredAt = null;
         kvPut('active', ds).catch(function () {});
         state.notice = 'Loaded ' + num(ds.records.length) + ' records from the Google Sheet (' + ds.headers.length + ' columns).';
         renderAll();
