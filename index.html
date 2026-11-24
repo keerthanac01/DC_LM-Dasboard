@@ -2004,7 +2004,8 @@ td.clt{background:var(--hl)}
       (canUpload() && store().remote ? '<button class="btn" data-act="sync">Sync from Drive</button>' : '') +
       (ds ? '<button class="btn" data-act="fields">Field list</button>' : '') + daySelect() +
       (store().remote ? (state.me ? '<span class="who" title="' + esc(state.me.uploader ? 'Can upload' : 'View only') + '">' + esc(state.me.email) + ' · <a href="#" data-act="signout">Sign out</a></span>'
-        : (state.clientId ? '<button class="btn ghost" data-act="signin">Uploader sign-in</button>' : '')) : '') +
+        : (state.loginUrl ? '<a class="btn ghost" href="' + esc(state.loginUrl + (state.loginUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=login') + '">Uploader sign-in</a>'
+          : state.clientId ? '<button class="btn ghost" data-act="signin">Uploader sign-in</button>' : '')) : '') +
       (window.SYNC && (!store().remote || canUpload() || !window.SYNC.configured()) ? '<button class="btn ghost" data-act="backend">Backend</button>' : '') +
       '</div></div>' +
       (state.showSignIn && !state.me ? '<div class="signin"><span class="meta">Uploaders only — sign in with your Shadowfax Google account.</span><div id="gsi-btn"></div></div>' : '') +
@@ -3201,8 +3202,14 @@ td.clt{background:var(--hl)}
   }
 
   // ================================================================== Google sign-in (uploaders)
-  function setupSignIn(clientId) {
-    state.clientId = clientId;
+  function setupSignIn(clientId, loginUrl) {
+    state.clientId = clientId; state.loginUrl = loginUrl || '';
+    // Coming back from the Apps Script sign-in page: #uptoken=<pass>
+    var m = /[#&]uptoken=([^&]+)/.exec(location.hash || '');
+    if (m) {
+      try { sessionStorage.setItem('dclm_tok', decodeURIComponent(m[1])); } catch (e) {}
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
+    }
     try { var t = sessionStorage.getItem('dclm_tok'); if (t) { window.SYNC.setToken(t); checkMe(); } } catch (e) {}
     if (!clientId || document.getElementById('gsi-lib')) return;
     var sc = document.createElement('script'); sc.id = 'gsi-lib'; sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
@@ -3796,7 +3803,7 @@ td.clt{background:var(--hl)}
         state.backendErr = ''; state.backend = 'Testing the backend …'; renderHeader();
         window.SYNC.ping().then(function (r) {
           state.backend = ''; state.showBackend = false;
-          state.notice = 'Backend connected (' + (r.folder || 'Drive') + ').'; setupSignIn(r.clientId || '');
+          state.notice = 'Backend connected (' + (r.folder || 'Drive') + ').'; setupSignIn(r.clientId || '', r.loginUrl || '');
           return loadTrends().then(loadLatest);
         }).catch(function (e) { state.backend = ''; state.backendErr = 'Backend test failed: ' + e.message; renderHeader(); });
       }
@@ -3882,7 +3889,7 @@ td.clt{background:var(--hl)}
       renderAll();
       remarkAll().then(function (all) { all.forEach(function (e) { state.remarks.set(e.key, e); }); renderBody(); }).catch(function () {});
       if (store().remote) {
-        window.SYNC.ping().then(function (r) { setupSignIn(r.clientId || ''); renderHeader(); })
+        window.SYNC.ping().then(function (r) { setupSignIn(r.clientId || '', r.loginUrl || ''); renderHeader(); })
           .catch(function (e) { state.backendErr = 'Backend not reachable: ' + e.message; renderHeader(); });
         window.SYNC.loadRca().then(function (notes) {
           Object.keys(notes).forEach(function (k) { state.remarks.set(k, { key: k, entity: 'rca', ref: k.slice(2), text: notes[k], history: [], matched: true }); });
