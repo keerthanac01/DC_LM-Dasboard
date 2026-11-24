@@ -495,6 +495,68 @@ nav.side.mini .tab{padding:9px 0;text-align:center;font-size:11px;font-weight:70
 nav.side .railhead{display:none}
 @media (max-width:900px){ nav.side.mini{flex:none} }
 select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-width:210px;cursor:pointer;font-family:inherit}
+
+/* v18: trends */
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#6250d6;--s8:#e34948;
+  --cl1:#F7D4CF;--cl2:#FBE3C4;--cl3:#FDF1C2;--cl4:#E3F1C8;--cl5:#BFE3C9}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;--s7:#9085e9;--s8:#e66767;
+  --cl1:#4A2622;--cl2:#4A3618;--cl3:#45401A;--cl4:#2E4220;--cl5:#1E4630} }
+:root[data-theme="dark"]{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;--s7:#9085e9;--s8:#e66767;
+  --cl1:#4A2622;--cl2:#4A3618;--cl3:#45401A;--cl4:#2E4220;--cl5:#1E4630}
+.trfilters{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 14px}
+.trfilters .flab{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.trfilters label,.trbar label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.trfilters select,.trbar select{font:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.trfilters .meta{margin-left:auto;font-size:11px}
+.segs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.segs button{font:inherit;font-size:11.5px;padding:5px 10px;border:0;background:var(--surface);color:var(--ink);cursor:pointer;border-right:1px solid var(--line)}
+.segs button:last-child{border-right:0}
+.segs button.on{background:var(--green);color:#fff;font-weight:600}
+.segs button:disabled{opacity:.45;cursor:not-allowed}
+.trbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 8px}
+.trbar .tmetric{margin:0}
+.trage{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.trage input{width:46px;font:inherit;font-size:12px;padding:3px 5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.trbar .chk{gap:5px}
+.trsub{margin:2px 0 8px}
+.trh{font-size:12px;margin:14px 0 6px;color:var(--ink)}
+.trsplit{font-size:15px;margin:22px 0 10px;padding-top:12px;border-top:1px solid var(--line)}
+.lc-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:11.5px;color:var(--ink);margin:4px 0 2px}
+.lc-legend i,.lc-tip i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.lc-wrap{position:relative;margin:0 0 10px}
+svg.lc{width:100%;height:auto;display:block}
+.lc-grid{stroke:var(--line);stroke-width:1}
+.lc-ax{fill:var(--muted);font-size:11px}
+.lc-val{fill:var(--ink);font-size:11px;font-weight:600}
+.lc-end{fill:var(--ink);font-size:11px}
+.lc-cross{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+.lc-tip{position:absolute;min-width:190px;max-width:240px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.14);padding:8px 10px;font-size:11.5px;pointer-events:none;z-index:5}
+.lc-tip b{display:block;margin-bottom:4px}
+.lc-tip div{display:flex;align-items:center;gap:4px;line-height:1.7}
+.lc-tip span{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc-tip em{font-style:normal;font-weight:700;color:var(--ink)}
+td span.up{color:var(--red);font-weight:600}
+td span.down{color:var(--green);font-weight:600}
+td.cl1{background:var(--cl1)} td.cl2{background:var(--cl2)} td.cl3{background:var(--cl3)} td.cl4{background:var(--cl4)} td.cl5{background:var(--cl5)}
+td.cl1,td.cl2,td.cl3,td.cl4,td.cl5,td.clt{font-weight:700}
+td.clt{background:var(--hl)}
+.drill{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.drill:hover{color:var(--green)}
+.modal.small{max-width:560px}
+.uform{display:flex;flex-direction:column;gap:12px;padding:6px 2px}
+.uform label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.uform input[type=date]{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);max-width:220px}
+.ubtns{display:flex;gap:8px;margin-top:10px}
+.synckpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 12px}
+.modal details{margin:6px 0;font-size:12px}
+.modal details summary{cursor:pointer;font-weight:600}
+.modal details ul{max-height:180px;overflow:auto;margin:6px 0;padding-left:18px}
+.synclog{max-height:46vh;overflow:auto;font-size:12px;padding-left:18px}
+.synclog li.bad{color:var(--red)}
+.signin{display:flex;align-items:center;gap:12px;justify-content:flex-end;padding:6px 0}
+.who{font-size:12px;color:var(--muted);align-self:center}
+.who a{color:var(--green)}
+@media (max-width:700px){ .synckpis{grid-template-columns:1fr 1fr} .trfilters .meta{margin-left:0} }
 </style>
 </head>
 <body>
@@ -800,12 +862,15 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
 
   // Source header -> canonical field. optional=true means missing header is reported but not fatal.
   var FIELD_MAP = [
-    ['awb', 'Awb_number'], ['manifestType', 'Manifest_Type'], ['ageing', 'Ageing_from_Bag_Rec'],
-    ['currentLocation', 'Current_location'], ['laneCode', 'Lane Code'], ['tertiaryLane', 'Tertiary Lane'],
-    ['connectingBagging', 'Connecting Bagging'], ['manifestOrigin', 'Manifest_origin'],
-    ['manifestDestination', 'Manifest_Destination'], ['manifestCode', 'Manifest_code'],
-    ['actualManifestId', 'ActualManifestID', true], ['mmRemarks', 'MM Remarks'], ['lmRemarks', 'LM Remarks'],
-    ['landroval', 'Landroval Check'], ['hov', 'HOV'], ['wrongDestination', 'Wrongly Connceted Destination', true],
+    // Only AWB, manifest type, ageing and current location are required, so older base files with
+    // fewer columns still load (their trend numbers count; the missing columns simply read blank).
+    ['awb', 'Awb_number'], ['manifestType', 'Manifest_Type'], ['ageing', ['Ageing_from_Bag_Rec', 'Ageing_from_bag_recc']],
+    ['currentLocation', 'Current_location'], ['laneCode', 'Lane Code', true], ['tertiaryLane', 'Tertiary Lane', true],
+    ['connectingBagging', 'Connecting Bagging', true], ['manifestOrigin', 'Manifest_origin', true],
+    ['manifestDestination', 'Manifest_Destination', true], ['manifestCode', 'Manifest_code', true],
+    ['actualManifestId', 'ActualManifestID', true], ['mmRemarks', 'MM Remarks', true], ['lmRemarks', 'LM Remarks', true],
+    ['landroval', 'Landroval Check', true], ['hov', 'HOV', true], ['wrongDestination', 'Wrongly Connceted Destination', true],
+    ['client', 'client_flag_final', true],
     ['productName', 'product_names', true], ['productCategory', 'product_categories', true],
     ['pod', 'POD Mapping', true], ['podZone', 'POD_Zone', true], ['seller', 'seller_name', true], ['hov2', 'HOV2', true],
     ['shipInManifest', 'Shipment in Manifest', true], ['dcRemark', 'Remarks', true],
@@ -813,7 +878,10 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     ['region', 'Current_Location_Region', true],
     ['lastActionUser', 'last_action_user', true], ['pendencyCount', 'Pendency Count', true]
   ];
-  var VALUE_HEADERS = ['Product_Value2', 'product_value'];
+  // Product value: some bases fill product_value, others product_value_2 / Product_Value2.
+  // Per row, use whichever is filled (product_value first).
+  var VALUE_KEYS = ['productvalue', 'productvalue2'];
+  function hkey(h) { return String(h === null || h === undefined ? '' : h).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 
   // ---------- Normalisation ----------
   var NA = new Set(['', 'na', 'n/a', '#n/a', 'nan', 'null', 'none', 'nil', '-', '#value!', '#ref!']);
@@ -920,27 +988,18 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
 
   // ---------- Record normalisation ----------
   function resolveHeaders(headers, aoaRows) {
-    var idx = {}, missing = [], optionalMissing = [];
+    // Header names are matched ignoring case, spaces and underscores (older bases vary).
+    var idx = {}, missing = [], optionalMissing = [], keys = headers.map(hkey);
     FIELD_MAP.forEach(function (f) {
-      var i = headers.indexOf(f[1]);
-      if (i < 0) { (f[2] ? optionalMissing : missing).push(f[1]); } else { idx[f[0]] = i; }
+      var names = Array.isArray(f[1]) ? f[1] : [f[1]], i = -1;
+      for (var n = 0; n < names.length && i < 0; n++) i = keys.indexOf(hkey(names[n]));
+      if (i < 0) { (f[2] ? optionalMissing : missing).push(names[0]); } else { idx[f[0]] = i; }
     });
-    var candidates = [];
-    headers.forEach(function (h, i) { if (VALUE_HEADERS.indexOf(h) >= 0) candidates.push(i); });
-    var valueIdx = null, valueHeader = null, valueCounts = {};
-    if (!candidates.length) { missing.push('Product_Value2 / product_value'); }
-    else {
-      // Several columns may carry the value. Use the one that is actually populated.
-      candidates.forEach(function (c) {
-        var n = 0;
-        for (var r = 0; r < aoaRows.length; r++) { if (toNum(aoaRows[r][c]) !== null) n++; }
-        valueCounts[headers[c] + '#' + c] = n;
-      });
-      candidates.sort(function (a, b) { return (valueCounts[headers[b] + '#' + b] || 0) - (valueCounts[headers[a] + '#' + a] || 0); });
-      valueIdx = candidates[0]; valueHeader = headers[valueIdx] + ' (column ' + (valueIdx + 1) + ')';
-      if (candidates.length > 1) { optionalMissing.push('Duplicate value column: ' + candidates.map(function (c) { return headers[c] + ' col ' + (c + 1) + ' populated=' + valueCounts[headers[c] + '#' + c]; }).join('; ')); }
-      idx.value = valueIdx;
-    }
+    var cand = [];
+    VALUE_KEYS.forEach(function (k) { keys.forEach(function (h, i) { if (h === k) cand.push(i); }); });
+    if (!cand.length) optionalMissing.push('product_value / product_value_2');
+    idx.values = cand;
+    var valueHeader = cand.map(function (c) { return headers[c]; }).join(' → ') || '(none)';
     return { ok: missing.length === 0, missing: missing, optionalMissing: optionalMissing, idx: idx, valueHeader: valueHeader };
   }
 
@@ -954,7 +1013,8 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
 
   function buildRecord(row, idx, rowNo) {
     var g = function (k) { return idx[k] === undefined ? undefined : row[idx[k]]; };
-    var valueRaw = g('value');
+    var valueRaw = null, vs = idx.values || [];
+    for (var vi = 0; vi < vs.length; vi++) { var vn = toNum(row[vs[vi]]); if (vn !== null && vn !== 0) { valueRaw = vn; break; } if (vn === 0 && valueRaw === null) valueRaw = 0; }
     return {
       rowNo: rowNo,
       awb: txt(g('awb')),
@@ -982,6 +1042,7 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
       shipInManifest: manifestCount(g('shipInManifest'), g('awbInManifest')),
       actionUser: isMissingCode(g('actionUser')) ? '' : txt(g('actionUser')),
       region: isMissingCode(g('region')) ? '' : txt(g('region')),
+      client: isMissingCode(g('client')) ? '' : txt(g('client')),
       dcRemark: isMissing(g('dcRemark')) ? 'NA' : txt(g('dcRemark')),
       mmColl: mmCollated(g('mmRemarks'), g('landroval')),
       lmColl: lmCollated(g('lmRemarks')),
@@ -1376,21 +1437,201 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   };
 });
 
+// Day-level trend store: per base date, AWB counts and product value by ageing day for a few
+// grouping dimensions, plus the AWB list (aged 3-20) needed to work out closures against the next base.
+// Nothing here keeps remarks or full rows; a day is a few hundred KB at most.
+(function (root) {
+  'use strict';
+
+  var MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+    january: 1, february: 2, march: 3, april: 4, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 };
+  var AGE_CAP = 31;          // ages above 30 are kept together as 31 (= "31+")
+  var CLOSE_MIN = 3, CLOSE_MAX = 20;
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function iso(y, m, d) { return y + '-' + pad(m) + '-' + pad(d); }
+  function validDate(y, m, d) {
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    var t = new Date(Date.UTC(y, m - 1, d));
+    return t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
+  }
+
+  // Files with "loss" in the name are loss trackers that ended up in the folder by mistake.
+  function isLossFile(name) { return /loss/i.test(String(name || '')); }
+  function isBaseFile(name) { return /\.(xlsx|xlsm|xls|csv)$/i.test(String(name || '')) && !isLossFile(name); }
+
+  // Reporting date from a base file name, day first. Returns 'YYYY-MM-DD' or ''.
+  //   Fwd Short_Dispatched 04-08-2026 · Fwd short- 31 oct · ...23-11-2026(AutoRecovered) · ...03-07-2026 (1) · 11-9
+  function dateFromName(name, today) {
+    today = today || new Date();
+    var s = String(name || '').replace(/\.[a-z0-9]+$/i, '')
+      .replace(/\((?:autorecovered|\d+)\)/gi, ' ').replace(/-\s*copy\b/gi, ' ').replace(/\bcopy of\b/gi, ' ');
+    var noYear = function (d, m) {
+      var y = today.getFullYear();
+      var t = Date.UTC(y, m - 1, d), now = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+      if (t > now) y -= 1;
+      return validDate(y, m, d) ? iso(y, m, d) : '';
+    };
+    var full = function (y) { y = +y; return y < 100 ? 2000 + y : y; };
+    var m;
+    // 24-11-2026 / 24_11_2026 / 24.11.26 / 24/11/2026
+    m = /(?:^|[^0-9])(\d{1,2})\s*[-_./]\s*(\d{1,2})\s*[-_./]\s*(\d{4}|\d{2})(?![0-9])/.exec(s);
+    if (m && validDate(full(m[3]), +m[2], +m[1])) return iso(full(m[3]), +m[2], +m[1]);
+    // 24 Nov 2026 / 24-Nov-26 / 24 November / 3 Oct / 31oct
+    m = /(?:^|[^0-9])(\d{1,2})\s*(?:st|nd|rd|th)?[\s\-_.,]*([a-z]{3,9})\b[\s\-_.,']*(\d{4}|\d{2})?(?![0-9])/i.exec(s);
+    if (m && MONTHS[m[2].toLowerCase()]) {
+      var mo = MONTHS[m[2].toLowerCase()];
+      if (m[3]) { var y = full(m[3]); if (validDate(y, mo, +m[1])) return iso(y, mo, +m[1]); }
+      return noYear(+m[1], mo);
+    }
+    // Nov 24 2026 / Nov-24
+    m = /\b([a-z]{3,9})[\s\-_.]*(\d{1,2})(?:st|nd|rd|th)?\b(?:[\s\-_.,]*(\d{4}))?/i.exec(s);
+    if (m && MONTHS[m[1].toLowerCase()]) {
+      var mo2 = MONTHS[m[1].toLowerCase()];
+      if (m[3] && validDate(+m[3], mo2, +m[2])) return iso(+m[3], mo2, +m[2]);
+      return noYear(+m[2], mo2);
+    }
+    // 11-9 (= 11 Sep), no year
+    m = /(?:^|[^0-9])(\d{1,2})\s*[-_./]\s*(\d{1,2})(?![0-9\-_./])/.exec(s);
+    if (m) return noYear(+m[1], +m[2]);
+    return '';
+  }
+  function fmtDay(d) {   // '2026-11-24' -> '24-Nov'
+    if (!d) return '';
+    var p = d.split('-'), mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+p[1] - 1];
+    return (+p[2]) + '-' + mn;
+  }
+  function fmtDayLong(d) { return d ? fmtDay(d) + ' ' + d.slice(0, 4) : ''; }
+  function weekStart(d) {   // Monday of the week, as YYYY-MM-DD
+    var p = d.split('-'), t = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])), wd = (t.getUTCDay() + 6) % 7;
+    t.setUTCDate(t.getUTCDate() - wd);
+    return iso(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+  }
+
+  function ageKey(a) { if (a === null || a === undefined || isNaN(a)) return null; a = Math.floor(a); if (a < 0) return null; return a > 30 ? AGE_CAP : a; }
+  function bump(o, k, v) { o[k] = (o[k] || 0) + v; }
+  function mtKey(mt) { return mt === 'DCH2' ? 'D' : mt === 'DC-DC' ? 'C' : 'O'; }
+
+  // One base -> one compact day record.
+  //   L: Current location rows   [loc, region, mt, cnt{age:n}, val{age:v}, hov2{age:n}]
+  //   P: POD_Mapping rows        [pod, region, mt, cnt, val]
+  //   C: client_flag_final rows  [client, region, mt, cnt, val]
+  //   H: LM hubs (Manifest_Destination, LM collated bucket not "Short found") [hub, region, mt, cnt, val]
+  function dayAggregate(day, records, meta) {
+    var maps = { L: new Map(), P: new Map(), C: new Map(), H: new Map() };
+    var totN = 0, totV = 0;
+    var add = function (dim, key, region, mt, age, v, hov2) {
+      var k = key + '\u001f' + region + '\u001f' + mt, m = maps[dim], o = m.get(k);
+      if (!o) { o = [key, region, mt, {}, {}]; if (dim === 'L') o.push({}); m.set(k, o); }
+      bump(o[3], age, 1); if (v) bump(o[4], age, Math.round(v));
+      if (dim === 'L' && hov2) bump(o[5], age, 1);
+    };
+    records.forEach(function (r) {
+      var a = ageKey(r.age); if (a === null) return;
+      var reg = r.region || '(blank)', mt = mtKey(r.mt), v = r.value || 0;
+      totN++; totV += v;
+      add('L', r.loc || '(blank)', reg, mt, a, v, r.hov2);
+      add('P', r.pod && r.pod !== 'NA' ? r.pod : '(blank)', reg, mt, a, v);
+      add('C', r.client || '(blank)', reg, mt, a, v);
+      if (r.lmColl !== 'Short found') add('H', r.dest || '(blank)', reg, mt, a, v);
+    });
+    var out = { d: day, n: totN, v: Math.round(totV), f: (meta && meta.fileName) || '', at: Date.now() };
+    ['L', 'P', 'C'].forEach(function (k) { out[k] = Array.from(maps[k].values()); });
+    return { main: out, hub: { d: day, H: Array.from(maps.H.values()) } };
+  }
+
+  // Every AWB of the base with where it sat: [awb, loc, region, age]. Kept so a later base can be
+  // matched against it (closure looks at ageing 3-20 of the earlier base, any ageing of the later one).
+  function awbList(records) {
+    var out = [];
+    records.forEach(function (r) { if (r.awb) out.push([r.awb, r.loc || '(blank)', r.region || '(blank)', ageKey(r.age)]); });
+    return out;
+  }
+  // prevList from the earlier base; nextAwbs = every AWB in the later base (any ageing).
+  // Found in the later base = Open, missing = Closed.  -> { d, next, R: [[loc, region, closed{}, open{}]] }
+  function closure(prevDay, nextDay, prevList, nextAwbs) {
+    var set = nextAwbs instanceof Set ? nextAwbs : new Set(nextAwbs), m = new Map();
+    prevList.forEach(function (x) {
+      if (x[3] === null || x[3] < CLOSE_MIN || x[3] > CLOSE_MAX) return;
+      var k = x[1] + '\u001f' + x[2], o = m.get(k);
+      if (!o) { o = [x[1], x[2], {}, {}]; m.set(k, o); }
+      bump(set.has(x[0]) ? o[3] : o[2], x[3], 1);
+    });
+    return { d: prevDay, next: nextDay, R: Array.from(m.values()) };
+  }
+
+  // ---------- queries over loaded days ----------
+  function sumAges(o, lo, hi) { var s = 0; for (var k in o) { var a = +k; if (a >= lo && a <= hi) s += o[k]; } return s; }
+  // rows of one dim, filtered. f: { mt: 'D'|'C'|'O'|'' , regions: Set|null, locs: Set|null }
+  function rowsOf(day, dim, f) {
+    var rs = (dim === 'H' ? (day.H || []) : (day[dim] || []));
+    return rs.filter(function (r) {
+      if (f.mt && r[2] !== f.mt) return false;
+      if (f.regions && f.regions.size && !f.regions.has(r[1])) return false;
+      if (dim === 'L' && f.locs && f.locs.size && !f.locs.has(r[0])) return false;
+      return true;
+    });
+  }
+  // { key -> { date -> {n, v, h} } } for the ageing window.
+  function series(days, dim, f, lo, hi) {
+    var out = new Map();
+    days.forEach(function (day) {
+      rowsOf(day, dim, f).forEach(function (r) {
+        var n = sumAges(r[3], lo, hi); if (!n) return;
+        var v = sumAges(r[4], lo, hi), h = dim === 'L' ? sumAges(r[5] || {}, lo, hi) : 0;
+        if (!out.has(r[0])) out.set(r[0], {});
+        var o = out.get(r[0]), c = o[day.d] || (o[day.d] = { n: 0, v: 0, h: 0 });
+        c.n += n; c.v += v; c.h += h;
+      });
+    });
+    return out;
+  }
+  // Ageing split for one day and dim: key -> { cnt{age}, val{age} }
+  function split(day, dim, f, lo, hi) {
+    var out = new Map();
+    if (!day) return out;
+    rowsOf(day, dim, f).forEach(function (r) {
+      if (!out.has(r[0])) out.set(r[0], { cnt: {}, val: {}, hov: {} });
+      var o = out.get(r[0]);
+      for (var k in r[3]) { var a = +k; if (a >= lo && a <= hi) { bump(o.cnt, a, r[3][k]); bump(o.val, a, (r[4] || {})[k] || 0); if (r[5]) bump(o.hov, a, r[5][k] || 0); } }
+    });
+    return out;
+  }
+  // Week-on-week: per week, the per-base-day average for each ageing day, plus totals.
+  function weeks(days, dim, f, lo, hi) {
+    var wk = new Map();
+    days.forEach(function (day) {
+      var w = weekStart(day.d), o = wk.get(w);
+      if (!o) { o = { w: w, days: [], cnt: {}, val: {}, n: 0, v: 0 }; wk.set(w, o); }
+      o.days.push(day.d);
+      rowsOf(day, dim, f).forEach(function (r) {
+        for (var k in r[3]) { var a = +k; if (a >= lo && a <= hi) { bump(o.cnt, a, r[3][k]); o.n += r[3][k]; var vv = (r[4] || {})[k] || 0; bump(o.val, a, vv); o.v += vv; } }
+      });
+    });
+    return Array.from(wk.values()).sort(function (a, b) { return a.w < b.w ? -1 : 1; });
+  }
+
+  var api = {
+    dateFromName: dateFromName, isLossFile: isLossFile, isBaseFile: isBaseFile, fmtDay: fmtDay, fmtDayLong: fmtDayLong,
+    weekStart: weekStart, dayAggregate: dayAggregate, awbList: awbList, closure: closure,
+    series: series, split: split, weeks: weeks, sumAges: sumAges, CLOSE_MIN: CLOSE_MIN, CLOSE_MAX: CLOSE_MAX, AGE_CAP: AGE_CAP
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.TRENDS = api;
+})(typeof window !== 'undefined' ? window : this);
+
 </script>
 <script>
-/* DC-LM Dashboard — Google Sheet backend sync. Depends on window.VIS and window.DASH. */
+/* DC-LM Dashboard — Drive-synced backend client (Apps Script v3). Depends on window.VIS, window.TRENDS, window.DASH. */
 (function () {
   'use strict';
-  // Paste the Apps Script /exec URL here to hard-wire it for everyone, or leave blank
-  // and set it once from the Backend box in the dashboard header.
+  // The Apps Script /exec URL of the v3 backend (deployed from keerthana.c@shadowfax.in).
+  // After a new deployment, paste its URL here. An uploader can also set it from the Backend box.
   var API_URL = 'https://script.google.com/macros/s/AKfycbxSuzKqSjy83Ci3QTBGB3SyDl-qLkAD0onkTaax3RQYEDejr_7f6wmgrk8iodK3_Nk/exec';
 
-  var V = window.VIS;
-  var CHUNK_ROWS = 1500;     // rows per POST; keeps each Apps Script call well inside its 6-minute budget
-  var PAGE_ROWS = 5000;      // rows per GET when reading the sheet back
+  var V = window.VIS, T = window.TRENDS;
+  var PART_CHARS = 5000000;   // base64 characters per upload call
 
-  // Columns kept in the sheet, exactly as Lakshita specified, plus the resolved product value.
-  // ('product_value2' is not a header in the base; the value is resolved and written as Product_Value2.)
+  // Columns kept for each date (as agreed), plus the resolved product value.
   var PERSIST = [
     'Ageing_from_bag_recc', 'Awb_number', 'seller_name', 'Client', 'order_status', 'Manifest_Type', 'Bagging_dc',
     'Manifest_origin', 'Manifest_Destination', 'Connecting Bagging', 'RTS', 'Lane Code', 'Tertiary Lane',
@@ -1404,236 +1645,170 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     'layout_name', 'physical_rack_id', 'sfx_order_id', 'sku_id', 'product_names', 'product_categories',
     'Wrongly Connceted Destination'];
   var VALUE_COL = 'Product_Value2';
+  var hk = function (h) { return String(h === null || h === undefined ? '' : h).toLowerCase().replace(/[^a-z0-9]/g, ''); };
 
-  function url() {
-    try { return localStorage.getItem('dclm_api_url') || API_URL; } catch (e) { return API_URL; }
-  }
-  function setUrl(u) {
-    try { localStorage.setItem('dclm_api_url', u.trim()); } catch (e) {}
-  }
+  var token = '';
+  function setToken(t) { token = t || ''; }
+  function url() { try { return localStorage.getItem('dclm_api_url') || API_URL; } catch (e) { return API_URL; } }
+  function setUrl(u) { try { localStorage.setItem('dclm_api_url', String(u || '').trim()); } catch (e) {} }
   function configured() { return !!url(); }
 
-  function get(params) {
-    var u = url();
-    if (!u) return Promise.reject(new Error('No backend URL set.'));
+  function get(params, auth) {
+    var u = url(); if (!u) return Promise.reject(new Error('No backend URL set.'));
+    if (auth) params.token = token;
     var q = Object.keys(params).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
-    return fetch(u + (u.indexOf('?') >= 0 ? '&' : '?') + q, { method: 'GET', redirect: 'follow' })
-      .then(readJson);
+    return fetch(u + (u.indexOf('?') >= 0 ? '&' : '?') + q, { method: 'GET', redirect: 'follow' }).then(readJson);
   }
   function post(body) {
-    var u = url();
-    if (!u) return Promise.reject(new Error('No backend URL set.'));
+    var u = url(); if (!u) return Promise.reject(new Error('No backend URL set.'));
+    body.token = token;
     // text/plain avoids a CORS preflight, which Apps Script web apps do not answer.
-    return fetch(u, {
-      method: 'POST', redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
-    }).then(readJson);
+    return fetch(u, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(readJson);
   }
   function readJson(res) {
     return res.text().then(function (t) {
       var d;
-      try { d = JSON.parse(t); }
-      catch (e) {
-        throw new Error('The backend did not return JSON. Check that the Apps Script is deployed with access set to "Anyone".');
-      }
+      try { d = JSON.parse(t); } catch (e) { throw new Error('The backend did not answer. Check the Apps Script deployment (access: Anyone).'); }
       if (!d.ok) throw new Error(d.error || 'Backend error');
       return d;
     });
   }
 
-  /* ---------- push ---------- */
-  // Build the rows that go to the sheet: the mapped source columns, plus the resolved product value.
-  function sheetRows(ds) {
-    var heads = ds.headers || [], idx = [], kept = [];
-    PERSIST.forEach(function (h) {
-      var i = heads.indexOf(h);
-      if (i >= 0) { idx.push(i); kept.push(h); }
-    });
-    kept.push(VALUE_COL);
-    var rows = ds.records.map(function (r) {
-      var out = idx.map(function (i) {
-        var v = r.raw && r.raw[i];
-        return v === null || v === undefined ? '' : v;
-      });
-      out.push(r.value);
-      return out;
-    });
-    return { headers: kept, rows: rows };
+  /* ---------- compression helpers ---------- */
+  function blobB64(b) {
+    return new Promise(function (ok, bad) { var fr = new FileReader(); fr.onload = function () { ok(String(fr.result).split(',')[1] || ''); }; fr.onerror = function () { bad(fr.error); }; fr.readAsDataURL(b); });
   }
-
-  function pushDataset(ds, onProgress) {
-    if (!configured()) return Promise.resolve({ skipped: true });
-    var pack = sheetRows(ds), uploadId = ds.id || ('U-' + Date.now());
-    var total = pack.rows.length, sent = 0;
-    onProgress = onProgress || function () {};
-    onProgress('Saving to Google Sheet — preparing ' + total.toLocaleString('en-IN') + ' rows …', 0);
-    return post({ action: 'begin', uploadId: uploadId, headers: pack.headers, fileName: ds.fileName, total: total })
-      .then(function () {
-        var i = 0;
-        function next() {
-          if (i >= total) return Promise.resolve();
-          var slice = pack.rows.slice(i, i + CHUNK_ROWS);
-          i += CHUNK_ROWS;
-          return post({ action: 'chunk', uploadId: uploadId, rows: slice }).then(function () {
-            sent += slice.length;
-            onProgress('Saving to Google Sheet — ' + sent.toLocaleString('en-IN') + ' of ' + total.toLocaleString('en-IN') + ' rows …', sent / total);
-            return next();
-          });
-        }
-        return next();
-      })
-      .then(function () {
-        return post({ action: 'commit', uploadId: uploadId, fileName: ds.fileName, sourceSheet: ds.sheetName });
-      })
-      .then(function (r) {
-        onProgress('', 1);
-        return { rows: r.rows, cols: r.cols, sheet: r.sheet };
-      });
-  }
-
-  /* ---------- pull ---------- */
-  function pullDataset(onProgress) {
-    if (!configured()) return Promise.resolve(null);
-    onProgress = onProgress || function () {};
-    var headers = null, rows = [], total = 0;
-    function page(offset) {
-      return get({ action: 'rows', offset: offset, limit: PAGE_ROWS }).then(function (d) {
-        if (offset === 0) { headers = (d.headers || []).map(function (h) { return String(h === null || h === undefined ? '' : h).trim(); }); total = d.total || 0; }
-        rows = rows.concat(d.rows || []);
-        onProgress('Loading from Google Sheet — ' + rows.length.toLocaleString('en-IN') + ' of ' + total.toLocaleString('en-IN') + ' rows …', total ? rows.length / total : 0);
-        if (d.done || !d.rows || !d.rows.length) return;
-        return page(offset + (d.rows.length || PAGE_ROWS));
-      });
-    }
-    return get({ action: 'meta' }).then(function (meta) {
-      if (!meta.rows) return null;
-      return page(0).then(function () {
-        if (!headers || !headers.length || !rows.length) return null;
-        var res = V.buildDataset(headers, rows, meta.sheet || 'Google Sheet');
-        if (!res.ok) throw new Error('The sheet is missing required columns: ' + res.missing.join(', '));
-        var now = Date.now(), at = meta.uploadedAt || now;
-        return {
-          id: meta.uploadId || ('DS-' + at), schema: window.DASH.schema, uploadedAt: at,
-          expiresAt: at + V.CONFIG.retentionHours * 3600 * 1000,
-          fileName: meta.fileName || 'Google Sheet', sheetName: meta.sheet || 'Base',
-          reportingDate: '', source: 'sheet',
-          diagnostics: res.diagnostics, warnings: res.warnings, headers: headers, records: res.records
-        };
-      });
-    });
-  }
-
-  /* ---------- daily Drive snapshots ---------- */
-  // One gzipped JSON file per reporting day in Drive. Loading a day is one or two calls instead of
-  // paging 39k rows out of the sheet, so the dashboard opens in seconds on any machine.
-  var SNAP_PART = 5000000;   // base64 characters per upload call
-
-  function dayKey(ds) {
-    var m = /(\d{2})-(\d{2})-(\d{4})/.exec(ds.reportingDate || ds.fileName || '');
-    if (m) return m[3] + '-' + m[2] + '-' + m[1];
-    var d = new Date(ds.uploadedAt || Date.now());
-    var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
-    return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
-  }
-  function gzipB64(text) {
-    var s = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
-    return new Response(s).blob().then(function (b) {
-      return new Promise(function (ok, bad) {
-        var fr = new FileReader();
-        fr.onload = function () { ok(String(fr.result).split(',')[1] || ''); };
-        fr.onerror = function () { bad(fr.error); };
-        fr.readAsDataURL(b);
-      });
-    });
-  }
+  function gzipB64(text) { return new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).blob().then(blobB64); }
+  function b64Bytes(b64) { return fetch('data:application/octet-stream;base64,' + b64).then(function (r) { return r.arrayBuffer(); }); }
   function gunzipB64(b64) {
-    return fetch('data:application/octet-stream;base64,' + b64).then(function (r) { return r.blob(); }).then(function (b) {
-      return new Response(b.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    if (!b64) return Promise.resolve('');
+    return fetch('data:application/octet-stream;base64,' + b64).then(function (r) { return r.blob(); })
+      .then(function (b) { return new Response(b.stream().pipeThrough(new DecompressionStream('gzip'))).text(); });
+  }
+  function lines(text) { return String(text || '').split('\n').filter(Boolean).map(function (l) { return JSON.parse(l); }); }
+  function sendParts(b64, uploadId, onProgress, label) {
+    var parts = Math.max(1, Math.ceil(b64.length / PART_CHARS)), i = 0;
+    function next() {
+      if (i >= parts) return Promise.resolve(parts);
+      var k = i++;
+      if (onProgress) onProgress(label + (parts > 1 ? ' — part ' + (k + 1) + ' of ' + parts : '') + ' …');
+      return post({ action: 'part', uploadId: uploadId, part: k, data: b64.slice(k * PART_CHARS, (k + 1) * PART_CHARS) }).then(next);
+    }
+    return next();
+  }
+
+  /* ---------- reads (anyone) ---------- */
+  function ping() { return get({ action: 'ping' }); }
+  function whoami() { return get({ action: 'whoami' }, true); }
+  function days() { return get({ action: 'days' }).then(function (d) { return { days: d.days || [], snaps: d.snaps || [] }; }); }
+  function monthsOf(list) { var s = {}; list.forEach(function (x) { s[x.day.slice(0, 7)] = 1; }); return Object.keys(s).sort(); }
+  function trendFile(which, month) { return get({ action: 'trends', which: which, month: month || '' }).then(function (d) { return gunzipB64(d.data); }).then(lines); }
+  function trends(dayList) {
+    var ms = monthsOf(dayList);
+    return Promise.all(ms.map(function (m) { return trendFile('main', m); }).concat([trendFile('closure')])).then(function (res) {
+      var closure = res.pop(), main = [];
+      res.forEach(function (r) { main = main.concat(r); });
+      main.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+      return { main: main, closure: closure };
     });
   }
-  function pushSnapshot(ds, onProgress) {
-    if (!configured()) return Promise.resolve({ skipped: true });
-    onProgress = onProgress || function () {};
-    var pack = sheetRows(ds), day = dayKey(ds), uploadId = 'S' + Date.now();
-    var doc = { v: 1, day: day, fileName: ds.fileName, sheetName: ds.sheetName, reportingDate: ds.reportingDate || '', uploadedAt: ds.uploadedAt, headers: pack.headers, rows: pack.rows };
-    onProgress('Saving ' + day + ' to Drive — compressing …');
-    return gzipB64(JSON.stringify(doc)).then(function (b64) {
-      var parts = Math.max(1, Math.ceil(b64.length / SNAP_PART)), i = 0;
-      function next() {
-        if (i >= parts) return Promise.resolve();
-        var k = i++;
-        onProgress('Saving ' + day + ' to Drive — part ' + (k + 1) + ' of ' + parts + ' …');
-        return post({ action: 'snapPart', day: day, uploadId: uploadId, part: k, data: b64.slice(k * SNAP_PART, (k + 1) * SNAP_PART) }).then(next);
-      }
-      return next().then(function () {
-        return post({ action: 'snapCommit', day: day, uploadId: uploadId, parts: parts, rows: pack.rows.length, fileName: ds.fileName });
-      }).then(function (r) { return { day: day, bytes: r.bytes, rows: pack.rows.length }; });
-    });
+  // LM hub numbers are kept per date (larger), fetched only for the dates on screen.
+  function hub(dayList) {
+    return Promise.all(dayList.map(function (x) {
+      return get({ action: 'trends', which: 'hub', day: x.day }).then(function (d) { return gunzipB64(d.data); }).then(function (t) { return t ? JSON.parse(t) : null; });
+    })).then(function (r) { return r.filter(Boolean); });
   }
-  function listSnaps() {
-    if (!configured()) return Promise.resolve([]);
-    return get({ action: 'snaps' }).then(function (d) { return d.snaps || []; });
-  }
-  // day = 'YYYY-MM-DD' or '' for the latest saved day. Resolves to a dataset, or null when nothing is saved.
-  function pullSnapshot(day, onProgress) {
-    if (!configured()) return Promise.resolve(null);
-    onProgress = onProgress || function () {};
-    onProgress('Loading ' + (day || 'latest day') + ' from Drive …');
+  // Detailed data for one date ('' = latest stored). Resolves to a dataset or null.
+  function snapshot(day, onProgress) {
     return get({ action: 'snap', day: day || '', part: 0 }).then(function (first) {
       if (!first.parts) return null;
       var pieces = [first.data], i = 1;
       function more() {
         if (i >= first.parts) return Promise.resolve();
         var k = i++;
-        onProgress('Loading ' + first.day + ' from Drive — part ' + (k + 1) + ' of ' + first.parts + ' …');
+        if (onProgress) onProgress('Loading ' + T.fmtDayLong(first.day) + ' — part ' + (k + 1) + ' of ' + first.parts + ' …');
         return get({ action: 'snap', day: first.day, part: k }).then(function (d) { pieces.push(d.data); return more(); });
       }
       return more().then(function () { return gunzipB64(pieces.join('')); }).then(function (text) {
-        onProgress('Building the ' + first.day + ' dashboard …');
         var doc = JSON.parse(text), res = V.buildDataset(doc.headers, doc.rows, doc.sheetName || 'Drive');
-        if (!res.ok) throw new Error('The saved file is missing required columns: ' + res.missing.join(', '));
-        var now = Date.now(), at = doc.uploadedAt || now;
-        return {
-          id: 'SNAP-' + first.day + '-' + at, schema: window.DASH.schema, uploadedAt: at,
-          expiresAt: now + V.CONFIG.retentionHours * 3600 * 1000,
-          fileName: doc.fileName || ('Saved ' + first.day), sheetName: doc.sheetName || 'Base',
-          reportingDate: doc.reportingDate || first.day.split('-').reverse().join('-'), day: first.day, source: 'drive',
-          diagnostics: res.diagnostics, warnings: res.warnings, headers: doc.headers, records: res.records
-        };
+        if (!res.ok) throw new Error('Saved data for ' + first.day + ' is missing: ' + res.missing.join(', '));
+        return { day: first.day, fileName: doc.fileName, sheetName: doc.sheetName, headers: doc.headers, records: res.records, diagnostics: res.diagnostics, warnings: res.warnings };
       });
     });
   }
 
-  /* ---------- RCA notes ---------- */
-  function loadRca() {
-    if (!configured()) return Promise.resolve({});
-    return get({ action: 'rca' }).then(function (d) { return d.notes || {}; });
-  }
-  var queue = {}, timer = null;
-  function saveRca(key, text) {
-    if (!configured()) return;
-    queue[key] = text;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(flush, 800);
-  }
-  function flush() {
-    timer = null;
-    var notes = Object.keys(queue).map(function (k) { return { key: k, text: queue[k] }; });
-    if (!notes.length) return;
-    queue = {};
-    post({ action: 'rca', notes: notes }).catch(function (e) {
-      window.DASH.backendError('RCA note not saved to the sheet: ' + e.message);
+  /* ---------- uploader-only ---------- */
+  function files() { return get({ action: 'files' }, true).then(function (d) { return d.files || []; }); }
+  function download(id, onProgress) {
+    return get({ action: 'file', id: id, part: 0 }, true).then(function (first) {
+      var pieces = [first.data], i = 1;
+      function more() {
+        if (i >= first.parts) return Promise.resolve();
+        var k = i++;
+        if (onProgress) onProgress('part ' + (k + 1) + ' of ' + first.parts);
+        return get({ action: 'file', id: id, part: k }, true).then(function (d) { pieces.push(d.data); return more(); });
+      }
+      return more().then(function () { return Promise.all(pieces.map(b64Bytes)); }).then(function (bufs) {
+        var n = bufs.reduce(function (s, b) { return s + b.byteLength; }, 0), out = new Uint8Array(n), o = 0;
+        bufs.forEach(function (b) { out.set(new Uint8Array(b), o); o += b.byteLength; });
+        return out.buffer;
+      });
     });
+  }
+  function awb(day) { return get({ action: 'awb', day: day }, true).then(function (d) { return gunzipB64(d.data); }).then(function (t) { return t ? JSON.parse(t) : null; }); }
+
+  function snapDoc(ds, day) {
+    var heads = ds.headers || [], keys = heads.map(hk), idx = [], kept = [];
+    PERSIST.forEach(function (h) { var i = keys.indexOf(hk(h)); if (i >= 0 && hk(h) !== 'productvalue2') { idx.push(i); kept.push(heads[i]); } });
+    kept.push(VALUE_COL);
+    var rows = ds.records.map(function (r) {
+      var o = idx.map(function (i) { var v = r.raw && r.raw[i]; return v === null || v === undefined ? '' : v; });
+      o.push(r.value); return o;
+    });
+    return { v: 2, day: day, fileName: ds.fileName, sheetName: ds.sheetName, headers: kept, rows: rows };
+  }
+
+  // Stores one base date. job: { day, ds, file (File|null to skip saving the base file), fileId, fileName,
+  //   main, hub, awbAll, closures, withSnapshot, source }
+  function commitDay(job, onProgress) {
+    onProgress = onProgress || function () {};
+    var uid = 'U' + Date.now() + Math.random().toString(36).slice(2, 6), fileId = job.fileId || '', link = '';
+    var saveFile = job.file ? job.file.arrayBuffer().then(function (buf) { return blobB64(new Blob([buf])); })
+      .then(function (b64) { return sendParts(b64, uid + 'F', onProgress, 'Saving ' + job.fileName + ' to the Drive folder'); })
+      .then(function (parts) { return post({ action: 'saveBase', day: job.day, uploadId: uid + 'F', parts: parts, fileName: job.fileName, mime: job.file.type }); })
+      .then(function (r) { if (r.skipped) throw Object.assign(new Error(r.reason), { skipped: true }); fileId = r.fileId; link = r.link; })
+      : Promise.resolve();
+    return saveFile
+      .then(function () { onProgress('Saving ' + T.fmtDayLong(job.day) + ' trend numbers …'); return gzipB64(JSON.stringify(job.awbAll)); })
+      .then(function (b64) { return sendParts(b64, uid, onProgress, 'Saving AWB list'); })
+      .then(function (awbParts) {
+        return post({ action: 'dayCommit', day: job.day, uploadId: uid, awbParts: awbParts, main: job.main, hub: job.hub, closures: job.closures || [],
+          fileId: fileId, fileName: job.fileName, rows: job.ds.records.length, awb615: job.awb615 || 0, val615: job.val615 || 0, source: job.source || 'upload' });
+      })
+      .then(function (r) {
+        if (r.skipped) return { skipped: true, reason: r.reason };
+        if (!job.withSnapshot) return { stored: true, fileId: fileId, link: link };
+        return gzipB64(JSON.stringify(snapDoc(job.ds, job.day)))
+          .then(function (b64) { return sendParts(b64, uid + 'S', onProgress, 'Saving detailed data'); })
+          .then(function (parts) { return post({ action: 'snapCommit', day: job.day, uploadId: uid + 'S', parts: parts }); })
+          .then(function () { return { stored: true, fileId: fileId, link: link }; });
+      })
+      .catch(function (e) { if (e.skipped) return { skipped: true, reason: e.message }; throw e; });
+  }
+
+  /* ---------- RCA notes ---------- */
+  function loadRca() { return get({ action: 'rca' }).then(function (d) { return d.notes || {}; }); }
+  var queue = {}, timer = null;
+  function saveRca(key, text) { queue[key] = text; clearTimeout(timer); timer = setTimeout(flush, 800); }
+  function flush() {
+    var notes = Object.keys(queue).map(function (k) { return { key: k, text: queue[k] }; }); queue = {};
+    if (notes.length) post({ action: 'rca', notes: notes }).catch(function (e) { window.DASH.backendError('RCA note not saved: ' + e.message); });
   }
 
   window.SYNC = {
-    url: url, setUrl: setUrl, configured: configured,
-    ping: function () { return get({ action: 'ping' }); },
-    meta: function () { return get({ action: 'meta' }); },
-    pushDataset: pushDataset, pullDataset: pullDataset,
-    pushSnapshot: pushSnapshot, pullSnapshot: pullSnapshot, listSnaps: listSnaps, dayKey: dayKey,
-    loadRca: loadRca, saveRca: saveRca
+    url: url, setUrl: setUrl, configured: configured, setToken: setToken, ping: ping, whoami: whoami,
+    days: days, trends: trends, hub: hub, snapshot: snapshot, files: files, download: download, awb: awb,
+    commitDay: commitDay, loadRca: loadRca, saveRca: saveRca, monthsOf: monthsOf
   };
 })();
 
@@ -1643,7 +1818,7 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   var V = window.VIS, C = V.CONFIG;
   var TABS = ['fwd', 'mm', 'lh', 'lm'];
   var TAB_SHORT = { fwd: 'FWD', mm: 'MM', lh: 'LH', lm: 'LM' };
-  var TAB_TITLE = { fwd: 'Forward Short Shipment Pendency View', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability' };
+  var TAB_TITLE = { fwd: 'Fwd Short DC-LM Trends', mm: 'MM Liability', lh: 'LH Liability', lm: 'LM Liability' };
   var TAB_FIELDS = {
     fwd: ['loc', 'region', 'origin', 'dest', 'lane', 'pod', 'podZone', 'seller', 'mainCat', 'mmColl', 'lmColl', 'hov2', 'mcode'],
     mm: ['loc', 'region', 'dest', 'mcode', 'wrongDest', 'landroval', 'mmColl', 'lmColl', 'seller', 'hov2', 'actionUser'],
@@ -1669,7 +1844,7 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     'Current_Location_Region', 'scanned_time', 'bin_level', 'bin_name', 'message', 'action_user',
     'shipment_type', 'scanned_location', 'layout_type', 'layout_name', 'physical_rack_id', 'sfx_order_id',
     'sku_id', 'product_names', 'product_categories', 'Wrongly Connceted Destination', 'Product_Value2'];
-  var DS_SCHEMA = 3;             // bump when the stored record shape changes
+  var DS_SCHEMA = 4;             // bump when the stored record shape changes
   var MISS_MIN = 5;              // repeat product misses at one hub before it is flagged
   var WD_MIN = 3;                // wrongly connected destination: minimum short AWBs shown
   var AU_MIN = 3, AU_AGE_MIN = 2, AU_AGE_MAX = 30;  // action user trend: frequency over ageing 2-30
@@ -1680,7 +1855,12 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     mmSub: {}, podSel: {}, prodDim: 'pcat', missDim: 'loc', openSec: {}, tblMT: {}, tblMetric: {}, showFields: false, podOpen: {}, catOpen: {}, podPick: null,
     pivot: { scope: 'fwd', rows: ['Current_location'], cols: ['Ageing band (20+)'], filters: [], vals: ['awb'], fsel: {}, search: '' },
     fwdRegion: '', fwdLoc: null, backend: '', backendErr: '', showBackend: false, storageWarning: '', busy: '', error: '', notice: '', popup: null, view: null,
-    tabs: {}
+    tabs: {},
+    me: null, pending: null, sync: null, clientId: '',
+    tr: { loaded: false, loading: '', err: '', days: [], snaps: [], main: [], closure: [], hubByDay: {}, hubLoading: false,
+          mode: 'dod', from: '', to: '', slots: {}, snapCache: {},
+          cfg: { 'tr-dc': { lo: 6, hi: 10 }, 'tr-pod': { lo: 6, hi: 15, mt: 'D' }, 'tr-hub': { lo: 6, hi: 20, mt: 'D' },
+                 'tr-client': { lo: 6, hi: 20, mt: '' }, 'tr-hov': { lo: 5, hi: 20, mt: '' }, 'tr-clo': { showAge: false, hideSmall: true, pair: '' } } }
   };
   TABS.forEach(function (t) {
     state.tabs[t] = { manifestType: C.tabs[t].manifestType, ageMin: C.tabs[t].ageMin, ageMax: C.tabs[t].ageMax, search: '', fields: {}, valueMin: null, valueMax: null };
@@ -1743,7 +1923,7 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   function remarkPut(e) { return idb('remarks', 'readwrite', function (s) { return s.put(e, e.key); }); }
 
   // ---------- dataset lifecycle ----------
-  function activeDs() { return state.ds && Date.now() < state.ds.expiresAt ? state.ds : null; }
+  function activeDs() { return state.ds; }
   function expireIfNeeded() {
     if (state.ds && Date.now() >= state.ds.expiresAt) {
       state.expiredAt = state.ds.uploadedAt; state.ds = null; state.records = [];
@@ -1757,68 +1937,12 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
       state.lastUploadAt = last || (ds && ds.uploadedAt) || null;
       if (ds && ds.schema !== DS_SCHEMA) {
         state.expiredAt = ds.uploadedAt; kvDel('active').catch(function () {});
-        state.notice = 'The dashboard was updated since your last upload. Re-upload the base to get the full base-column drill-downs.';
-      } else if (ds && Date.now() < ds.expiresAt) { state.ds = ds; state.records = V.ensureCategories(ds.records.map(function (x) { return V.classifyRecord(x); })); }
-      else if (ds) { state.expiredAt = ds.uploadedAt; kvDel('active').catch(function () {}); }
+        state.notice = 'The dashboard was updated; the latest base is being reloaded.';
+      } else if (ds) { state.ds = ds; state.records = V.ensureCategories(ds.records.map(function (x) { return V.classifyRecord(x); })); }
     }).catch(function (e) { state.storageWarning = state.storageWarning || 'Could not read saved dataset: ' + e.message; });
   }
   function sheetOrder(wb) { var pri = ['Base', 'Short_Dispatched'].filter(function (n) { return wb.SheetNames.indexOf(n) >= 0; }); return pri.concat(wb.SheetNames.filter(function (n) { return pri.indexOf(n) < 0; })); }
   function parseDateFromName(name) { var m = /(\d{2})-(\d{2})-(\d{4})/.exec(name || ''); return m ? m[1] + '-' + m[2] + '-' + m[3] : ''; }
-  function onUpload(file) {
-    state.error = ''; state.notice = ''; state.busy = 'Reading ' + file.name + ' …'; renderAll();
-    var chosen = null, res = null, tried = [];
-    var tryAoa = function (name, aoa) {
-      if (!aoa || !aoa.length) return false;
-      var r = V.buildDataset(aoa[0].map(V.txt), aoa.slice(1), name);
-      tried.push(name + (r.ok ? ' (ok)' : ' (missing: ' + r.missing.join(', ') + ')'));
-      if (r.ok) { res = r; chosen = name; return true; }
-      return false;
-    };
-    // Let the "Reading…" banner paint before the heavy work starts.
-    return new Promise(function (ok) { setTimeout(ok, 30); }).then(function () { return file.arrayBuffer(); }).then(function (buf) {
-      var fast = /\.xlsx$/i.test(file.name) && window.FASTXLSX
-        ? window.FASTXLSX.read(buf, function (names) { return sheetOrder({ SheetNames: names }); }, tryAoa)
-        : Promise.resolve(null);
-      return fast.then(function (hit) {
-        if (hit) return buf;
-        // Fallback: SheetJS for .xls / .csv or anything the fast reader can't open.
-        tried = [];
-        var wb = XLSX.read(buf, { type: 'array', cellDates: false, dense: true });
-        sheetOrder(wb).some(function (name) { return tryAoa(name, XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: null, raw: true, blankrows: false })); });
-        return buf;
-      });
-    }).then(function () {
-      if (!res) throw new Error('No sheet has the required schema. Checked: ' + tried.join('; ') + '.');
-      var now = Date.now();
-      var dataset = { id: 'DS-' + now, schema: DS_SCHEMA, uploadedAt: now, expiresAt: now + C.retentionHours * 3600 * 1000, fileName: file.name, sheetName: chosen, reportingDate: parseDateFromName(file.name), diagnostics: res.diagnostics, warnings: res.warnings, headers: res.headers, records: res.records };
-      state.busy = 'Saving dataset …'; renderAll();
-      return kvPut('active', dataset).then(function () { return kvPut('lastUploadAt', now); }).catch(function () {
-        state.storageWarning = 'Dataset could not be saved to browser storage; it stays available only on this page.';
-      }).then(function () {
-        state.ds = dataset; state.records = dataset.records; state.expiredAt = null; state.lastUploadAt = now;
-        return reconcileRemarks(dataset);
-      }).then(function () {
-        state.busy = ''; state.notice = 'Uploaded ' + num(dataset.records.length) + ' records from "' + chosen + '". All tabs recalculated.'; renderAll();
-        // The sheet is the shared copy; the local dataset keeps every base column for this session.
-        // Drive snapshot first (one compressed file per day, what everyone loads), then the sheet copy.
-        if (window.SYNC && window.SYNC.configured()) {
-          var prog = function (msg) { state.backend = msg; renderHeader(); };
-          return window.SYNC.pushSnapshot(dataset, prog)
-            .then(function (r) {
-              state.notice = 'Uploaded ' + num(dataset.records.length) + ' records · saved ' + r.day + ' to Drive (' + (r.bytes / 1048576).toFixed(1) + ' MB).';
-              refreshSnaps();
-            }, function (e) { state.backendErr = 'Drive save failed: ' + e.message; })
-            .then(function () { return window.SYNC.pushDataset(dataset, prog); })
-            .then(function (r) {
-              state.backend = '';
-              state.notice = (state.notice || '') + ' Google Sheet updated (' + num(r.rows) + ' rows).';
-              renderAll();
-            })
-            .catch(function (e) { state.backend = ''; state.backendErr = (state.backendErr ? state.backendErr + ' ' : '') + 'Google Sheet not updated: ' + e.message; renderAll(); });
-        }
-      });
-    }).catch(function (e) { state.busy = ''; state.error = 'Upload rejected: ' + e.message + ' The previously active dataset (if still valid) is unchanged.'; renderAll(); });
-  }
   function reconcileRemarks(ds) {
     var awb = new Set(ds.records.map(function (r) { return r.awb; })), dest = new Set(ds.records.map(function (r) { return r.dest; }));
     return remarkAll().then(function (all) {
@@ -1862,9 +1986,9 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   // ---------- header ----------
   function statusBlock() {
     var ds = activeDs();
-    if (ds) { var hrs = Math.max(0, (ds.expiresAt - Date.now()) / 3600000); return '<span class="pill ok">VALID</span> <span class="meta">Dataset <b>' + esc(ds.fileName) + '</b> · ' + num(ds.records.length) + ' rows · expires ' + dt(ds.expiresAt) + ' (' + hrs.toFixed(1) + ' h left)</span>'; }
-    if (state.expiredAt) return '<span class="pill warn">EXPIRED</span> <span class="meta">Last upload ' + dt(state.expiredAt) + ' — older than 24 hours. Upload a fresh base.</span>';
-    return '<span class="pill warn">NO DATA</span> <span class="meta">No base uploaded yet.</span>';
+    if (ds) return '<span class="pill ok">BASE</span> <span class="meta"><b>' + esc(ds.fileName) + '</b> · ' + num(ds.records.length) + ' rows</span>';
+    if (state.tr.loading || state.busy) return '<span class="pill">LOADING</span> <span class="meta">Fetching the latest numbers …</span>';
+    return '<span class="pill warn">NO DATA</span> <span class="meta">No base stored yet.' + (canUpload() ? ' Upload a base' + (store().remote ? ' or run Sync from Drive.' : '.') : ' An uploader needs to add one.') + '</span>';
   }
   var noticeTimer = null, noticeShown = '';
   function renderHeader() {
@@ -1874,12 +1998,17 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
       noticeShown = state.notice; clearTimeout(noticeTimer);
       noticeTimer = setTimeout(function () { if (state.notice === noticeShown) { state.notice = ''; renderHeader(); } }, 7000);
     }
-    $('#hdr').innerHTML = '<div class="hdr-main"><div class="brand"><div class="logo">S</div><div><div class="title">DC-LM Dashboard</div><div class="sub">Shadowfax · Middle Mile Audit &amp; Compliance' + (ds ? ' · <b>' + esc(ds.reportingDate || '') + '</b> · ' + num(ds.records.length) + ' rows' : '') + '</div></div></div>' +
-      '<div class="hdr-right"><label class="btn primary" for="upload">Upload Daily Base</label><input id="upload" type="file" accept=".xlsx,.xls,.csv" hidden />' +
-      '<button class="btn" data-act="fields">Field list</button>' +
-      (window.SYNC ? daySelect() + '<button class="btn ghost" data-act="backend">Backend</button>' : '') +
-      (ds ? '<button class="btn" data-act="recalc">Refresh</button>' : '') + '</div></div>' +
-      (ds ? '' : '<div class="statusbar">' + statusBlock() + '</div>') +
+    $('#hdr').innerHTML = '<div class="hdr-main"><div class="brand"><div class="logo">S</div><div><div class="title">DC-LM Dashboard</div><div class="sub">Shadowfax · Middle Mile Audit &amp; Compliance' + (ds ? ' · base <b>' + esc(ds.reportingDate || '') + '</b> · ' + num(ds.records.length) + ' rows' : '') + (state.tr.main.length ? ' · ' + num(state.tr.main.length) + (state.tr.main.length === 1 ? ' date' : ' dates') + ' stored' : '') + '</div></div></div>' +
+      '<div class="hdr-right">' +
+      (canUpload() ? '<label class="btn primary" for="upload">Upload Daily Base</label><input id="upload" type="file" accept=".xlsx,.xlsm,.xls,.csv" hidden />' : '') +
+      (canUpload() && store().remote ? '<button class="btn" data-act="sync">Sync from Drive</button>' : '') +
+      (ds ? '<button class="btn" data-act="fields">Field list</button>' : '') + daySelect() +
+      (store().remote ? (state.me ? '<span class="who" title="' + esc(state.me.uploader ? 'Can upload' : 'View only') + '">' + esc(state.me.email) + ' · <a href="#" data-act="signout">Sign out</a></span>'
+        : (state.clientId ? '<button class="btn ghost" data-act="signin">Uploader sign-in</button>' : '')) : '') +
+      (window.SYNC && (!store().remote || canUpload() || !window.SYNC.configured()) ? '<button class="btn ghost" data-act="backend">Backend</button>' : '') +
+      '</div></div>' +
+      (state.showSignIn && !state.me ? '<div class="signin"><span class="meta">Uploaders only — sign in with your Shadowfax Google account.</span><div id="gsi-btn"></div></div>' : '') +
+      (ds || state.tr.main.length ? '' : '<div class="statusbar">' + statusBlock() + '</div>') +
       (state.busy ? '<div class="banner info">' + esc(state.busy) + '</div>' : '') + (state.error ? '<div class="banner err">' + esc(state.error) + '</div>' : '') +
       (state.notice ? '<div class="banner ok">' + esc(state.notice) + '</div>' : '') + (state.storageWarning ? '<div class="banner warn">' + esc(state.storageWarning) + '</div>' : '') +
       (state.backend ? '<div class="banner info">' + esc(state.backend) + '</div>' : '') +
@@ -1888,23 +2017,16 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   }
 
   function daySelect() {
-    var cur = state.ds && state.ds.day ? state.ds.day : '';
-    return '<select class="btn dayselect" data-act="loadday" title="Every upload is saved as one file per day in Drive">' +
-      '<option value="">' + (state.snaps.length ? 'Saved days (' + state.snaps.length + ')' : 'Load saved day') + '</option>' +
-      '<option value="__latest">Latest saved day</option>' +
-      state.snaps.map(function (x) {
-        return '<option value="' + esc(x.day) + '"' + (x.day === cur ? ' selected' : '') + '>' + esc(x.day.split('-').reverse().join('-')) + ' · ' + num(x.rows) + ' rows</option>';
-      }).join('') + '</select>';
-  }
-  function refreshSnaps() {
-    if (!window.SYNC || !window.SYNC.configured() || !window.SYNC.listSnaps) return Promise.resolve();
-    return window.SYNC.listSnaps().then(function (l) { state.snaps = l || []; renderHeader(); }).catch(function () {});
+    var snaps = (state.tr.snaps || []).slice().sort().reverse(), cur = state.ds && state.ds.day ? state.ds.day : '';
+    if (!snaps.length) return '';
+    return '<select class="btn dayselect" data-act="loadday" title="Detailed view for an earlier base date">' +
+      snaps.map(function (d) { return '<option value="' + esc(d) + '"' + (d === cur ? ' selected' : '') + '>Base ' + esc(window.TRENDS.fmtDayLong(d)) + '</option>'; }).join('') + '</select>';
   }
   function backendBox() {
     if (!window.SYNC) return '';
     if (!state.showBackend) {
       return window.SYNC.configured() ? '' :
-        '<div class="banner warn">No Google Sheet backend connected — uploads stay on this device. Click <b>Backend</b> to paste the Apps Script URL.</div>';
+        '<div class="banner warn">No backend connected — uploads stay on this device. Click <b>Backend</b> to paste the Apps Script URL.</div>';
     }
     return '<div class="backendbox"><label>Apps Script web app URL (ends in /exec)' +
       '<input id="apiurl" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(window.SYNC.url()) + '" /></label>' +
@@ -1957,6 +2079,7 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   function totalsRow(cols, data) {
     return '<tr class="totrow">' + cols.map(function (c, i) {
       if (i === 0) return '<td><b>Grand total</b></td>';
+      if (c.tot) return '<td class="num"><b>' + c.tot(data) + '</b></td>';
       if (!c.num || c.noTotal || !c.v) return '<td></td>';
       var sum = data.reduce(function (s, r) { var x = c.v(r); return s + (typeof x === 'number' ? x : 0); }, 0);
       return '<td class="num"><b>' + (c.money ? inr(sum) : num(sum)) + '</b></td>';
@@ -2040,8 +2163,8 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     var money = (state.tblMetric[id] || 'awb') === 'value';
     var pend = money
       ? { h: opts.pendLabel ? opts.pendLabel.replace(/\(AWB\)/, '₹') : 'Product value ₹', num: true, pend: true, money: true, v: function (o) { return o.value; }, f: function (o) { return inr(o.value); } }
-      : { h: opts.pendLabel || 'Pendency (AWB)', num: true, pend: true, v: function (o) { return o.n; } };
-    var hov = { h: 'HOV', num: true, v: function (o) { return o.hov; } };
+      : { h: opts.pendLabel || 'Pendency (AWB)', num: true, pend: true, v: function (o) { return o.n; }, f: function (o) { return num(o.n); } };
+    var hov = { h: 'HOV', num: true, v: function (o) { return o.hov; }, f: function (o) { return num(o.hov); } };
     var cell = function (o, k) { return (money ? o.cv[k] : o.cc[k]) || 0; };
     // Conditional formatting is scaled inside each row, so every DC reads against its own worst day.
     var heat = function (o, k) {
@@ -2054,11 +2177,12 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     var ageC = cols.map(function (c, ci) {
       return { h: c.label, num: true, money: money,
         v: function (o) { return cell(o, c.key); },
-        cls: function (o) { return (heat(o, c.key) + ' ' + spikeClass(o, cols, ci, money)).trim(); },
+        cls: function (o) { return (heat(o, c.key) + ' ' + (opts.noSpike ? '' : spikeClass(o, cols, ci, money))).trim(); },
         f: function (o) { var x = cell(o, c.key); return x ? (money ? inr(x) : num(x)) : '<span class="zero">·</span>'; } };
     });
-    var head = opts.freqLabel ? [lab, pend, { h: opts.freqLabel, num: true, v: function (o) { return o.freq; } }, hov] : [lab, pend, hov];
+    var head = opts.freqLabel ? [lab, pend, { h: opts.freqLabel, num: true, v: function (o) { return o.freq; } }, hov] : (opts.hovLast || opts.noHov ? [lab, pend] : [lab, pend, hov]);
     var cdefs = head.concat(ageC);
+    if (opts.hovLast) cdefs.push(hov);
     return metricPicker(id) + tbl(id, cdefs, data, { select: opts.select !== false, rowClass: opts.rowClass, sort: opts.sort, limit: opts.limit || 300, pop: rows, dim: rowDim, mode: opts.mode, rcaDim: rowDim, rcaForce: opts.rcaForce, sortForce: opts.sortForce });
   }
   // Only the ageing values actually present are given a column, so an unfiltered view
@@ -2315,8 +2439,9 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     if (state.openSec[id] !== undefined) return state.openSec[id];
     return idx === 0;   // first table of a tab starts open, the rest collapsed
   }
-  function section(title, note, inner) {
-    var id = secId(title), idx = secIdx++, open = isOpen(id, idx);
+  function section(title, note, inner, sid, openDefault) {
+    var id = sid ? state.tab + '|' + sid : secId(title), idx = secIdx++;
+    var open = state.openSec[id] !== undefined ? state.openSec[id] : (openDefault !== undefined ? openDefault : isOpen(id, idx));
     return '<section class="card ' + (open ? '' : 'closed') + '" data-sec="' + esc(id) + '">' +
       '<div class="ch" data-act="sec" data-sec="' + esc(id) + '"><span class="caret">' + (open ? '&#9662;' : '&#9656;') + '</span>' +
       '<h2>' + esc(title) + '</h2></div>' +
@@ -2386,20 +2511,15 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
 
   // ---------- tab: Forward Short Shipment Pendency View (DCH2 + DC-DC) ----------
   function renderFwd(view) {
-    var all = view.filtered, t = 'fwd', ag = ageGetFor(t), out = [tabHead(t), kpiRow(view)];
+    var all = view.filtered, t = 'fwd', ag = ageGetFor(t), out = [tabHead(t)];
+    out.push(renderTrends());
+    if (!activeDs()) return out.join('');
+    out.push('<h3 class="trsplit">' + esc(state.ds.reportingDate || '') + ' base — detailed view</h3>' + kpiRow(view));
 
-    // 1 — pinned to DCH2
+    // 1 — pinned to DCH2; HOV sits after the ageing columns
     var r1 = mtScope(all, 'DCH2');
-    out.push(section('DCH2 Forward Short — Current Location × ageing wise pendency',
-      'Manifest_Type DCH2. Every ageing day to ' + V.AGE_BAND_MAX + ', then one ' + V.AGE_BAND_MAX + '+ bucket. Use the Current Location and Current location region filters at the top.',
-      crossTable('fwd-loc', r1, 'loc', ageCols(t, r1), ag, { mode: 'records' })));
-
-    // 2 and 3 — pinned to DC-DC
-    var r2 = mtScope(all, 'DC-DC');
-    out.push(section('DC-DC Manifest Origin × ageing wise pendency', 'Manifest_Type DC-DC.',
-      crossTable('fwd-origin', r2, 'origin', ageCols(t, r2), ag, {})));
-    out.push(section('DC-DC Manifest Destination × ageing wise pendency', 'Manifest_Type DC-DC.',
-      crossTable('fwd-dest', top(r2, 'dest', 100), 'dest', ageCols(t, r2), ag, {})));
+    out.push(section('DCH2 Forward Short — Current Location × ageing wise pendency', '',
+      crossTable('fwd-loc', r1, 'loc', ageCols(t, r1), ag, { mode: 'records', hovLast: true }), 'fwd-loc', false));
 
     // 5 — product trend: Main Category > Sub Category from the AWB Categorizer rules
     var r5 = mtScope(all, state.tblMT['fwd-prod'] || '');
@@ -2465,6 +2585,23 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
   function renderMM(view) {
     var rows = view.filtered, out = [tabHead('mm'), kpiRow(view)];
     var mmRows = rows.filter(function (r) { return r.mmBucket; });
+    // Whole forward pendency in the MM ageing window and filters (not only MM-liable AWBs).
+    var s0 = state.tabs.mm, fwdAll = V.applyFilters(V.tabRows(state.records, 'fwd', { manifestType: 'ALL', ageMin: s0.ageMin, ageMax: s0.ageMax }), s0);
+
+    // 1 — collated-bucket analysis for whatever region / DC is filtered
+    var aRows = mtScope(fwdAll, state.tblMT['mm-ana'] || '');
+    var BK = ['Connected correctly', 'DC/XD miss', 'Seal mismatch', 'CCTV issue', 'Report issue', 'SDD', 'Duplicate PTL / Manual station', 'WIP'];
+    var present = {}; aRows.forEach(function (r) { present[r.mmColl] = 1; });
+    var bcols = BK.concat(Object.keys(present).filter(function (k) { return BK.indexOf(k) < 0; })).map(function (k) { return { key: k, label: k === 'WIP' ? 'WIP (#N/A)' : k }; });
+    out.push(section('DC level overall analysis view', '',
+      mtPicker('mm-ana') + crossTable('mm-ana', aRows, 'loc', bcols, function (r) { return r.mmColl || 'WIP'; }, { mode: 'records', noSpike: true, hovLast: true }), 'mm-ana', true));
+
+    // 2, 3 — full DC-DC pendency (moved from the forward tab)
+    var r2 = mtScope(fwdAll, 'DC-DC');
+    out.push(section('DC-DC Manifest Origin × ageing wise pendency', '',
+      crossTable('mm-origin', r2, 'origin', ageCols('mm', r2), ageGet, {}), 'mm-origin', false));
+    out.push(section('DC-DC Manifest Destination × ageing wise pendency', '',
+      crossTable('mm-dest', top(r2, 'dest', 100), 'dest', ageCols('mm', r2), ageGet, {}), 'mm-dest', false));
 
     out.push(section('DC/XD misses Summary DC wise', 'MM liability by current location and ageing. Grand totals on top.',
       crossTable('mm-sum', mmRows, 'loc', ageCols('mm', mmRows), ageGet, {})));
@@ -2817,10 +2954,643 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
       tbl('pivot', cdefs, data, { limit: 500, select: false, sortForce: { i: rowFs.length, dir: -1 } }) + '</section>';
   }
 
+  // ================================================================== day store
+  // Remote (Apps Script + Drive) when a backend is configured; otherwise this browser's IndexedDB,
+  // so the Claude-hosted copy still keeps a history of the days uploaded on this device.
+  var TR = window.TRENDS;
+  var LocalStore = {
+    remote: false,
+    days: function () {
+      return kvGet('tr:index').then(function (ix) {
+        ix = ix || [];
+        return { days: ix.slice().sort(function (a, b) { return a.day < b.day ? -1 : 1; }), snaps: ix.filter(function (x) { return x.snap; }).map(function (x) { return x.day; }) };
+      });
+    },
+    trends: function (dayList) {
+      return Promise.all(dayList.map(function (x) { return kvGet('tr:main:' + x.day); }).concat([kvGet('tr:closure')])).then(function (r) {
+        var cl = r.pop() || {};
+        return { main: r.filter(Boolean), closure: Object.keys(cl).sort().map(function (k) { return cl[k]; }) };
+      });
+    },
+    hub: function (dayList) { return Promise.all(dayList.map(function (x) { return kvGet('tr:hub:' + x.day); })).then(function (r) { return r.filter(Boolean); }); },
+    awb: function (day) { return kvGet('tr:awb:' + day).then(function (x) { return x || null; }); },
+    snapshot: function (day) { return kvGet('tr:snap:' + day).then(function (x) { return x || null; }); },
+    commitDay: function (job) {
+      return kvGet('tr:index').then(function (ix) {
+        ix = ix || [];
+        if (ix.some(function (x) { return x.day === job.day; })) return { skipped: true, reason: TR.fmtDayLong(job.day) + ' is already stored' };
+        return Promise.all([kvPut('tr:main:' + job.day, job.main), kvPut('tr:hub:' + job.day, job.hub), kvPut('tr:awb:' + job.day, job.awbAll),
+          job.withSnapshot ? kvPut('tr:snap:' + job.day, { day: job.day, fileName: job.fileName, sheetName: job.ds.sheetName, headers: job.ds.headers, records: job.ds.records }) : null,
+          kvGet('tr:closure').then(function (cl) { cl = cl || {}; (job.closures || []).forEach(function (c) { cl[c.d] = c; }); return kvPut('tr:closure', cl); })])
+          .then(function () {
+            ix.push({ day: job.day, fileName: job.fileName, rows: job.ds.records.length, awb: job.main.n, value: job.main.v, snap: !!job.withSnapshot });
+            return kvPut('tr:index', ix);
+          }).then(function () { return { stored: true }; });
+      });
+    }
+  };
+  var RemoteStore = {
+    remote: true,
+    days: function () { return window.SYNC.days(); },
+    trends: function (dayList) { return window.SYNC.trends(dayList); },
+    hub: function (dayList) { return window.SYNC.hub(dayList); },
+    awb: function (day) { return window.SYNC.awb(day); },
+    snapshot: function (day, prog) { return window.SYNC.snapshot(day, prog); },
+    commitDay: function (job, prog) { return window.SYNC.commitDay(job, prog); }
+  };
+  function store() { return window.SYNC && window.SYNC.configured() ? RemoteStore : LocalStore; }
+  function canUpload() { return !store().remote || !!(state.me && state.me.uploader); }
+
+  // ================================================================== loading trends
+  function loadTrends() {
+    var tr = state.tr; tr.loading = 'Loading trends …'; tr.err = ''; renderBodyIfFwd();
+    return store().days().then(function (d) {
+      tr.days = d.days; tr.snaps = d.snaps || [];
+      if (!tr.days.length) { tr.main = []; tr.closure = []; tr.loaded = true; tr.loading = ''; return; }
+      return store().trends(tr.days).then(function (t) { tr.main = t.main; tr.closure = t.closure; tr.hub = null; tr.loaded = true; tr.loading = ''; });
+    }).catch(function (e) { tr.loading = ''; tr.err = 'Trends could not be loaded: ' + e.message; })
+      .then(function () { renderHeader(); renderBodyIfFwd(); });
+  }
+  function ensureHub(days) {
+    var tr = state.tr, need = days.filter(function (d) { return !tr.hubByDay[d.d]; });
+    if (!need.length || tr.hubLoading) return;
+    tr.hubLoading = true;
+    store().hub(need.map(function (d) { return { day: d.d }; })).then(function (list) {
+      list.forEach(function (h) { tr.hubByDay[h.d] = h; });
+      need.forEach(function (d) { if (!tr.hubByDay[d.d]) tr.hubByDay[d.d] = { d: d.d, H: [] }; });
+    }).catch(function (e) { tr.err = 'Hub trend could not be loaded: ' + e.message; })
+      .then(function () { tr.hubLoading = false; renderBodyIfFwd(); });
+  }
+  function renderBodyIfFwd() { if (state.tab === 'fwd') renderBody(); }
+
+  // ================================================================== ingesting a base
+  function parseBase(buf, name) {
+    var res = null, chosen = null, tried = [];
+    var tryAoa = function (sn, aoa) {
+      if (!aoa || !aoa.length) return false;
+      var r = V.buildDataset(aoa[0].map(V.txt), aoa.slice(1), sn);
+      tried.push(sn + (r.ok ? ' (ok)' : ' (missing: ' + r.missing.join(', ') + ')'));
+      if (r.ok) { res = r; chosen = sn; return true; }
+      return false;
+    };
+    var fast = /\.xlsx$/i.test(name) && window.FASTXLSX ? window.FASTXLSX.read(buf, function (n) { return sheetOrder({ SheetNames: n }); }, tryAoa) : Promise.resolve(null);
+    return fast.then(function (hit) {
+      if (!hit) {
+        if (typeof XLSX === 'undefined') throw new Error('The Excel reader is still loading. Try again in a moment.');
+        tried = [];
+        var wb = XLSX.read(buf, { type: 'array', cellDates: false, dense: true });
+        sheetOrder(wb).some(function (sn) { return tryAoa(sn, XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: null, raw: true, blankrows: false })); });
+      }
+      if (!res) throw new Error('No sheet has Awb_number, Manifest_Type, Ageing_from_Bag_Rec and Current_location. Checked: ' + tried.join('; '));
+      return { res: res, sheet: chosen };
+    });
+  }
+  function neighbours(day) {
+    var ds = state.tr.days.map(function (x) { return x.day; }).sort(), prev = '', next = '';
+    ds.forEach(function (d) { if (d < day) prev = d; if (d > day && !next) next = d; });
+    return { prev: prev, next: next };
+  }
+  // opts: { source, file (save original), fileId, withSnapshot, makeActive, prevAwb: {day, list}, onProgress }
+  function ingest(buf, name, day, opts) {
+    var prog = opts.onProgress || function () {};
+    prog('Reading ' + name + ' …');
+    return parseBase(buf, name).then(function (p) {
+      var ds = { id: 'DS-' + Date.now(), schema: DS_SCHEMA, uploadedAt: Date.now(), expiresAt: Date.now() + 3650 * 86400000, day: day,
+        fileName: name, sheetName: p.sheet, reportingDate: TR.fmtDayLong(day), diagnostics: p.res.diagnostics, warnings: p.res.warnings,
+        headers: p.res.headers, records: p.res.records };
+      var agg = TR.dayAggregate(day, ds.records, { fileName: name }), awbAll = TR.awbList(ds.records);
+      var awbSet = new Set(awbAll.map(function (x) { return x[0]; }));
+      var nb = neighbours(day), closures = [];
+      var prevP = !nb.prev ? Promise.resolve(null)
+        : (opts.prevAwb && opts.prevAwb.day === nb.prev ? Promise.resolve(opts.prevAwb.list) : store().awb(nb.prev));
+      var nextP = !nb.next ? Promise.resolve(null) : store().awb(nb.next);
+      return Promise.all([prevP, nextP]).then(function (n) {
+        if (n[0]) closures.push(TR.closure(nb.prev, day, n[0], awbSet));
+        if (n[1]) closures.push(TR.closure(day, nb.next, awbAll, new Set(n[1].map(function (x) { return x[0]; }))));
+        var a615 = 0, v615 = 0;
+        agg.main.L.forEach(function (r) { a615 += TR.sumAges(r[3], 6, 15); v615 += TR.sumAges(r[4], 6, 15); });
+        return store().commitDay({ day: day, ds: ds, file: opts.file || null, fileId: opts.fileId || '', fileName: name, main: agg.main, hub: agg.hub,
+          awbAll: awbAll, closures: closures, withSnapshot: !!opts.withSnapshot, source: opts.source, awb615: a615, val615: v615 }, prog);
+      }).then(function (r) { return { result: r, ds: ds, awb: awbAll }; });
+    });
+  }
+
+  // Upload from the dashboard: confirm the date first, then store (first base per date is kept).
+  function startUpload(file) {
+    state.pending = { file: file, day: TR.dateFromName(file.name), err: '' };
+    renderPending();
+  }
+  function renderPending() {
+    var p = state.pending, m = $('#modal');
+    if (!p) { m.classList.remove('show'); m.innerHTML = ''; return; }
+    var exists = p.day && state.tr.days.some(function (x) { return x.day === p.day; });
+    m.innerHTML = '<div class="modal small"><div class="mhead"><div><h2>Upload base</h2><div class="meta">' + esc(p.file.name) + ' · ' + (p.file.size / 1048576).toFixed(1) + ' MB</div></div></div>' +
+      '<div class="uform"><label>Reporting date (read from the file name — check it)<input type="date" id="update" value="' + esc(p.day) + '" /></label>' +
+      (exists ? '<div class="banner warn">' + esc(TR.fmtDayLong(p.day)) + ' is already stored. This file will be shown on screen but not saved again (the first base for a date is kept).</div>' : '') +
+      (p.err ? '<div class="banner err">' + esc(p.err) + '</div>' : '') +
+      '<div class="ubtns"><button class="btn primary" data-act="upgo">' + (exists ? 'Open without saving' : 'Save and open') + '</button><button class="btn ghost" data-act="upcancel">Cancel</button></div></div></div>';
+    m.classList.add('show');
+  }
+  function confirmUpload() {
+    var p = state.pending, inp = document.getElementById('update');
+    var day = inp ? inp.value : p.day;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day || '')) { p.err = 'Pick the reporting date first.'; renderPending(); return; }
+    var file = p.file, exists = state.tr.days.some(function (x) { return x.day === day; });
+    state.pending = null; renderPending();
+    state.error = ''; state.busy = 'Reading ' + file.name + ' …'; renderAll();
+    var prog = function (msg) { state.busy = msg; renderHeader(); };
+    var latest = !state.tr.days.length || day >= state.tr.days[state.tr.days.length - 1].day;
+    new Promise(function (ok) { setTimeout(ok, 30); }).then(function () { return file.arrayBuffer(); }).then(function (buf) {
+      if (exists) return parseBase(buf, file.name).then(function (p2) { return { result: { skipped: true, reason: TR.fmtDayLong(day) + ' is already stored' }, ds: makeDs(p2, file.name, day) }; });
+      return ingest(buf, file.name, day, { source: 'upload', file: store().remote ? file : null, withSnapshot: true, onProgress: prog });
+    }).then(function (r) {
+      if (latest || exists) useDataset(r.ds);
+      state.busy = '';
+      state.notice = r.result.skipped ? r.result.reason + ' — showing the file without saving it.' : 'Saved ' + TR.fmtDayLong(day) + ' (' + num(r.ds.records.length) + ' rows)' + (store().remote ? ' to Drive. Everyone with the link now sees it.' : ' on this device.');
+      return loadTrends();
+    }).catch(function (e) { state.busy = ''; state.error = 'Upload failed: ' + e.message; renderAll(); });
+  }
+  function makeDs(p, name, day) {
+    return { id: 'DS-' + Date.now(), schema: DS_SCHEMA, uploadedAt: Date.now(), expiresAt: Date.now() + 3650 * 86400000, day: day, fileName: name,
+      sheetName: p.sheet, reportingDate: TR.fmtDayLong(day), diagnostics: p.res.diagnostics, warnings: p.res.warnings, headers: p.res.headers, records: p.res.records };
+  }
+  function useDataset(ds) {
+    ds.schema = DS_SCHEMA; ds.expiresAt = Date.now() + 3650 * 86400000;
+    if (!ds.reportingDate && ds.day) ds.reportingDate = TR.fmtDayLong(ds.day);
+    state.ds = ds; state.records = V.ensureCategories(ds.records); state.expiredAt = null;
+    kvPut('active', ds).catch(function () {});
+    reconcileRemarks(ds);
+    renderAll();
+  }
+
+  // ================================================================== sync from Drive (uploaders)
+  function openSync() {
+    state.sync = { phase: 'scan', msg: 'Listing the base folder …', log: [], stop: false };
+    renderSync();
+    Promise.all([window.SYNC.files(), store().days()]).then(function (r) {
+      var files = r[0], stored = new Set(r[1].days.map(function (x) { return x.day; })), storedIds = new Set(r[1].days.map(function (x) { return x.fileId; }));
+      var plan = { loss: [], other: [], nodate: [], dup: [], done: [], todo: [] }, byDay = {};
+      files.forEach(function (f) {
+        if (TR.isLossFile(f.name)) return plan.loss.push(f);
+        if (!TR.isBaseFile(f.name) && f.mime !== 'application/vnd.google-apps.spreadsheet') return plan.other.push(f);
+        var d = TR.dateFromName(f.name); f.day = d;
+        if (!d) return plan.nodate.push(f);
+        (byDay[d] = byDay[d] || []).push(f);
+      });
+      Object.keys(byDay).forEach(function (d) {
+        var fs = byDay[d].sort(function (a, b) { return a.created - b.created; });   // first one stored is kept
+        fs.slice(1).forEach(function (f) { plan.dup.push(f); });
+        if (stored.has(d) || storedIds.has(fs[0].id)) plan.done.push(fs[0]); else plan.todo.push(fs[0]);
+      });
+      plan.todo.sort(function (a, b) { return a.day < b.day ? -1 : 1; });
+      state.sync.plan = plan; state.sync.phase = 'ready'; state.sync.msg = '';
+      renderSync();
+    }).catch(function (e) { state.sync.phase = 'error'; state.sync.msg = e.message; renderSync(); });
+  }
+  function runSync() {
+    var s = state.sync, todo = s.plan.todo.slice(), all = todo.map(function (f) { return f.day; }).concat(state.tr.days.map(function (x) { return x.day; })).sort();
+    var snapFrom = all.length > 10 ? all[all.length - 10] : '';   // detailed copy only for the last 10 dates
+    var prev = null, i = 0, t0 = Date.now();
+    s.phase = 'run'; renderSync();
+    function next() {
+      if (s.stop || i >= todo.length) { s.phase = 'end'; s.msg = s.stop ? 'Stopped. Run Sync again to carry on from here.' : 'All base files are loaded.'; renderSync(); loadTrends().then(function () { if (!activeDs()) loadLatest(); }); return; }
+      var f = todo[i++], eta = i > 1 ? Math.round((Date.now() - t0) / (i - 1) * (todo.length - i + 1) / 60000) : null;
+      s.msg = 'File ' + i + ' of ' + todo.length + ': ' + f.name + (eta !== null ? ' · about ' + eta + ' min left' : '');
+      renderSync();
+      window.SYNC.download(f.id, function (m) { s.msg = 'File ' + i + ' of ' + todo.length + ': ' + f.name + ' (' + m + ')'; renderSync(); })
+        .then(function (buf) {
+          return ingest(buf, f.name, f.day, { source: 'drive', fileId: f.id, withSnapshot: f.day >= snapFrom, prevAwb: prev,
+            onProgress: function (m) { s.msg = 'File ' + i + ' of ' + todo.length + ': ' + m; renderSync(); } });
+        })
+        .then(function (r) {
+          prev = { day: f.day, list: r.awb };
+          state.tr.days.push({ day: f.day, fileName: f.name, fileId: f.id });
+          state.tr.days.sort(function (a, b) { return a.day < b.day ? -1 : 1; });
+          s.log.push({ ok: !r.result.skipped, text: TR.fmtDayLong(f.day) + ' · ' + f.name + (r.result.skipped ? ' — skipped: ' + r.result.reason : ' — ' + num(r.ds.records.length) + ' rows') });
+        }, function (e) { s.log.push({ ok: false, text: TR.fmtDayLong(f.day) + ' · ' + f.name + ' — not loaded: ' + e.message }); })
+        .then(function () { setTimeout(next, 10); });
+    }
+    next();
+  }
+  function renderSync() {
+    var s = state.sync, m = $('#modal');
+    if (!s) { m.classList.remove('show'); m.innerHTML = ''; return; }
+    var p = s.plan, list = function (title, fs, why) {
+      return fs.length ? '<details><summary>' + esc(title) + ' (' + fs.length + ')</summary><ul>' + fs.slice(0, 200).map(function (f) { return '<li>' + esc(f.name) + (why ? ' <span class="meta">' + esc(why(f)) + '</span>' : '') + '</li>'; }).join('') + '</ul></details>' : '';
+    };
+    var body = '';
+    if (s.phase === 'scan' || s.phase === 'error') body = '<div class="banner ' + (s.phase === 'error' ? 'err' : 'info') + '">' + esc(s.msg) + '</div>';
+    if (p) {
+      body += '<div class="synckpis">' + kpi('To load', num(p.todo.length), 'new base dates') + kpi('Already stored', num(p.done.length), 'skipped') +
+        kpi('Same date twice', num(p.dup.length), 'first one kept') + kpi('Not used', num(p.loss.length + p.other.length + p.nodate.length), 'Loss / other / no date') + '</div>' +
+        list('To load', p.todo, function (f) { return TR.fmtDayLong(f.day); }) +
+        list('Same date as another file — skipped', p.dup, function (f) { return TR.fmtDayLong(f.day); }) +
+        list('Date not found in the name — rename to e.g. "Fwd Short_Dispatched 24-11-2026"', p.nodate) +
+        list('Files with "Loss" in the name — ignored', p.loss) + list('Not Excel / CSV — ignored', p.other);
+      if (s.phase === 'ready') body += p.todo.length
+        ? '<div class="meta">Each file takes about 15–25 seconds. Keep this tab open; you can stop and run Sync again later — it carries on where it stopped.</div><div class="ubtns"><button class="btn primary" data-act="syncgo">Load ' + p.todo.length + ' file' + (p.todo.length === 1 ? '' : 's') + '</button><button class="btn ghost" data-act="syncclose">Close</button></div>'
+        : '<div class="banner ok">Everything in the folder is already loaded.</div><div class="ubtns"><button class="btn ghost" data-act="syncclose">Close</button></div>';
+    }
+    if (s.phase === 'run' || s.phase === 'end') {
+      body += '<div class="banner ' + (s.phase === 'end' ? 'ok' : 'info') + '">' + esc(s.msg) + '</div>' +
+        '<ul class="synclog">' + s.log.slice().reverse().slice(0, 300).map(function (l) { return '<li class="' + (l.ok ? '' : 'bad') + '">' + esc(l.text) + '</li>'; }).join('') + '</ul>' +
+        '<div class="ubtns">' + (s.phase === 'run' ? '<button class="btn" data-act="syncstop">Stop after this file</button>' : '<button class="btn ghost" data-act="syncclose">Close</button>') + '</div>';
+    }
+    m.innerHTML = '<div class="modal"><div class="mhead"><div><h2>Sync from Drive</h2><div class="meta">Base files- Fwd Short Dispatched · one base per date, the first file stored for a date is kept</div></div></div>' + body + '</div>';
+    m.classList.add('show');
+  }
+
+  // ================================================================== Google sign-in (uploaders)
+  function setupSignIn(clientId) {
+    state.clientId = clientId;
+    try { var t = sessionStorage.getItem('dclm_tok'); if (t) { window.SYNC.setToken(t); checkMe(); } } catch (e) {}
+    if (!clientId || document.getElementById('gsi-lib')) return;
+    var sc = document.createElement('script'); sc.id = 'gsi-lib'; sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+    sc.onload = function () {
+      window.google.accounts.id.initialize({ client_id: clientId, callback: function (resp) {
+        window.SYNC.setToken(resp.credential); try { sessionStorage.setItem('dclm_tok', resp.credential); } catch (e) {}
+        state.showSignIn = false; checkMe();
+      }, auto_select: false });
+      renderHeader();
+    };
+    document.head.appendChild(sc);
+  }
+  function checkMe() {
+    window.SYNC.whoami().then(function (r) {
+      state.me = r; if (!r.uploader) state.notice = r.email + ' can view the dashboard but is not on the uploader list.';
+      renderAll();
+    }).catch(function () { state.me = null; window.SYNC.setToken(''); try { sessionStorage.removeItem('dclm_tok'); } catch (e) {} renderHeader(); });
+  }
+  function signOut() { state.me = null; window.SYNC.setToken(''); try { sessionStorage.removeItem('dclm_tok'); } catch (e) {} if (window.google) window.google.accounts.id.disableAutoSelect(); renderAll(); }
+  function paintSignIn() {
+    var el = document.getElementById('gsi-btn');
+    if (el && window.google && window.google.accounts && !el.childNodes.length) window.google.accounts.id.renderButton(el, { theme: 'outline', size: 'medium', text: 'signin_with' });
+  }
+
+  // ================================================================== trend view helpers
+  var SERIES = 8;
+  function trScope() {
+    var f = state.tabs.fwd.fields;
+    return { regions: f.region && f.region.size ? f.region : null, locs: f.loc && f.loc.size ? f.loc : null };
+  }
+  function trRange(list) {
+    var tr = state.tr, all = (list || tr.main);
+    if (!all.length) return [];
+    var to = tr.to || all[all.length - 1].d, from = tr.from;
+    var within = all.filter(function (d) { return d.d <= to && (!from || d.d >= from); });
+    if (!from) within = tr.mode === 'wow' ? within.filter(function (d) { return d.d >= addDays(to, -7 * 8 + 1); }) : within.slice(-5);
+    return within;
+  }
+  function addDays(d, n) { var p = d.split('-'), t = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)); return t.toISOString().slice(0, 10); }
+  function weekLabel(w) { return 'Wk of ' + TR.fmtDay(w); }
+  function cfg(id) { return state.tr.cfg[id]; }
+  function money(id) { return (state.tblMetric[id] || 'awb') === 'value'; }
+  function fmtM(id, x) { return money(id) ? inr(x) : num(x); }
+  function pick(o, id) { return o ? (money(id) ? o.v : o.n) : 0; }
+  function ageInputs(id) {
+    var c = cfg(id);
+    return '<span class="trage">Ageing D<input type="number" min="0" max="31" data-act="trage" data-card="' + id + '" data-end="lo" value="' + c.lo + '" />–D<input type="number" min="0" max="31" data-act="trage" data-card="' + id + '" data-end="hi" value="' + c.hi + '" /></span>';
+  }
+  function mtSel(id) {
+    var c = cfg(id), opt = [['', 'Overall'], ['D', 'DCH2'], ['C', 'DC-DC']];
+    return '<span class="segs">' + opt.map(function (o) { return '<button class="' + (c.mt === o[0] ? 'on' : '') + '" data-act="trmt" data-card="' + id + '" data-val="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</span>';
+  }
+  function cardBar(id, extra) { return '<div class="trbar">' + ageInputs(id) + (cfg(id).mt !== undefined ? mtSel(id) : '') + metricPicker(id) + (extra || '') + '</div>'; }
+
+  // ---- SVG line chart with crosshair tooltip
+  var CHARTS = {};
+  function lineChart(id, labels, series, fmt, opts) {
+    opts = opts || {};
+    if (!labels.length || !series.length) return '<div class="meta">No data for this selection.</div>';
+    var W = 1100, H = opts.h || 270, L = 56, R = 150, T = 16, B = 30;
+    var max = 0; series.forEach(function (s) { s.values.forEach(function (v) { if (v > max) max = v; }); });
+    if (!max) max = 1;
+    // 4-6 round ticks that just clear the highest value
+    var raw = max / 5, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = mag;
+    [1, 2, 2.5, 5, 10].some(function (m) { step = m * mag; return step >= raw; });
+    var nice = Math.ceil(max / step) * step;
+    var x = function (i) { return labels.length === 1 ? L + (W - L - R) / 2 : L + i * (W - L - R) / (labels.length - 1); };
+    var y = function (v) { return T + (H - T - B) * (1 - v / nice); };
+    var g = '';
+    for (var t = 0; t <= nice + 1e-9; t += step) g += '<line class="lc-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="lc-ax" x="' + (L - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + esc(fmt(t, true)) + '</text>';
+    var every = Math.ceil(labels.length / 14);
+    labels.forEach(function (l, i) { if (i % every === 0 || i === labels.length - 1) g += '<text class="lc-ax" x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(l) + '</text>'; });
+    var showPts = labels.length <= 12 && series.length <= 5;
+    var ends = [];
+    series.forEach(function (s, si) {
+      var col = 'var(--s' + ((s.slot || si) % 8 + 1) + ')', d = '';
+      s.values.forEach(function (v, i) { if (v === null) return; d += (d ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
+      g += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+      s.values.forEach(function (v, i) {
+        if (v === null) return;
+        g += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="4" fill="' + col + '" stroke="var(--card)" stroke-width="2"/>';
+        if (showPts) g += '<text class="lc-val" x="' + x(i) + '" y="' + (y(v) - 9) + '" text-anchor="middle">' + esc(fmt(v)) + '</text>';
+      });
+      var li = s.values.length - 1; while (li > 0 && s.values[li] === null) li--;
+      if (s.values[li] !== null) ends.push({ y: y(s.values[li]), x: x(li), t: s.name.slice(0, 18) + ' ' + fmt(s.values[li]) });
+    });
+    ends.sort(function (a, b) { return a.y - b.y; });
+    for (var k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 13) ends[k].y = ends[k - 1].y + 13;
+    var over = ends.length ? ends[ends.length - 1].y - (H - B) : 0;   // keep the stacked labels inside the plot
+    if (over > 0) ends.forEach(function (e) { e.y = Math.max(T + 4, e.y - over); });
+    ends.forEach(function (e) { g += '<text class="lc-end" x="' + (e.x + 10) + '" y="' + (e.y + 4) + '">' + esc(e.t) + '</text>'; });
+    CHARTS[id] = { labels: labels, series: series, fmt: fmt, x: labels.map(function (l, i) { return x(i); }), W: W, T: T, B: B, H: H };
+    var legend = series.length > 1 ? '<div class="lc-legend">' + series.map(function (s, si) { return '<span><i style="background:var(--s' + ((s.slot || si) % 8 + 1) + ')"></i>' + esc(s.name) + '</span>'; }).join('') + '</div>' : '';
+    return legend + '<div class="lc-wrap" data-chart="' + id + '"><svg class="lc" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="' + esc(opts.title || 'Trend') + '">' + g +
+      '<line class="lc-cross" x1="0" x2="0" y1="' + T + '" y2="' + (H - B) + '" style="display:none"/><rect class="lc-hit" x="0" y="0" width="' + W + '" height="' + H + '" fill="transparent"/></svg><div class="lc-tip" style="display:none"></div></div>';
+  }
+  function chartHover(ev) {
+    var wrap = ev.target.closest && ev.target.closest('.lc-wrap'); if (!wrap) return;
+    var c = CHARTS[wrap.dataset.chart]; if (!c) return;
+    var svg = wrap.querySelector('svg'), r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * c.W;
+    var bi = 0; c.x.forEach(function (xx, i) { if (Math.abs(xx - sx) < Math.abs(c.x[bi] - sx)) bi = i; });
+    var cross = svg.querySelector('.lc-cross'); cross.setAttribute('x1', c.x[bi]); cross.setAttribute('x2', c.x[bi]); cross.style.display = '';
+    var rows = c.series.map(function (s, si) { return { n: s.name, v: s.values[bi], col: 'var(--s' + ((s.slot || si) % 8 + 1) + ')' }; })
+      .filter(function (o) { return o.v !== null; }).sort(function (a, b) { return b.v - a.v; });
+    var tip = wrap.querySelector('.lc-tip');
+    tip.innerHTML = '<b>' + esc(c.labels[bi]) + '</b>' + rows.map(function (o) { return '<div><i style="background:' + o.col + '"></i><span>' + esc(o.n) + '</span><em>' + esc(c.fmt(o.v)) + '</em></div>'; }).join('');
+    tip.style.display = '';
+    var px = c.x[bi] / c.W * r.width, left = px + 14; if (left + 230 > r.width) left = px - 244;
+    tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
+  }
+  function chartLeave(ev) {
+    var wrap = ev.target.closest && ev.target.closest('.lc-wrap'); if (!wrap) return;
+    var t = wrap.querySelector('.lc-tip'), c = wrap.querySelector('.lc-cross'); if (t) t.style.display = 'none'; if (c) c.style.display = 'none';
+  }
+
+  // Ranks keys by the latest date's value and keeps a stable colour per key (colour follows the entity).
+  function ranked(ser, dates, id) {
+    var last = dates[dates.length - 1];
+    return Array.from(ser.keys()).map(function (k) {
+      var o = ser.get(k); return { key: k, by: o, last: pick(o[last], id), tot: dates.reduce(function (s, d) { return s + pick(o[d], id); }, 0) };
+    }).sort(function (a, b) { return b.last - a.last || b.tot - a.tot; });
+  }
+  function weekOf(ser, days, id) {   // key -> { week: avg per base day }
+    var wk = {}; days.forEach(function (d) { var w = TR.weekStart(d.d); (wk[w] = wk[w] || []).push(d.d); });
+    var weeks = Object.keys(wk).sort(), out = new Map();
+    ser.forEach(function (o, k) {
+      var m = {}; weeks.forEach(function (w) { var s = 0; wk[w].forEach(function (d) { s += pick(o[d], id); }); m[w] = s / wk[w].length; }); out.set(k, m);
+    });
+    return { weeks: weeks, perKey: out, daysIn: wk };
+  }
+
+  // Rows × dates (DoD) or rows × weeks (WoW) — one grand total per period for the ageing window.
+  function periodTable(id, dimLabel, ser, days, opts) {
+    opts = opts || {};
+    var wow = state.tr.mode === 'wow', dates = days.map(function (d) { return d.d; });
+    var cols, rows;
+    if (wow) {
+      var wo = weekOf(ser, days, id);
+      cols = wo.weeks.map(function (w) { return { key: w, label: weekLabel(w) + ' (' + wo.daysIn[w].length + 'd avg)' }; });
+      rows = ranked(ser, dates, id).map(function (r) { var m = wo.perKey.get(r.key); return { key: r.key, cells: m, last: m[wo.weeks[wo.weeks.length - 1]] || 0 }; });
+    } else {
+      cols = dates.map(function (d) { return { key: d, label: TR.fmtDay(d) }; });
+      rows = ranked(ser, dates, id).map(function (r) { var m = {}; dates.forEach(function (d) { m[d] = pick(r.by[d], id); }); return { key: r.key, cells: m, last: r.last }; });
+    }
+    var n = cols.length;
+    var defs = [{ h: dimLabel, v: function (o) { return o.key; } }].concat(cols.map(function (c) {
+      return { h: c.label, num: true, money: money(id), v: function (o) { return o.cells[c.key] || 0; },
+        f: function (o) {
+          var x = o.cells[c.key]; if (!x) return '<span class="zero">·</span>';
+          return opts.drill ? '<span class="drill" data-act="hovdrill" data-day="' + c.key + '" data-loc="' + esc(o.key) + '">' + fmtM(id, x) + '</span>' : fmtM(id, x);
+        } };
+    }));
+    if (n > 1) defs.push({ h: wow ? 'Change vs previous week' : 'Change vs previous day', num: true, noTotal: false,
+      v: function (o) { return (o.cells[cols[n - 1].key] || 0) - (o.cells[cols[n - 2].key] || 0); },
+      f: function (o) { var x = (o.cells[cols[n - 1].key] || 0) - (o.cells[cols[n - 2].key] || 0); return '<span class="' + (x > 0 ? 'up' : x < 0 ? 'down' : '') + '">' + (x > 0 ? '+' : '') + fmtM(id, x) + '</span>'; } });
+    return tbl(id + '-t', defs, rows, { limit: opts.limit || 200, select: false, sortForce: { i: n, dir: -1 } });
+  }
+  function periodChart(id, ser, days, title) {
+    var wow = state.tr.mode === 'wow', dates = days.map(function (d) { return d.d; });
+    var rk = ranked(ser, dates, id).slice(0, SERIES), labels, series;
+    var slotOf = state.tr.slots[id] = state.tr.slots[id] || {};
+    var slot = function (k) { if (slotOf[k] === undefined) { var used = Object.keys(slotOf).map(function (x) { return slotOf[x]; }); var s = 0; while (used.indexOf(s) >= 0 && s < 64) s++; slotOf[k] = s; } return slotOf[k]; };
+    if (wow) {
+      var wo = weekOf(ser, days, id);
+      labels = wo.weeks.map(weekLabel);
+      series = rk.map(function (r) { var m = wo.perKey.get(r.key); return { name: r.key, slot: slot(r.key), values: wo.weeks.map(function (w) { return Math.round(m[w] || 0); }) }; });
+    } else {
+      labels = dates.map(TR.fmtDay);
+      series = rk.map(function (r) { return { name: r.key, slot: slot(r.key), values: dates.map(function (d) { return pick(r.by[d], id); }) }; });
+    }
+    return lineChart(id, labels, series, function (v, ax) { return money(id) ? (ax ? '₹' + compact(v) : inr(v)) : (ax ? compact(v) : num(v)); }, { title: title });
+  }
+  function compact(v) { v = Math.round(v); return v >= 1e7 ? (v / 1e7).toFixed(1) + 'Cr' : v >= 1e5 ? (v / 1e5).toFixed(1) + 'L' : v >= 1e3 ? (v / 1e3).toFixed(v >= 1e4 ? 0 : 1) + 'k' : String(v); }
+  function subtitle(id, ser, days) {
+    var dates = days.map(function (d) { return d.d; }), tot = dates.map(function (d) { var s = 0; ser.forEach(function (o) { s += pick(o[d], id); }); return s; });
+    if (!dates.length) return '';
+    var hi = 0, lo = 0; tot.forEach(function (v, i) { if (v > tot[hi]) hi = i; if (v < tot[lo]) lo = i; });
+    var sc = trScope(), where = sc.regions ? Array.from(sc.regions).join(', ') : 'All regions';
+    return '<div class="meta trsub">' + esc(where) + ' total · ' + esc(TR.fmtDayLong(dates[0])) + ' to ' + esc(TR.fmtDayLong(dates[dates.length - 1])) + ' · ' +
+      fmtM(id, tot[tot.length - 1]) + ' on ' + esc(TR.fmtDay(dates[dates.length - 1])) + ' · high ' + fmtM(id, tot[hi]) + ' on ' + esc(TR.fmtDay(dates[hi])) + ', low ' + fmtM(id, tot[lo]) + ' on ' + esc(TR.fmtDay(dates[lo])) + '</div>';
+  }
+  // Week-on-week ageing table: one row per week, each ageing day = average per base day in that week.
+  function weekAgeTable(id, dim, days, f) {
+    var c = cfg(id), ws = TR.weeks(days, dim, f, c.lo, c.hi), ages = range(c.lo, Math.min(c.hi, 31));
+    var mon = money(id);
+    var defs = [{ h: 'Week', v: function (w) { return w.w; }, f: function (w) { return esc(weekLabel(w.w)); } },
+      { h: 'Base days', num: true, noTotal: true, v: function (w) { return w.days.length; } }]
+      .concat(ages.filter(function (a) { return ws.some(function (w) { return (mon ? w.val : w.cnt)[a]; }); }).map(function (a) {
+        return { h: (a === 31 ? '31+' : 'D' + a) + ' avg', num: true, money: mon, noTotal: true, v: function (w) { return ((mon ? w.val : w.cnt)[a] || 0) / w.days.length; }, f: function (w) { var x = ((mon ? w.val : w.cnt)[a] || 0) / w.days.length; return x ? fmtM(id, x) : '<span class="zero">·</span>'; } };
+      }))
+      .concat([{ h: 'Avg / day AWB', num: true, noTotal: true, v: function (w) { return w.n / w.days.length; }, f: function (w) { return num(w.n / w.days.length); } },
+        { h: 'Avg / day value', num: true, money: true, noTotal: true, v: function (w) { return w.v / w.days.length; }, f: function (w) { return inr(w.v / w.days.length); } },
+        { h: 'Week sum AWB', num: true, noTotal: true, v: function (w) { return w.n; }, f: function (w) { return num(w.n); } },
+        { h: 'Week sum value', num: true, money: true, noTotal: true, v: function (w) { return w.v; }, f: function (w) { return inr(w.v); } }]);
+    return '<h4 class="trh">Week on week — ageing split (average per base day)</h4>' + tbl(id + '-w', defs, ws.slice().reverse(), { limit: 60, select: false, noTotal: true, sortForce: { i: -1 } });
+  }
+  // Latest-day ageing pivot (count by ageing, value by ageing, totals) + previous day, for top 10.
+  function agePivot(id, dim, days, f, label) {
+    var c = cfg(id), last = days[days.length - 1], prev = days[days.length - 2];
+    if (!last) return '';
+    var cur = TR.split(last, dim, f, c.lo, c.hi), pre = prev ? TR.split(prev, dim, f, c.lo, c.hi) : new Map();
+    var rows = Array.from(cur.keys()).map(function (k) {
+      var o = cur.get(k), n = 0, v = 0; for (var a in o.cnt) n += o.cnt[a]; for (var b in o.val) v += o.val[b];
+      var p = pre.get(k), pn = 0; if (p) for (var a2 in p.cnt) pn += p.cnt[a2];
+      return { key: k, cnt: o.cnt, val: o.val, n: n, v: v, pn: pn };
+    }).sort(function (a, b) { return b.n - a.n; }).slice(0, 10);
+    var ages = range(c.lo, Math.min(c.hi, 31)).filter(function (a) { return rows.some(function (r) { return r.cnt[a]; }); });
+    var head = '<thead><tr><th rowspan="2">' + esc(label) + '</th><th colspan="' + ages.length + '" class="grp">Count of Awb_number · ageing</th><th colspan="' + ages.length + '" class="grp">Sum of product value · ageing</th>' +
+      '<th rowspan="2" class="num">Total AWB</th><th rowspan="2" class="num">Total value ₹</th><th rowspan="2" class="num">Previous day AWB<br><span class="meta">' + (prev ? esc(TR.fmtDay(prev.d)) : '—') + '</span></th><th rowspan="2" class="num">Change</th></tr><tr>' +
+      ages.map(function (a) { return '<th class="num">' + (a === 31 ? '31+' : a) + '</th>'; }).join('') + ages.map(function (a) { return '<th class="num">' + (a === 31 ? '31+' : a) + '</th>'; }).join('') + '</tr></thead>';
+    var tot = { cnt: {}, val: {}, n: 0, v: 0, pn: 0 };
+    var cell = function (x, m) { return '<td class="num">' + (x ? (m ? inr(x) : num(x)) : '<span class="zero">·</span>') + '</td>'; };
+    var body = rows.map(function (r) {
+      ages.forEach(function (a) { tot.cnt[a] = (tot.cnt[a] || 0) + (r.cnt[a] || 0); tot.val[a] = (tot.val[a] || 0) + (r.val[a] || 0); });
+      tot.n += r.n; tot.v += r.v; tot.pn += r.pn;
+      var ch = r.n - r.pn;
+      return '<tr><td>' + esc(r.key) + '</td>' + ages.map(function (a) { return cell(r.cnt[a]); }).join('') + ages.map(function (a) { return cell(r.val[a], 1); }).join('') +
+        '<td class="num"><b>' + num(r.n) + '</b></td><td class="num"><b>' + inr(r.v) + '</b></td><td class="num">' + num(r.pn) + '</td><td class="num"><span class="' + (ch > 0 ? 'up' : ch < 0 ? 'down' : '') + '">' + (ch > 0 ? '+' : '') + num(ch) + '</span></td></tr>';
+    }).join('');
+    var foot = '<tr class="total"><td>Grand total (top 10)</td>' + ages.map(function (a) { return cell(tot.cnt[a]); }).join('') + ages.map(function (a) { return cell(tot.val[a], 1); }).join('') +
+      '<td class="num">' + num(tot.n) + '</td><td class="num">' + inr(tot.v) + '</td><td class="num">' + num(tot.pn) + '</td><td class="num">' + ((tot.n - tot.pn) > 0 ? '+' : '') + num(tot.n - tot.pn) + '</td></tr>';
+    var tid = id + '-pv'; TCACHE[tid] = rows;
+    return '<h4 class="trh">' + esc(TR.fmtDayLong(last.d)) + ' — top 10 by pendency, ageing in columns</h4>' +
+      '<div class="ttools"><span class="meta"></span><button class="btn small" data-act="trcopy" data-tid="' + tid + '">Copy table</button></div>' +
+      '<div class="tablewrap"><table class="grid tree" id="tbl-' + tid + '">' + head + '<tbody>' + foot + body + '</tbody></table></div>';
+  }
+
+  // ================================================================== the trend cards
+  function trFilterBar() {
+    var tr = state.tr, ds = tr.main.map(function (d) { return d.d; });
+    var opt = function (sel, pre) { return '<option value="">' + pre + '</option>' + ds.slice().reverse().map(function (d) { return '<option value="' + d + '"' + (sel === d ? ' selected' : '') + '>' + esc(TR.fmtDayLong(d)) + '</option>'; }).join(''); };
+    var weeks = {}; ds.forEach(function (d) { weeks[TR.weekStart(d)] = 1; });
+    var wowOk = Object.keys(weeks).length >= 2;
+    return '<div class="trfilters"><span class="flab">Trend</span><span class="segs"><button class="' + (tr.mode === 'dod' ? 'on' : '') + '" data-act="trmode" data-val="dod">Day on day</button>' +
+      '<button class="' + (tr.mode === 'wow' ? 'on' : '') + '" data-act="trmode" data-val="wow"' + (wowOk ? '' : ' disabled title="Needs base files from at least two weeks"') + '>Week on week</button></span>' +
+      '<label>From <select data-act="trfrom">' + opt(tr.from, tr.mode === 'wow' ? 'Last 8 weeks' : 'Last 5 base dates') + '</select></label>' +
+      '<label>to <select data-act="trto">' + opt(tr.to, 'Latest') + '</select></label>' +
+      '<button class="btn small ghost" data-act="trreset">Reset</button>' +
+      '<span class="meta">' + num(ds.length) + ' base dates stored · ' + (ds.length ? esc(TR.fmtDayLong(ds[0])) + ' → ' + esc(TR.fmtDayLong(ds[ds.length - 1])) : '') + ' · Region and Current Location filters above apply here too.</span></div>';
+  }
+  function renderTrends() {
+    var tr = state.tr, out = [];
+    if (tr.loading) return '<div class="banner info">' + esc(tr.loading) + '</div>';
+    if (tr.err) out.push('<div class="banner err">' + esc(tr.err) + '</div>');
+    if (!tr.main.length) return out.join('') + '<section class="card"><h2>Trends</h2><div class="meta">No base dates stored yet. ' + (store().remote ? 'An uploader can run <b>Sync from Drive</b> to load the base files already in the Drive folder, or upload today\'s base.' : 'Upload base files (one per day) to build the day-on-day trends.') + '</div></section>';
+    out.push(trFilterBar());
+    var days = trRange(), sc = trScope(), wow = tr.mode === 'wow';
+    if (!days.length) return out.join('') + '<div class="banner warn">No base dates in the selected range.</div>';
+
+    // 1 — DC pendency trend (DCH2)
+    var c1 = cfg('tr-dc'), f1 = { mt: 'D', regions: sc.regions, locs: sc.locs }, s1 = TR.series(days, 'L', f1, c1.lo, c1.hi);
+    out.push(section('Fwd Short (DCH2) — DC pendency trend D' + c1.lo + '–D' + c1.hi, '',
+      cardBar('tr-dc') + subtitle('tr-dc', s1, days) + periodChart('tr-dc', s1, days, 'DC pendency trend') + periodTable('tr-dc', 'Current Location', s1, days) +
+      (wow ? weekAgeTable('tr-dc', 'L', days, f1) : ''), 'tr-dc', true));
+
+    // 2 — closures
+    out.push(section('Forward overall closures', '', closureCard(sc), 'tr-clo', true));
+
+    // 3 — top 10 POD_Mapping
+    var c3 = cfg('tr-pod'), f3 = { mt: c3.mt, regions: sc.regions }, s3 = TR.series(days, 'P', f3, c3.lo, c3.hi);
+    out.push(section('Top 10 POD_Mapping — D' + c3.lo + '–D' + c3.hi, '',
+      cardBar('tr-pod') + (wow ? '' : agePivot('tr-pod', 'P', days, f3, 'POD_Mapping')) + '<h4 class="trh">' + (wow ? 'Week on week' : 'Day on day') + ' — grand total D' + c3.lo + '–D' + c3.hi + '</h4>' +
+      periodChart('tr-pod', s3, days, 'POD trend') + periodTable('tr-pod', 'POD_Mapping', s3, days, { limit: 10 }) + (wow ? weekAgeTable('tr-pod', 'P', days, f3) : ''), 'tr-pod', true));
+
+    // 4 — top 10 LM hubs (loaded on demand)
+    var c4 = cfg('tr-hub'), f4 = { mt: c4.mt, regions: sc.regions };
+    ensureHub(days);
+    var hdays = days.map(function (d) { return tr.hubByDay[d.d]; }).filter(Boolean);
+    var hubBody = hdays.length < days.length ? '<div class="meta">Loading hub numbers …</div>' : (function () {
+      var s4 = TR.series(hdays, 'H', f4, c4.lo, c4.hi);
+      return (wow ? '' : agePivot('tr-hub', 'H', hdays, f4, 'Hub (Manifest_Destination)')) + '<h4 class="trh">' + (wow ? 'Week on week' : 'Day on day') + ' — grand total D' + c4.lo + '–D' + c4.hi + '</h4>' +
+        periodChart('tr-hub', s4, hdays, 'Hub trend') + periodTable('tr-hub', 'Hub (Manifest_Destination)', s4, hdays, { limit: 10 }) + (wow ? weekAgeTable('tr-hub', 'H', hdays, f4) : '');
+    })();
+    out.push(section('Top 10 LM hubs — D' + c4.lo + '–D' + c4.hi, '', cardBar('tr-hub') + '<div class="meta">LM Liability population: LM collated bucket “Short found” excluded. Hub = Manifest_Destination.</div>' + hubBody, 'tr-hub', true));
+
+    // 5 — client trend
+    var c5 = cfg('tr-client'), f5 = { mt: c5.mt, regions: sc.regions }, s5 = TR.series(days, 'C', f5, c5.lo, c5.hi);
+    out.push(section('Client type trend (client_flag_final) — D' + c5.lo + '–D' + c5.hi, '',
+      cardBar('tr-client') + subtitle('tr-client', s5, days) + periodChart('tr-client', s5, days, 'Client trend') + periodTable('tr-client', 'Client type', s5, days) +
+      (wow ? weekAgeTable('tr-client', 'C', days, f5) : ''), 'tr-client', true));
+
+    // 6 — HOV2 count trend; click a cell for that DC's HOV2 AWBs on that date
+    var c6 = cfg('tr-hov'), f6 = { mt: c6.mt, regions: sc.regions, locs: sc.locs }, s6raw = TR.series(days, 'L', f6, c6.lo, c6.hi), s6 = new Map();
+    s6raw.forEach(function (o, k) { var m = {}, any = false; for (var d in o) { m[d] = { n: o[d].h, v: o[d].h }; if (o[d].h) any = true; } if (any) s6.set(k, m); });
+    state.tblMetric['tr-hov'] = 'awb';
+    out.push(section('HOV2 count trend — D' + c6.lo + '–D' + c6.hi, '',
+      '<div class="trbar">' + ageInputs('tr-hov') + mtSel('tr-hov') + '</div>' + subtitle('tr-hov', s6, days) + periodChart('tr-hov', s6, days, 'HOV2 trend') +
+      (wow ? '' : '<div class="meta">Click a number to see that DC’s HOV2 AWBs on that date (all base columns).</div>') +
+      periodTable('tr-hov', 'Current Location', s6, days, { drill: !wow }), 'tr-hov', true));
+    return out.join('');
+  }
+
+  // ---- closures
+  function closureCard(sc) {
+    var tr = state.tr, c = cfg('tr-clo');
+    var list = tr.closure.filter(function (x) { return x.R && x.R.length; }).sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+    if (!list.length) return '<div class="meta">Closures appear once two consecutive base dates are stored (each base is matched against the next one).</div>';
+    var pair = list.filter(function (x) { return x.d === c.pair; })[0] || list[list.length - 1];
+    var keep = function (r) { return (!sc.regions || sc.regions.has(r[1])) && (!sc.locs || sc.locs.has(r[0])); };
+    var AG = range(3, 15).map(function (a) { return { k: String(a), h: String(a), lo: a, hi: a }; }).concat([{ k: '16-20', h: '16–20', lo: 16, hi: 20 }]);
+    var rows = pair.R.filter(keep).map(function (r) {
+      var o = { key: r[0], region: r[1], cl: {}, op: {}, c: 0, o: 0 };
+      AG.forEach(function (g) { o.cl[g.k] = TR.sumAges(r[2], g.lo, g.hi); o.op[g.k] = TR.sumAges(r[3], g.lo, g.hi); o.c += o.cl[g.k]; o.o += o.op[g.k]; });
+      o.t = o.c + o.o; o.p = o.t ? o.c / o.t : 0; return o;
+    });
+    // merge rows of the same site across regions
+    var m = new Map(); rows.forEach(function (o) { var x = m.get(o.key); if (!x) m.set(o.key, o); else { AG.forEach(function (g) { x.cl[g.k] += o.cl[g.k]; x.op[g.k] += o.op[g.k]; }); x.c += o.c; x.o += o.o; x.t += o.t; x.p = x.t ? x.c / x.t : 0; } });
+    rows = Array.from(m.values());
+    var hidden = c.hideSmall ? rows.filter(function (o) { return o.t < 20; }).length : 0;
+    var shown = c.hideSmall ? rows.filter(function (o) { return o.t >= 20; }) : rows;
+    var totC = 0, totT = 0; rows.forEach(function (o) { totC += o.c; totT += o.t; });
+    var pcls = function (p) { return p >= 0.75 ? 'cl5' : p >= 0.5 ? 'cl4' : p >= 0.25 ? 'cl3' : p >= 0.1 ? 'cl2' : 'cl1'; };
+    var cnt = function (x) { return x ? num(x) : ''; };
+    var defs = [{ h: 'Site Name', v: function (o) { return o.key; } }];
+    if (c.showAge) defs = defs.concat(AG.map(function (g) { return { h: 'Closed ' + g.h, num: true, v: function (o) { return o.cl[g.k]; }, f: function (o) { return cnt(o.cl[g.k]); } }; }));
+    defs.push({ h: 'Closed Total', num: true, cls: function () { return 'clt'; }, v: function (o) { return o.c; }, f: function (o) { return num(o.c); } });
+    defs.push({ h: 'Closure %', num: true, cls: function (o) { return pcls(o.p); }, v: function (o) { return o.p; }, f: function (o) { return Math.round(o.p * 100) + '%'; },
+      tot: function (d) { var cc = 0, tt = 0; d.forEach(function (o) { cc += o.c; tt += o.t; }); return tt ? Math.round(cc / tt * 100) + '%' : '—'; } });
+    if (c.showAge) defs = defs.concat(AG.map(function (g) { return { h: 'Open ' + g.h, num: true, v: function (o) { return o.op[g.k]; }, f: function (o) { return cnt(o.op[g.k]); } }; }));
+    defs.push({ h: 'Open Total', num: true, v: function (o) { return o.o; }, f: function (o) { return num(o.o); } });
+    defs.push({ h: 'Grand Total', num: true, pend: true, v: function (o) { return o.t; }, f: function (o) { return num(o.t); } });
+    var pairs = list.slice().reverse().map(function (x) { return '<option value="' + x.d + '"' + (x.d === pair.d ? ' selected' : '') + '>' + esc(TR.fmtDayLong(x.d)) + ' base vs ' + esc(TR.fmtDayLong(x.next)) + '</option>'; }).join('');
+    // closure % over the selected range
+    var days = trRange().map(function (d) { return d.d; }), inRange = list.filter(function (x) { return days.indexOf(x.d) >= 0; });
+    var pct = function (x) { var cc = 0, tt = 0; x.R.filter(keep).forEach(function (r) { var a = TR.sumAges(r[2], 3, 20), b = TR.sumAges(r[3], 3, 20); cc += a; tt += a + b; }); return tt ? Math.round(cc / tt * 1000) / 10 : null; };
+    var chart = '';
+    if (state.tr.mode === 'wow') {
+      var wk = {}; inRange.forEach(function (x) { var w = TR.weekStart(x.d); (wk[w] = wk[w] || []).push(pct(x)); });
+      var ws = Object.keys(wk).sort();
+      chart = lineChart('tr-clo-c', ws.map(weekLabel), [{ name: 'Closure % (week avg)', values: ws.map(function (w) { var a = wk[w].filter(function (v) { return v !== null; }); return a.length ? Math.round(a.reduce(function (s, v) { return s + v; }, 0) / a.length * 10) / 10 : null; }) }], function (v) { return v + '%'; }, { h: 220 });
+    } else if (inRange.length) {
+      chart = lineChart('tr-clo-c', inRange.map(function (x) { return TR.fmtDay(x.d); }), [{ name: 'Closure %', values: inRange.map(pct) }], function (v) { return v + '%'; }, { h: 220 });
+    }
+    return '<div class="trbar"><label>Pair <select data-act="trpair">' + pairs + '</select></label>' +
+      '<label class="chk"><input type="checkbox" data-act="trshowage"' + (c.showAge ? ' checked' : '') + ' /> Show ageing</label>' +
+      '<label class="chk"><input type="checkbox" data-act="trsmall"' + (c.hideSmall ? ' checked' : '') + ' /> Hide sites under 20 AWBs</label></div>' +
+      '<div class="meta trsub">' + esc(TR.fmtDayLong(pair.d)) + ' base vs ' + esc(TR.fmtDayLong(pair.next)) + ' · AWBs aged 3–20 days · <b>' + num(totC) + '</b> closed of ' + num(totT) + ' (<b>' + (totT ? Math.round(totC / totT * 100) : 0) + '%</b>)' +
+      (hidden ? ' · ' + hidden + ' site' + (hidden === 1 ? '' : 's') + ' under 20 hidden' : '') + '. Closed = AWB not found in the next base; Open = still there.</div>' +
+      chart + tbl('tr-clo', defs, shown, { limit: 300, select: false, sortForce: { i: defs.length - 1, dir: -1 } });
+  }
+
+  // HOV2 drill-down: that DC's HOV2 AWBs on that date, from the stored detailed copy of the date.
+  function hovDrill(day, loc) {
+    var c = cfg('tr-hov'), tr = state.tr;
+    var open = function (ds) {
+      var rows = ds.records.filter(function (r) { return r.loc === loc && r.hov2 && r.age !== null && r.age >= c.lo && r.age <= c.hi && (!c.mt || (c.mt === 'D' ? r.mt === 'DCH2' : c.mt === 'C' ? r.mt === 'DC-DC' : (r.mt !== 'DCH2' && r.mt !== 'DC-DC'))); });
+      state.popup = { tid: 'tr-hov', dim: 'loc', key: loc, rows: rows, mode: 'records', tab: 'fwd', title: 'HOV2 · ' + loc + ' · ' + TR.fmtDayLong(day) + ' · D' + c.lo + '–D' + c.hi };
+      renderPopup();
+    };
+    if (state.ds && state.ds.day === day) return open(state.ds);
+    if (tr.snapCache[day]) return open(tr.snapCache[day]);
+    if (store().remote && tr.snaps.indexOf(day) < 0) { state.notice = 'The detailed copy for ' + TR.fmtDayLong(day) + ' is not stored (only the latest dates keep every column).'; renderHeader(); return; }
+    state.busy = 'Loading ' + TR.fmtDayLong(day) + ' …'; renderHeader();
+    store().snapshot(day, function (m) { state.busy = m; renderHeader(); }).then(function (ds) {
+      state.busy = ''; renderHeader();
+      if (!ds) { state.notice = 'The detailed copy for ' + TR.fmtDayLong(day) + ' is not stored.'; renderHeader(); return; }
+      ds.records.forEach(function (r) { V.classifyRecord(r); });
+      tr.snapCache[day] = ds; open(ds);
+    }).catch(function (e) { state.busy = ''; state.error = e.message; renderHeader(); });
+  }
+  function trCopy(tid, btn) {
+    var t = document.getElementById('tbl-' + tid); if (!t) return;
+    var text = Array.from(t.querySelectorAll('tr')).map(function (tr) { return Array.from(tr.children).map(function (c) { return c.innerText.replace(/\s+/g, ' ').trim(); }).join('\t'); }).join('\n');
+    var done = function () { btn.textContent = 'Copied — paste into Excel'; setTimeout(function () { btn.textContent = 'Copy table'; }, 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); }); else fallbackCopy(text, done);
+  }
+  function loadLatest() {
+    if (!store().remote) return Promise.resolve();
+    var latest = state.tr.days.length ? state.tr.days[state.tr.days.length - 1].day : '';
+    if (state.ds && state.ds.day && state.ds.day === latest) return Promise.resolve();
+    state.busy = 'Loading the latest base …'; renderHeader();
+    return store().snapshot('', function (m) { state.busy = m; renderHeader(); }).then(function (ds) {
+      state.busy = '';
+      if (!ds) { renderAll(); return; }
+      ds.records.forEach(function (r) { V.classifyRecord(r); });
+      useDataset(ds);
+    }).catch(function (e) { state.busy = ''; state.error = 'Could not load the latest base: ' + e.message; renderAll(); });
+  }
+
   function renderBody() {
     var body = $('#body');
     if (!activeDs()) {
-      body.innerHTML = '<section class="card empty-state"><h2>' + (state.expiredAt ? 'Dataset expired' : 'Upload the daily base to begin') + '</h2><p>Nothing is loaded from sample data. The upload stays active for 24 hours.</p><label class="btn primary big" for="upload">Upload Daily Base</label></section>';
+      secIdx = 0;
+      var waiting = state.busy || state.tr.loading;
+      var empty = '<section class="card empty-state"><h2>' + (waiting ? 'Loading the latest base …' : 'No base loaded yet') + '</h2><p>' +
+        (waiting ? esc(state.busy || state.tr.loading) : canUpload() ? 'Upload the daily base' + (store().remote ? ', or run Sync from Drive to load the base files already in the folder.' : '.') : 'The numbers appear here as soon as an uploader adds a base.') + '</p>' +
+        (canUpload() && !waiting ? '<label class="btn primary big" for="upload">Upload Daily Base</label>' : '') + '</section>';
+      body.innerHTML = state.tab === 'fwd' ? tabHead('fwd') + renderTrends() + (state.tr.main.length ? '' : empty) : empty;
       return;
     }
     var t = state.tab, view = computeView(t); state.view = view; secIdx = 0;
@@ -3007,15 +3777,27 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
       else if (act === 'metric') { state.tblMetric[el.dataset.table] = el.dataset.val; renderBody(); }
       else if (act === 'fields') { state.showFields = !state.showFields; renderAll(); }
       else if (act === 'backend') { state.showBackend = !state.showBackend; renderHeader(); }
-      else if (act === 'pull') { if (window.SYNC && window.SYNC.configured()) loadSaved(''); else { state.showBackend = true; renderHeader(); } }
+      else if (act === 'trmode') { state.tr.mode = el.dataset.val; state.tr.from = ''; renderBody(); }
+      else if (act === 'trreset') { state.tr.from = ''; state.tr.to = ''; renderBody(); }
+      else if (act === 'trmt') { state.tr.cfg[el.dataset.card].mt = el.dataset.val; renderBody(); }
+      else if (act === 'trcopy') { trCopy(el.dataset.tid, el); }
+      else if (act === 'hovdrill') { ev.stopPropagation(); hovDrill(el.dataset.day, el.dataset.loc); }
+      else if (act === 'upgo') confirmUpload();
+      else if (act === 'upcancel') { state.pending = null; renderPending(); }
+      else if (act === 'sync') openSync();
+      else if (act === 'syncgo') runSync();
+      else if (act === 'syncstop') { state.sync.stop = true; el.disabled = true; el.textContent = 'Stopping after this file …'; }
+      else if (act === 'syncclose') { state.sync = null; renderSync(); }
+      else if (act === 'signin') { state.showSignIn = !state.showSignIn; renderHeader(); setTimeout(paintSignIn, 50); }
+      else if (act === 'signout') { ev.preventDefault(); signOut(); }
       else if (act === 'apisave') {
         var inp = document.getElementById('apiurl');
         window.SYNC.setUrl(inp ? inp.value : '');
         state.backendErr = ''; state.backend = 'Testing the backend …'; renderHeader();
         window.SYNC.ping().then(function (r) {
           state.backend = ''; state.showBackend = false;
-          state.notice = 'Backend connected. Writing to tab "' + r.sheet + '".'; renderAll();
-          refreshSnaps(); return loadSaved('');
+          state.notice = 'Backend connected (' + (r.folder || 'Drive') + ').'; setupSignIn(r.clientId || '');
+          return loadTrends().then(loadLatest);
         }).catch(function (e) { state.backend = ''; state.backendErr = 'Backend test failed: ' + e.message; renderHeader(); });
       }
     });
@@ -3028,7 +3810,13 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
         if (!s.fields[f].size) delete s.fields[f];
         renderFilters(); renderBody();
       }
-      else if (act === 'loadday') { var dv = el.value; if (dv) loadSaved(dv === '__latest' ? '' : dv); }
+      else if (act === 'loadday') { loadDay(el.value); }
+      else if (act === 'trfrom') { state.tr.from = el.value; renderBody(); }
+      else if (act === 'trto') { state.tr.to = el.value; renderBody(); }
+      else if (act === 'trpair') { state.tr.cfg['tr-clo'].pair = el.value; renderBody(); }
+      else if (act === 'trshowage') { state.tr.cfg['tr-clo'].showAge = el.checked; renderBody(); }
+      else if (act === 'trsmall') { state.tr.cfg['tr-clo'].hideSmall = el.checked; renderBody(); }
+      else if (act === 'trage') { var cc = state.tr.cfg[el.dataset.card], vv = parseInt(el.value, 10); if (!isNaN(vv)) { cc[el.dataset.end] = Math.max(0, Math.min(31, vv)); if (cc.lo > cc.hi) { var tmp = cc.lo; cc.lo = cc.hi; cc.hi = tmp; } } renderBody(); }
       else if (act === 'pdim') { state.prodDim = el.dataset.val; renderBody(); }
       else if (act === 'tblmt') { state.tblMT[el.dataset.table] = el.dataset.val; renderBody(); }
       else if (act === 'missdim') { state.missDim = el.dataset.val; renderBody(); }
@@ -3057,7 +3845,7 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
       else if (act === 'mt') { state.tabs[state.tab].manifestType = el.value; renderFilters(); renderBody(); }
       else if (act === 'age') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderFilters(); renderBody(); }
       else if (act === 'val') { state.tabs[state.tab][el.dataset.k] = el.value === '' ? null : +el.value; renderBody(); }
-      else if (el.id === 'upload' && el.files && el.files[0]) { var file = el.files[0]; el.value = ''; onUpload(file); }
+      else if (el.id === 'upload' && el.files && el.files[0]) { var file = el.files[0]; el.value = ''; startUpload(file); }
     });
     document.addEventListener('input', function (ev) {
       var el = ev.target, act = el.getAttribute && el.getAttribute('data-act');
@@ -3078,7 +3866,14 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     document.addEventListener('keydown', function (ev) {
       if (ev.key === 'Escape') { if (state.popup) closePopup(); state.openFilter = null; renderFilters(); }
     });
-    $('#modal').addEventListener('click', function (ev) { if (ev.target.id === 'modal') closePopup(); });
+    $('#modal').addEventListener('click', function (ev) {
+      if (ev.target.id !== 'modal') return;
+      if (state.sync) { if (state.sync.phase !== 'run') { state.sync = null; renderSync(); } return; }
+      if (state.pending) { state.pending = null; renderPending(); return; }
+      closePopup();
+    });
+    document.addEventListener('mousemove', chartHover);
+    document.addEventListener('mouseout', function (ev) { if (ev.target.classList && ev.target.classList.contains('lc-hit')) chartLeave(ev); });
   }
 
   function boot() {
@@ -3086,50 +3881,26 @@ select.dayselect{appearance:auto;-webkit-appearance:auto;padding-right:8px;max-w
     loadActive().then(function () {
       renderAll();
       remarkAll().then(function (all) { all.forEach(function (e) { state.remarks.set(e.key, e); }); renderBody(); }).catch(function () {});
-      setInterval(expireIfNeeded, 60 * 1000);
-      if (window.SYNC && window.SYNC.configured()) {
+      if (store().remote) {
+        window.SYNC.ping().then(function (r) { setupSignIn(r.clientId || ''); renderHeader(); })
+          .catch(function (e) { state.backendErr = 'Backend not reachable: ' + e.message; renderHeader(); });
         window.SYNC.loadRca().then(function (notes) {
           Object.keys(notes).forEach(function (k) { state.remarks.set(k, { key: k, entity: 'rca', ref: k.slice(2), text: notes[k], history: [], matched: true }); });
           renderBody();
         }).catch(function () {});
-        refreshSnaps();
-        if (!activeDs()) return loadSaved('');
       }
+      return loadTrends().then(loadLatest);
     });
   }
-
-  // Load a saved day from Drive ('' = latest). Falls back to reading the sheet when no day is saved yet
-  // or the backend is still the older version without Drive snapshots.
-  function loadSaved(day) {
-    state.backendErr = ''; state.backend = 'Loading ' + (day || 'the latest saved day') + ' …'; renderHeader();
-    var prog = function (msg) { state.backend = msg; renderHeader(); };
-    return window.SYNC.pullSnapshot(day, prog).then(function (ds) {
-      if (!ds) return pullFromSheet();
-      useLoaded(ds, 'Loaded ' + ds.reportingDate + ' from Drive · ' + num(ds.records.length) + ' records.');
-    }).catch(function (e) {
-      if (day) { state.backend = ''; state.backendErr = 'Could not load ' + day + ': ' + e.message; renderAll(); return; }
-      return pullFromSheet();
-    });
-  }
-  function useLoaded(ds, msg) {
-    state.backend = '';
-    state.ds = ds; state.records = V.ensureCategories(ds.records); state.expiredAt = null;
-    kvPut('active', ds).catch(function () {});
-    state.notice = msg; renderAll();
-  }
-  // Load the base that is already in the Google Sheet (what teammates and other devices see).
-  function pullFromSheet() {
-    state.backendErr = ''; state.backend = 'Checking the Google Sheet …'; renderHeader();
-    return window.SYNC.pullDataset(function (msg) { state.backend = msg; renderHeader(); })
-      .then(function (ds) {
-        state.backend = '';
-        if (!ds) { state.notice = 'The Google Sheet has no base yet. Upload a file to fill it.'; renderAll(); return; }
-        state.ds = ds; state.records = V.ensureCategories(ds.records); state.expiredAt = null;
-        kvPut('active', ds).catch(function () {});
-        state.notice = 'Loaded ' + num(ds.records.length) + ' records from the Google Sheet (' + ds.headers.length + ' columns).';
-        renderAll();
-      })
-      .catch(function (e) { state.backend = ''; state.backendErr = 'Could not read the Google Sheet: ' + e.message; renderAll(); });
+  function loadDay(day) {
+    if (!day || (state.ds && state.ds.day === day)) return;
+    state.busy = 'Loading ' + window.TRENDS.fmtDayLong(day) + ' …'; renderHeader();
+    store().snapshot(day, function (m) { state.busy = m; renderHeader(); }).then(function (ds) {
+      state.busy = '';
+      if (!ds) { state.notice = 'No detailed copy stored for ' + window.TRENDS.fmtDayLong(day) + '.'; renderAll(); return; }
+      ds.records.forEach(function (r) { V.classifyRecord(r); });
+      useDataset(ds);
+    }).catch(function (e) { state.busy = ''; state.error = e.message; renderAll(); });
   }
   window.DASH = {
     schema: DS_SCHEMA,
