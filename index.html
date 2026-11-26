@@ -582,14 +582,15 @@ td.clt{background:var(--hl)}
   function u16(b, o) { return b[o] | (b[o + 1] << 8); }
   function u32(b, o) { return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0; }
 
-  function readDir(buf) {
-    var b = new Uint8Array(buf), eocd = -1;
+  // Central directory entries from a buffer that holds it; `base` = file offset of b[0].
+  function findEocd(b) {
     for (var i = b.length - 22; i >= Math.max(0, b.length - 66000); i--) {
-      if (b[i] === 0x50 && b[i + 1] === 0x4b && b[i + 2] === 0x05 && b[i + 3] === 0x06) { eocd = i; break; }
+      if (b[i] === 0x50 && b[i + 1] === 0x4b && b[i + 2] === 0x05 && b[i + 3] === 0x06) return i;
     }
-    if (eocd < 0) return null;
-    var n = u16(b, eocd + 10), off = u32(b, eocd + 16), out = {};
-    if (off === 0xffffffff) return null;   // zip64
+    return -1;
+  }
+  function parseCdir(b, off, n) {
+    var out = {};
     for (var k = 0; k < n; k++) {
       if (u32(b, off) !== 0x02014b50) return null;
       var method = u16(b, off + 10), csize = u32(b, off + 20), nlen = u16(b, off + 28), xlen = u16(b, off + 30), clen = u16(b, off + 32), loff = u32(b, off + 42);
@@ -597,21 +598,60 @@ td.clt{background:var(--hl)}
       out[name] = { method: method, csize: csize, loff: loff };
       off += 46 + nlen + xlen + clen;
     }
-    return { bytes: b, files: out };
+    return out;
   }
-  function entryStream(dir, name) {
-    var e = dir.files[name]; if (!e) return null;
-    var b = dir.bytes, lo = e.loff;
-    var start = lo + 30 + u16(b, lo + 26) + u16(b, lo + 28);
-    var data = b.subarray(start, start + e.csize);
+  function inflate(e, data) {
     var s = new Blob([data]).stream();
     if (e.method === 8) return s.pipeThrough(new DecompressionStream('deflate-raw'));
     if (e.method === 0) return s;
     return null;
   }
+  function readDir(buf) {
+    var b = new Uint8Array(buf), eocd = findEocd(b);
+    if (eocd < 0) return null;
+    var n = u16(b, eocd + 10), off = u32(b, eocd + 16), out = {};
+    if (off === 0xffffffff) return null;   // zip64
+    var dir = { bytes: b, files: parseCdir(b, off, n) };
+    if (!dir.files) return null;
+    dir.stream = function (name) { return Promise.resolve(entryStream(dir, name)); };
+    return dir;
+  }
+  // Same, but over HTTP-style byte ranges: only the directory, workbook, shared strings and the chosen
+  // sheet are fetched, never the whole file (base files can be 50 MB+, mostly other sheets and pivot caches).
+  // fetchRange(start, length) -> Promise<ArrayBuffer>
+  function remoteDir(size, fetchRange) {
+    var tail = Math.min(size, 66000 + 22);
+    return fetchRange(size - tail, tail).then(function (ab) {
+      var t = new Uint8Array(ab), eocd = findEocd(t);
+      if (eocd < 0) throw new Error('not a zip');
+      var n = u16(t, eocd + 10), csz = u32(t, eocd + 12), coff = u32(t, eocd + 16);
+      if (coff === 0xffffffff) throw new Error('zip64');
+      var have = coff >= size - tail ? Promise.resolve({ b: t, off: coff - (size - tail) }) :
+        fetchRange(coff, csz).then(function (c) { return { b: new Uint8Array(c), off: 0 }; });
+      return have.then(function (h) {
+        var files = parseCdir(h.b, h.off, n);
+        if (!files) throw new Error('bad directory');
+        var dir = { files: files };
+        dir.stream = function (name) {
+          var e = files[name]; if (!e) return Promise.resolve(null);
+          // local header is 30 bytes + name + extra; extra may differ from the central copy, so over-fetch a little
+          return fetchRange(e.loff, Math.min(size - e.loff, e.csize + 30 + 1024 + name.length)).then(function (ab2) {
+            var b = new Uint8Array(ab2), start = 30 + u16(b, 26) + u16(b, 28);
+            return inflate(e, b.subarray(start, start + e.csize));
+          });
+        };
+        return dir;
+      });
+    });
+  }
+  function entryStream(dir, name) {
+    var e = dir.files[name]; if (!e) return null;
+    var b = dir.bytes, lo = e.loff;
+    var start = lo + 30 + u16(b, lo + 26) + u16(b, lo + 28);
+    return inflate(e, b.subarray(start, start + e.csize));
+  }
   function entryText(dir, name) {
-    var s = entryStream(dir, name); if (!s) return Promise.resolve(null);
-    return new Response(s).text();
+    return dir.stream(name).then(function (s) { return s ? new Response(s).text() : null; });
   }
 
   var ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
@@ -693,7 +733,9 @@ td.clt{background:var(--hl)}
   function own(v) { return JSON.parse(JSON.stringify(v)); }
   // Streams one sheet; calls back with (aoa) where aoa[0] is the header row.
   function readSheet(dir, path, ss) {
-    var stream = entryStream(dir, path); if (!stream) return Promise.resolve(null);
+    return dir.stream(path).then(function (stream) { return stream ? readSheetStream(stream, ss) : null; });
+  }
+  function readSheetStream(stream, ss) {
     var reader = stream.pipeThrough(new TextDecoderStream()).getReader();
     var buf = '', rows = [], width = 0, started = false;
     function eat(final) {
@@ -731,6 +773,14 @@ td.clt{background:var(--hl)}
   function read(arrayBuffer, wantNames, onSheet) {
     if (typeof DecompressionStream === 'undefined' || typeof TextDecoderStream === 'undefined') return Promise.resolve(null);
     var dir; try { dir = readDir(arrayBuffer); } catch (e) { return Promise.resolve(null); }
+    return readFrom(dir, wantNames, onSheet);
+  }
+  // Remote variant: rejects when the file can't be read this way (caller then downloads it whole).
+  function readRemote(size, fetchRange, wantNames, onSheet) {
+    if (typeof DecompressionStream === 'undefined' || typeof TextDecoderStream === 'undefined') return Promise.resolve(null);
+    return remoteDir(size, fetchRange).then(function (dir) { return readFrom(dir, wantNames, onSheet); });
+  }
+  function readFrom(dir, wantNames, onSheet) {
     if (!dir || !dir.files['xl/workbook.xml']) return Promise.resolve(null);
     return Promise.all([entryText(dir, 'xl/workbook.xml'), entryText(dir, 'xl/_rels/workbook.xml.rels'), entryText(dir, 'xl/sharedStrings.xml')])
       .then(function (t) {
@@ -751,7 +801,7 @@ td.clt{background:var(--hl)}
       .catch(function () { return null; });
   }
 
-  var api = { read: read };
+  var api = { read: read, readRemote: readRemote };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.FASTXLSX = api;
 })(typeof window !== 'undefined' ? window : this);
 
@@ -1713,6 +1763,18 @@ td.clt{background:var(--hl)}
     });
   }
   // LM hub numbers are kept per date (larger), fetched only for the dates on screen.
+  // One call with the day index, every month's trend numbers and the closures.
+  function boot() {
+    return get({ action: 'boot' }).then(function (d) {
+      var ms = Object.keys(d.main || {}).sort();
+      return Promise.all(ms.map(function (m) { return gunzipB64(d.main[m]).then(lines); }).concat([gunzipB64(d.closure).then(lines)])).then(function (res) {
+        var closure = res.pop(), main = [];
+        res.forEach(function (r) { main = main.concat(r); });
+        main.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+        return { clientId: d.clientId, loginUrl: d.loginUrl, folder: d.folder, days: d.days || [], snaps: d.snaps || [], main: main, closure: closure };
+      });
+    });
+  }
   function hub(dayList) {
     return Promise.all(dayList.map(function (x) {
       return get({ action: 'trends', which: 'hub', day: x.day }).then(function (d) { return gunzipB64(d.data); }).then(function (t) { return t ? JSON.parse(t) : null; });
@@ -1753,6 +1815,26 @@ td.clt{background:var(--hl)}
         bufs.forEach(function (b) { out.set(new Uint8Array(b), o); o += b.byteLength; });
         return out.buffer;
       });
+    });
+  }
+  // Byte-range access to a base file in Drive, so only the sheet that matters is downloaded.
+  var RANGE_MAX = 6 * 1024 * 1024;
+  function remoteFile(id) {
+    return get({ action: 'fmeta', id: id }, true).then(function (m) {
+      var fetchRange = function (start, len) {
+        var pieces = [], pos = start, end = start + len;
+        function next() {
+          if (pos >= end) return Promise.resolve();
+          var n = Math.min(RANGE_MAX, end - pos), at = pos; pos += n;
+          return get({ action: 'range', id: id, start: at, len: n }, true).then(function (d) { return b64Bytes(d.data); }).then(function (b) { pieces.push(b); return next(); });
+        }
+        return next().then(function () {
+          var tot = pieces.reduce(function (s, b) { return s + b.byteLength; }, 0), out = new Uint8Array(tot), o = 0;
+          pieces.forEach(function (b) { out.set(new Uint8Array(b), o); o += b.byteLength; });
+          return out.buffer;
+        });
+      };
+      return { name: m.name, size: m.size, mime: m.mime, fetchRange: fetchRange };
     });
   }
   function awb(day) { return get({ action: 'awb', day: day }, true).then(function (d) { return gunzipB64(d.data); }).then(function (t) { return t ? JSON.parse(t) : null; }); }
@@ -1807,7 +1889,7 @@ td.clt{background:var(--hl)}
 
   window.SYNC = {
     url: url, setUrl: setUrl, configured: configured, setToken: setToken, ping: ping, whoami: whoami,
-    days: days, trends: trends, hub: hub, snapshot: snapshot, files: files, download: download, awb: awb,
+    days: days, trends: trends, hub: hub, boot: boot, snapshot: snapshot, files: files, download: download, remoteFile: remoteFile, awb: awb,
     commitDay: commitDay, loadRca: loadRca, saveRca: saveRca, monthsOf: monthsOf
   };
 })();
@@ -1941,7 +2023,11 @@ td.clt{background:var(--hl)}
       } else if (ds) { state.ds = ds; state.records = V.ensureCategories(ds.records.map(function (x) { return V.classifyRecord(x); })); }
     }).catch(function (e) { state.storageWarning = state.storageWarning || 'Could not read saved dataset: ' + e.message; });
   }
-  function sheetOrder(wb) { var pri = ['Base', 'Short_Dispatched'].filter(function (n) { return wb.SheetNames.indexOf(n) >= 0; }); return pri.concat(wb.SheetNames.filter(function (n) { return pri.indexOf(n) < 0; })); }
+  // Read the Short_Dispatched sheet (any spelling) first, then a Base sheet, then the rest.
+  function sheetOrder(wb) {
+    var names = wb.SheetNames.slice(), rank = function (n) { return /short[\s_-]*dispatch/i.test(n) ? 0 : /^base$/i.test(n.trim()) ? 1 : /base/i.test(n) ? 2 : 3; };
+    return names.sort(function (a, b) { return rank(a) - rank(b); });
+  }
   function parseDateFromName(name) { var m = /(\d{2})-(\d{2})-(\d{4})/.exec(name || ''); return m ? m[1] + '-' + m[2] + '-' + m[3] : ''; }
   function reconcileRemarks(ds) {
     var awb = new Set(ds.records.map(function (r) { return r.awb; })), dest = new Set(ds.records.map(function (r) { return r.dest; }));
@@ -3003,13 +3089,30 @@ td.clt{background:var(--hl)}
   function canUpload() { return !store().remote || !!(state.me && state.me.uploader); }
 
   // ================================================================== loading trends
+  function applyTrends(t) {
+    var tr = state.tr;
+    tr.days = t.days || []; tr.snaps = t.snaps || []; tr.main = t.main || []; tr.closure = t.closure || []; tr.loaded = true; tr.loading = '';
+  }
+  // Opens from this browser's last copy straight away, then refreshes from the backend in one call.
   function loadTrends() {
-    var tr = state.tr; tr.loading = 'Loading trends …'; tr.err = ''; renderBodyIfFwd();
-    return store().days().then(function (d) {
-      tr.days = d.days; tr.snaps = d.snaps || [];
-      if (!tr.days.length) { tr.main = []; tr.closure = []; tr.loaded = true; tr.loading = ''; return; }
-      return store().trends(tr.days).then(function (t) { tr.main = t.main; tr.closure = t.closure; tr.hub = null; tr.loaded = true; tr.loading = ''; });
-    }).catch(function (e) { tr.loading = ''; tr.err = 'Trends could not be loaded: ' + e.message; })
+    var tr = state.tr; tr.err = '';
+    if (!tr.loaded) { tr.loading = 'Loading trends …'; renderBodyIfFwd(); }
+    var cached = !tr.loaded && store().remote ? kvGet('tr:boot').then(function (c) {
+      if (c && !tr.loaded) { applyTrends(c); tr.stale = true; renderHeader(); renderBodyIfFwd(); }
+    }).catch(function () {}) : Promise.resolve();
+    var fresh = store().remote && window.SYNC.boot
+      ? window.SYNC.boot().catch(function (e) {
+          // backend without the one-call route yet: fall back to the older calls
+          if (!/Unknown action/.test(e.message)) throw e;
+          return store().days().then(function (d) { return store().trends(d.days).then(function (t) { return { days: d.days, snaps: d.snaps, main: t.main, closure: t.closure }; }); });
+        })
+      : store().days().then(function (d) { return store().trends(d.days).then(function (t) { return { days: d.days, snaps: d.snaps, main: t.main, closure: t.closure }; }); });
+    return Promise.all([cached, fresh]).then(function (r) {
+      var t = r[1];
+      if (t.loginUrl !== undefined || t.clientId !== undefined) setupSignIn(t.clientId || '', t.loginUrl || '');
+      applyTrends(t); tr.stale = false; tr.hubByDay = {};
+      if (store().remote) kvPut('tr:boot', { days: t.days, snaps: t.snaps, main: t.main, closure: t.closure, at: Date.now() }).catch(function () {});
+    }).catch(function (e) { tr.loading = ''; tr.err = (tr.loaded ? 'Showing the last saved numbers — refresh failed: ' : 'Trends could not be loaded: ') + e.message; })
       .then(function () { renderHeader(); renderBodyIfFwd(); });
   }
   function ensureHub(days) {
@@ -3034,8 +3137,12 @@ td.clt{background:var(--hl)}
       if (r.ok) { res = r; chosen = sn; return true; }
       return false;
     };
-    var fast = /\.xlsx$/i.test(name) && window.FASTXLSX ? window.FASTXLSX.read(buf, function (n) { return sheetOrder({ SheetNames: n }); }, tryAoa) : Promise.resolve(null);
+    var order = function (n) { return sheetOrder({ SheetNames: n }); };
+    var fast = buf && buf.remote ? window.FASTXLSX.readRemote(buf.remote.size, buf.remote.fetchRange, order, tryAoa)
+        .catch(function () { throw Object.assign(new Error('range read failed'), { rangeFail: true }); })
+      : /\.xlsx$/i.test(name) && window.FASTXLSX ? window.FASTXLSX.read(buf, order, tryAoa) : Promise.resolve(null);
     return fast.then(function (hit) {
+      if (!hit && buf && buf.remote) throw Object.assign(new Error('range read failed'), { rangeFail: true });
       if (!hit) {
         if (typeof XLSX === 'undefined') throw new Error('The Excel reader is still loading. Try again in a moment.');
         tried = [];
@@ -3158,11 +3265,17 @@ td.clt{background:var(--hl)}
       var f = todo[i++], eta = i > 1 ? Math.round((Date.now() - t0) / (i - 1) * (todo.length - i + 1) / 60000) : null;
       s.msg = 'File ' + i + ' of ' + todo.length + ': ' + f.name + (eta !== null ? ' · about ' + eta + ' min left' : '');
       renderSync();
-      window.SYNC.download(f.id, function (m) { s.msg = 'File ' + i + ' of ' + todo.length + ': ' + f.name + ' (' + m + ')'; renderSync(); })
-        .then(function (buf) {
-          return ingest(buf, f.name, f.day, { source: 'drive', fileId: f.id, withSnapshot: f.day >= snapFrom, prevAwb: prev,
-            onProgress: function (m) { s.msg = 'File ' + i + ' of ' + todo.length + ': ' + m; renderSync(); } });
-        })
+      var opts = { source: 'drive', fileId: f.id, withSnapshot: f.day >= snapFrom, prevAwb: prev,
+        onProgress: function (m) { s.msg = 'File ' + i + ' of ' + todo.length + ': ' + m; renderSync(); } };
+      var whole = function () {
+        return window.SYNC.download(f.id, function (m) { s.msg = 'File ' + i + ' of ' + todo.length + ': ' + f.name + ' (' + m + ')'; renderSync(); })
+          .then(function (buf) { return ingest(buf, f.name, f.day, opts); });
+      };
+      // .xlsx: fetch only the Short_Dispatched sheet's bytes; anything else (or a failure) falls back to the whole file.
+      (/\.xlsx$/i.test(f.name) && f.mime !== 'application/vnd.google-apps.spreadsheet' && window.SYNC.remoteFile
+        ? window.SYNC.remoteFile(f.id).then(function (rf) { return ingest({ remote: rf }, f.name, f.day, opts); })
+            .catch(function (e) { if (e && e.rangeFail) return whole(); throw e; })
+        : whole())
         .then(function (r) {
           prev = { day: f.day, list: r.awb };
           state.tr.days.push({ day: f.day, fileName: f.name, fileId: f.id });
@@ -3204,18 +3317,20 @@ td.clt{background:var(--hl)}
   // ================================================================== Google sign-in (uploaders)
   function setupSignIn(clientId, loginUrl) {
     state.clientId = clientId; state.loginUrl = loginUrl || '';
+    if (state.signInSetup) return;
+    state.signInSetup = true;
     // Coming back from the Apps Script sign-in page: #uptoken=<pass>
     var m = /[#&]uptoken=([^&]+)/.exec(location.hash || '');
     if (m) {
-      try { sessionStorage.setItem('dclm_tok', decodeURIComponent(m[1])); } catch (e) {}
+      try { localStorage.setItem('dclm_tok', decodeURIComponent(m[1])); } catch (e) {}
       try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
     }
-    try { var t = sessionStorage.getItem('dclm_tok'); if (t) { window.SYNC.setToken(t); checkMe(); } } catch (e) {}
+    try { var t = localStorage.getItem('dclm_tok'); if (t) { window.SYNC.setToken(t); checkMe(); } } catch (e) {}
     if (!clientId || document.getElementById('gsi-lib')) return;
     var sc = document.createElement('script'); sc.id = 'gsi-lib'; sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
     sc.onload = function () {
       window.google.accounts.id.initialize({ client_id: clientId, callback: function (resp) {
-        window.SYNC.setToken(resp.credential); try { sessionStorage.setItem('dclm_tok', resp.credential); } catch (e) {}
+        window.SYNC.setToken(resp.credential); try { localStorage.setItem('dclm_tok', resp.credential); } catch (e) {}
         state.showSignIn = false; checkMe();
       }, auto_select: false });
       renderHeader();
@@ -3226,9 +3341,9 @@ td.clt{background:var(--hl)}
     window.SYNC.whoami().then(function (r) {
       state.me = r; if (!r.uploader) state.notice = r.email + ' can view the dashboard but is not on the uploader list.';
       renderAll();
-    }).catch(function () { state.me = null; window.SYNC.setToken(''); try { sessionStorage.removeItem('dclm_tok'); } catch (e) {} renderHeader(); });
+    }).catch(function () { state.me = null; window.SYNC.setToken(''); try { localStorage.removeItem('dclm_tok'); } catch (e) {} renderHeader(); });
   }
-  function signOut() { state.me = null; window.SYNC.setToken(''); try { sessionStorage.removeItem('dclm_tok'); } catch (e) {} if (window.google) window.google.accounts.id.disableAutoSelect(); renderAll(); }
+  function signOut() { state.me = null; window.SYNC.setToken(''); try { localStorage.removeItem('dclm_tok'); } catch (e) {} if (window.google) window.google.accounts.id.disableAutoSelect(); renderAll(); }
   function paintSignIn() {
     var el = document.getElementById('gsi-btn');
     if (el && window.google && window.google.accounts && !el.childNodes.length) window.google.accounts.id.renderButton(el, { theme: 'outline', size: 'medium', text: 'signin_with' });
@@ -3889,8 +4004,6 @@ td.clt{background:var(--hl)}
       renderAll();
       remarkAll().then(function (all) { all.forEach(function (e) { state.remarks.set(e.key, e); }); renderBody(); }).catch(function () {});
       if (store().remote) {
-        window.SYNC.ping().then(function (r) { setupSignIn(r.clientId || '', r.loginUrl || ''); renderHeader(); })
-          .catch(function (e) { state.backendErr = 'Backend not reachable: ' + e.message; renderHeader(); });
         window.SYNC.loadRca().then(function (notes) {
           Object.keys(notes).forEach(function (k) { state.remarks.set(k, { key: k, entity: 'rca', ref: k.slice(2), text: notes[k], history: [], matched: true }); });
           renderBody();
